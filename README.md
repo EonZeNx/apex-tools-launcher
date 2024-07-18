@@ -1,16 +1,17 @@
 # Apex Tools Launcher (C#)
-A library to launch [Avalanche Studios](https://avalanchestudios.com/) games, and extract and repack their files.
+Mod tools for [Avalanche Studios](https://avalanchestudios.com/) games. Launch, extract and repack their games and files.
 
-### File type status
-|     Game     |  File type  | Version |   Status   |
-| ------------ | ----------- | ------- | ---------- |
-| Just Cause 3 | RTPC        | 1.4     | Completed  |
-|              | RTPC        | 1       | Completed  |
-|              | AAF         | 1       | Completed  |
-|              | SARC        | 2       | Completed  |
-|              | ADF         | 4       | WIP        |
-|              | TAB / ARC   | X       | Completed  |
-|              | DDSC / AVTX | X       | ToDo       |
+## File type status
+### Just Cause 3
+|  File type  | Version |   Status   |
+| ----------- | ------- | ---------- |
+| RTPC        | 1.4     | Extract    |
+| RTPC        | 1       | Extract    |
+| AAF         | 1       | Extract    |
+| SARC        | 2       | Extract    |
+| ADF         | 4       | ToDo       |
+| TAB / ARC   | 2       | Extract    |
+| DDSC / AVTX | X       | ToDo       |
 
 ## External dependencies
 - None so far
@@ -28,6 +29,9 @@ Feel free to join the EonZeNx server here https://discord.gg/SAjVFmMGdd or the o
 - **[aaronkirkham's jc-model-renderer](https://github.com/aaronkirkham)**: The JC Model Renderer had some very useful 
   info, especially regarding compression.
 - **[kk19's DECA](https://github.com/kk49/deca)**: Very helpful for detailed file formats.
+
+# License
+[MIT license](https://choosealicense.com/licenses/mit/)
 
 # Disclaimer
 All product names, logos, and brands are property of their respective owners. All company, product and service names
