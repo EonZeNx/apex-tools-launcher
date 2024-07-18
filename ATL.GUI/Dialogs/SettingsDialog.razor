@@ -1,0 +1,27 @@
+
+<MudDialog Class="flex-grow-1" DefaultFocus="DefaultFocus.FirstChild">
+  <DialogContent>
+    <MudStack>
+      <MudTextField
+        T="string"
+        Label="Steam location"
+        Value="@AppConfig.SteamPath"
+        ValueChanged="@SteamLocationChanged"
+        Immediate="@true"
+        Variant="@Variant.Outlined"
+        Margin="Margin.Dense"
+        Error="@(!ValidSteamLocation)"
+      />
+    </MudStack>
+  </DialogContent>
+
+  <DialogActions>
+    <MudButton OnClick="@Close" Variant="Variant.Outlined">Close</MudButton>
+    <MudButton
+      OnClick="@Confirm"
+      Variant="Variant.Filled"
+      Color="@Color.Primary"
+      Disabled="@(!ValidSteamLocation)"
+    >Confirm</MudButton>
+  </DialogActions>
+</MudDialog>

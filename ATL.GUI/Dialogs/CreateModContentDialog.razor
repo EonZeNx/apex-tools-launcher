@@ -1,0 +1,56 @@
+
+<MudDialog Class="flex-grow-1" DefaultFocus="DefaultFocus.FirstChild">
+  <DialogContent>
+    <MudStack>
+      <MudTextField
+        T="string"
+        Label="Content ID"
+        @bind-Value="@ModContentId"
+        Immediate="@true"
+        Variant="@Variant.Outlined"
+        Margin="Margin.Dense"
+        Error="@(!ContentIdValid())"
+      />
+      <MudTextField
+        T="string"
+        Label="Title"
+        @bind-Value="@ModContentConfig.Title"
+        Immediate="@true"
+        Variant="@Variant.Outlined"
+        Margin="Margin.Dense"
+        Error="@(!TitleValid())"
+      />
+      <MudTextField
+        T="string"
+        Label="Description"
+        @bind-Value="@ModContentConfig.Description"
+        Immediate="@true"
+        Variant="@Variant.Outlined"
+        Margin="Margin.Dense"
+        Lines="3"
+        AutoGrow="@true"
+      />
+      <MudTextField
+        T="string"
+        Label="Target"
+        @bind-Value="@ModContentConfig.Target"
+        Immediate="@true"
+        Variant="@Variant.Outlined"
+        Margin="Margin.Dense"
+      />
+    </MudStack>
+  </DialogContent>
+
+  <DialogActions>
+    <MudButton
+      OnClick="@Close"
+      Variant="Variant.Outlined"
+    >Close</MudButton>
+    <MudButton
+      OnClick="@Confirm"
+      Variant="Variant.Filled"
+      Color="@Color.Primary"
+      Disabled="@(!DialogValid())"
+    >Confirm</MudButton>
+  </DialogActions>
+</MudDialog>

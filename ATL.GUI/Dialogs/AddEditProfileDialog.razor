@@ -1,0 +1,39 @@
+@using ATL.GUI.Libraries
+
+<MudDialog Class="flex-grow-1" DefaultFocus="DefaultFocus.FirstChild">
+  <DialogContent>
+    <MudStack>
+      <MudTextField
+        T="string"
+        Label="Title"
+        Value="@Result.Title"
+        ValueChanged="@CheckResultValid"
+        Immediate="@true"
+        Variant="@Variant.Outlined"
+        Margin="Margin.Dense"
+        Error="@(!ResultValid)"
+        Mask="@MauiConstantsLibrary.IdMask"
+      />
+    </MudStack>
+  </DialogContent>
+
+  <DialogActions>
+    @if (Edit)
+    {
+      <MudIconButton
+        OnClick="@Delete"
+        Icon="@Icons.Material.Filled.Delete"
+        Variant="Variant.Filled"
+        Color="Color.Error"
+        Class="mr-auto"
+      />
+    }
+    
+    <MudButton OnClick="@Close" Variant="Variant.Outlined">Close</MudButton>
+    <MudButton
+      OnClick="@Confirm"
+      Variant="Variant.Filled"
+      Color="@Color.Primary"
+      Disabled="@(!ResultValid)">Confirm</MudButton>
+  </DialogActions>
+</MudDialog>

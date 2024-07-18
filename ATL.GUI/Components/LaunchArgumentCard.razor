@@ -1,0 +1,99 @@
+@using ATL.Core.Config.GUI
+@using ATL.Core.Libraries
+
+<MudCard>
+  <MudCardHeader Class="pb-0">
+    <CardHeaderContent>
+      <MudText Typo="Typo.body1" Style="font-weight: bold">@(LaunchOptionConfig.Title)</MudText>
+    </CardHeaderContent>
+    
+    <CardHeaderActions>
+      <ApexSwitch
+        T="@bool"
+        Color="Color.Primary"
+        Value="@(ProfileConfig.LaunchArguments.ContainsKey(LaunchId))"
+        ValueChanged="@OnLaunchOptionToggle"
+      />
+    </CardHeaderActions>
+  </MudCardHeader>
+  
+  <MudCardContent Class="pt-0" Style="@(!ProfileConfig.LaunchArguments.ContainsKey(LaunchId) ? "opacity: 75%" : "")">
+    <MudText Typo="Typo.body2">@(LaunchOptionConfig.Description)</MudText>
+    <MudText
+      Typo="Typo.body2"
+      Align="Align.Center"
+      Class="flex-1 mt-4"
+      Style="min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: justify; opacity: 75%"
+    >
+      @(ConfigLibrary.CreateLaunchArgument(LaunchOptionConfig, ProfileConfig, LaunchId))
+    </MudText>
+  </MudCardContent>
+  
+    @if (LaunchOptionConfig.ArgumentConfig.Any())
+    {
+      var argumentConfigs = LaunchOptionConfig.ArgumentConfig;
+
+      <MudCardActions Class="pt-0">
+        <MudGrid>
+          @{
+            var argumentKeys = argumentConfigs.Keys.ToArray();
+            for (var i = 0; i < argumentKeys.Length; i += 1)
+            {
+              var argumentKey = argumentKeys[i];
+              var argumentConfig = argumentConfigs[argumentKey];
+              
+              var value = argumentConfig.Value;
+              if (ProfileConfig.LaunchArguments.TryGetValue(LaunchId, out var launchConfig))
+              {
+                if (launchConfig.TryGetValue(argumentKey, out var profileValue))
+                {
+                  value = profileValue;
+                }
+              }
+
+              var xsSize = 6;
+              if (i == argumentKeys.Length - 1 && i % 2 == 0)
+              {
+                xsSize = 12;
+              }
+              
+              <MudItem xs="@(xsSize)">
+                @switch (argumentConfig.Type)
+                {
+                case ArgumentType.Select:
+                  <MudSelect
+                    T="@string"
+                    Label="@argumentConfig.Title"
+                    Value="@value"
+                    ValueChanged="@(v => LaunchArgumentChanged(argumentKey, v))"
+                    Variant="Variant.Outlined"
+                    Margin="Margin.Dense"
+                    Disabled="@(!ProfileConfig.LaunchArguments.ContainsKey(LaunchId))"
+                  >
+                    <MudSelectItem Value="@(ConstantsLibrary.InvalidString)" Disabled="@true">None</MudSelectItem>
+                    @foreach (var configOption in argumentConfig.Options)
+                    {
+                      <MudSelectItem Value="@configOption">@configOption</MudSelectItem>
+                    }
+                  </MudSelect>
+                  break;
+                case ArgumentType.String:
+                default:
+                  <MudTextField
+                    T="@string"
+                    Label="@argumentConfig.Title"
+                    Value="@value"
+                    ValueChanged="@(v => LaunchArgumentChanged(argumentKey, v))"
+                    Variant="Variant.Outlined"
+                    Margin="Margin.Dense"
+                    Disabled="@(!ProfileConfig.LaunchArguments.ContainsKey(LaunchId))"/>
+                  break;
+                }
+              </MudItem>
+            }
+          }
+        </MudGrid>
+      </MudCardActions>
+    }
+  
+</MudCard>

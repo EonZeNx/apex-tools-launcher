@@ -1,0 +1,63 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>disable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <PublishSingleFile>true</PublishSingleFile>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\ApexFormats\ApexFormat.AAF.V01\ApexFormat.AAF.V01.csproj" />
+      <ProjectReference Include="..\ApexFormats\ApexFormat.RTPC.V0104\ApexFormat.RTPC.V0104.csproj" />
+      <ProjectReference Include="..\ApexFormats\ApexFormat.RTPC.V01\ApexFormat.RTPC.V01.csproj" />
+      <ProjectReference Include="..\ApexFormats\ApexFormat.SARC.V02\ApexFormat.SARC.V02.csproj" />
+      <ProjectReference Include="..\ApexFormats\ApexFormat.TAB.V02\ApexFormat.TAB.V02.csproj" />
+      <ProjectReference Include="..\ATL.Core\ATL.Core.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="nulastudio.NetBeauty" Version="2.1.4.5" />
+    </ItemGroup>
+
+    <PropertyGroup>
+
+        <!-- set to True if you want to disable -->
+        <DisableBeauty>False</DisableBeauty>
+        <!-- set to False if you want to beauty on build -->
+        <BeautyOnPublishOnly>True</BeautyOnPublishOnly>
+
+        <BeautySharedRuntimeMode>False</BeautySharedRuntimeMode>
+        <!-- beauty into sub-directory, default is libs, quote with "" if contains space  -->
+        <BeautyLibsDir Condition="$(BeautySharedRuntimeMode) == 'True'">../bin</BeautyLibsDir>
+        <BeautyLibsDir Condition="$(BeautySharedRuntimeMode) != 'True'">./bin</BeautyLibsDir>
+        <!-- dlls that you don't want to be moved or can not be moved -->
+        <!-- <BeautyExcludes>dll1.dll;lib*;...</BeautyExcludes> -->
+        <!-- dlls that end users never needed, so hide them -->
+        <BeautyHiddens>hostfxr;hostpolicy;*.deps.json;*.runtimeconfig*.json</BeautyHiddens> 
+        <!-- DO NOT TOUCH THIS OPTION -->
+        <BeautyNoRuntimeInfo>False</BeautyNoRuntimeInfo>
+        <!-- set to True if you want to allow 3rd debuggers(like dnSpy) debugs the app -->
+        <BeautyEnableDebugging>False</BeautyEnableDebugging>
+        <!-- the patch can reduce the file count -->
+        <!-- set to False if you want to disable -->
+        <!-- SCD Mode Feature Only -->
+        <BeautyUsePatch>False</BeautyUsePatch>
+        <!-- App Entry Dll = BeautyDir + BeautyAppHostDir + BeautyAppHostEntry -->
+        <!-- see https://github.com/nulastudio/NetBeauty2#customize-apphost for more details -->
+        <!-- relative path based on AppHostDir -->
+        <!-- .NET Core Non Single-File Only -->
+        <!-- <BeautyAppHostEntry>bin/ATL.CLI.dll</BeautyAppHostEntry> -->
+        <!-- relative path based on BeautyDir -->
+        <!-- .NET Core Non Single-File Only -->
+        <!-- <BeautyAppHostDir>..</BeautyAppHostDir> -->
+        <!-- <BeautyAfterTasks></BeautyAfterTasks> -->
+        <!-- valid values: Error|Detail|Info -->
+        <BeautyLogLevel>Info</BeautyLogLevel>
+        <!-- set to a repo mirror if you have troble in connecting github -->
+        <!-- <BeautyGitCDN>https://gitee.com/liesauer/HostFXRPatcher</BeautyGitCDN> -->
+        <!-- <BeautyGitTree>master</BeautyGitTree> -->
+    </PropertyGroup>
+
+</Project>

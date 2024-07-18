@@ -1,0 +1,53 @@
+@using ATL.Core.Libraries
+
+<MudCard>
+  <MudCardHeader Class="pb-0">
+    <CardHeaderContent>
+      <MudText Typo="Typo.body1" Style="font-weight: bold">@(ModConfig.Title)</MudText>
+    </CardHeaderContent>
+      
+    <CardHeaderActions>
+      <MudStack Row="@true" AlignItems="AlignItems.Center">
+        <MudSelect
+          T="@string"
+          Label="Version"
+          Variant="Variant.Outlined"
+          Value="@SelectedVersion"
+          ValueChanged="@OnVersionChanged"
+          Margin="Margin.Dense"
+          Disabled="@(!ProfileConfig.ModConfigs.ContainsKey(ModId))"
+          FullWidth="@true"
+          Error="@(ProfileConfig.ModConfigs.ContainsKey(ModId) && ConstantsLibrary.IsStringInvalid(SelectedVersion))"
+          Class="flex-grow-0 mt-1"
+          Style="width: 15rem"
+        >
+          <MudSelectItem Value="@(ConstantsLibrary.InvalidString)" Disabled="@true">None</MudSelectItem>
+          @foreach (var (versionKey, versionConfig) in ModConfig.Versions)
+          {
+            <MudSelectItem Value="@versionKey">@(versionConfig.Title)</MudSelectItem>
+          }
+        </MudSelect>
+
+        <ApexSwitch
+          T="@bool"
+          Color="Color.Primary"
+          Value="@(ProfileConfig.ModConfigs.ContainsKey(ModId))"
+          ValueChanged="@OnModEnabled"
+        />
+      </MudStack>
+    </CardHeaderActions>
+  </MudCardHeader>
+
+  <MudCardContent Class="pt-0" Style="@(!ProfileConfig.ModConfigs.ContainsKey(ModId) ? "opacity: 75%" : "")">
+    <MudText Typo="Typo.body2">@(ModConfig.Description)</MudText>
+
+    @if (ModConfig.Versions.TryGetValue(SelectedVersion, out var modContentConfig))
+    {
+      if (!string.IsNullOrEmpty(modContentConfig.Description))
+      {
+        <MudText Typo="Typo.body1" Class="mt-4" Style="font-weight: bold">Content description</MudText>
+        <pre><MudText Typo="Typo.body2">@(modContentConfig.Description)</MudText></pre>
+      }
+    }
+  </MudCardContent>
+</MudCard>

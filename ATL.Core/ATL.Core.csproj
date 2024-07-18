@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <PublishSingleFile>true</PublishSingleFile>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="CommunityToolkit.HighPerformance" Version="8.2.2" />
+      <PackageReference Include="Oodle.NET" Version="2.0.2" />
+      <PackageReference Include="RustyOptions" Version="0.10.1" />
+      <PackageReference Include="System.Data.SQLite" Version="1.0.118" />
+    </ItemGroup>
+
+</Project>

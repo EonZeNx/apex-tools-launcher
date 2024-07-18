@@ -1,0 +1,21 @@
+﻿<MudPaper Height="@Height" Style="overflow-y: scroll">
+  <MudList
+    T="string"
+    Clickable="@true"
+    SelectedValue="@ModId"
+    SelectedValueChanged="@ListValueChanged"
+    Color="@Color.Info"
+  >
+    @if (ModConfigs.Count == 0)
+    {
+      <MudListItem Text="No mods found"/>
+    }
+    else
+    {
+      foreach (var (modId, config) in ModConfigs)
+      {
+        <MudListItem Text="@config.Title" Value="@modId"/>
+      }
+    }
+  </MudList>
+</MudPaper>
