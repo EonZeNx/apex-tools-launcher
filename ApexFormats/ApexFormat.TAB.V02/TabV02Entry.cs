@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.HighPerformance;
+using RustyOptions;
 
 namespace ApexFormat.TAB.V02;
 
@@ -19,8 +20,18 @@ public class TabV02Entry
 
 public static class TabV02EntryExtensions
 {
-    public static TabV02Entry ReadTabV02Entry(this Stream stream)
+    public static Option<TabV02Entry> ReadTabV02Entry(this Stream stream)
     {
+        if (stream.Length < TabV02Header.SizeOf())
+        {
+            return Option<TabV02Entry>.None;
+        }
+        
+        if (stream.Length - stream.Position < TabV02Header.SizeOf())
+        {
+            return Option<TabV02Entry>.None;
+        }
+        
         var result = new TabV02Entry
         {
             NameHash = stream.Read<uint>(),
@@ -28,6 +39,6 @@ public static class TabV02EntryExtensions
             Size = stream.Read<uint>(),
         };
 
-        return result;
+        return Option.Some(result);
     }
 }

@@ -4,6 +4,27 @@ namespace ApexFormat.TAB.V02;
 
 public static class TabV02Manager
 {
+    public static bool SupportsPath(string path)
+    {
+        if (Path.Exists(path))
+        { // invalid path
+            return false;
+        }
+        
+        if (Directory.Exists(path))
+        { // don't support repacking directories just yet
+            return false;
+        }
+        
+        if (!File.Exists(path))
+        { // check if file valid
+            using var fileStream = new FileStream(path, FileMode.Open);
+            return !fileStream.ReadTabV02Header().IsNone;
+        }
+
+        return false;
+    }
+    
     public static int ParseTabEntries(Stream inTabBuffer, out TabV02Entry[] outTabEntries)
     {
         outTabEntries = [];
@@ -15,8 +36,11 @@ public static class TabV02Manager
         var archiveEntries = new List<TabV02Entry>();
         while (inTabBuffer.Position + TabV02Entry.SizeOf() <= inTabBuffer.Length)
         {
-            var archiveEntry = inTabBuffer.ReadTabV02Entry();
-            archiveEntries.Add(archiveEntry);
+            var optionArchiveEntry = inTabBuffer.ReadTabV02Entry();
+            if (optionArchiveEntry.IsSome(out var archiveEntry))
+            {
+                archiveEntries.Add(archiveEntry);
+            }
         }
         outTabEntries = archiveEntries.ToArray();
 
@@ -25,7 +49,7 @@ public static class TabV02Manager
 
     public static int Decompress(Stream inTabBuffer, Stream inArcBuffer, string outDirectory)
     {
-        var header = inTabBuffer.ReadTabV02Header();
+        var optionHeader = inTabBuffer.ReadTabV02Header();
         var parseFileEntriesResult = ParseTabEntries(inTabBuffer, out var tabEntries);
         if (parseFileEntriesResult < 0)
         {
