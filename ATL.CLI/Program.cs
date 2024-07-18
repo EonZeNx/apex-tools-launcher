@@ -5,6 +5,7 @@ using ApexFormat.RTPC.V01;
 using ApexFormat.SARC.V02;
 using ApexFormat.TAB.V02;
 using ATL.Core.Config;
+using ATL.Core.Hash;
 using ATL.Core.Libraries;
 
 namespace ATL.CLI;
@@ -16,6 +17,7 @@ class Program
 #if !DEBUG
         AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 #endif
+        CoreAppConfig.LoadAppConfig();
         
         // Console hash should disrespect auto-close
         // Should be before it
@@ -24,14 +26,28 @@ class Program
             ConsoleHash.Start();
             return;
         }
-
-        CoreAppConfig.LoadAppConfig();
+        
+        if (CoreAppConfig.Get().PreloadHashes)
+        {
+            ConsoleLibrary.Log("Loading hashes into memory...", LogType.Info);
+            LookupHashes.LoadAll();
+        }
         AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
         
         // TODO: Parse args and action files
         foreach (var arg in args)
         {
-            if (!File.Exists(arg)) continue;
+
+            var fileName = Path.GetFileName(arg);
+            if (Path.Exists(arg))
+            {
+                ConsoleLibrary.Log($"Processing '{fileName}'", LogType.Info);
+            }
+            else
+            {
+                ConsoleLibrary.Log($"'{fileName}' does not exist", LogType.Warning);
+                continue;
+            }
 
             // SARCv02 test
             // var inBuffer = new FileStream(arg, FileMode.Open);
@@ -85,6 +101,8 @@ class Program
             var outBuffer = new FileStream(targetXmlFilePath, FileMode.Create);
             
             RtpcV01Manager.Decompress(inBuffer, outBuffer);
+            
+            ConsoleLibrary.Log($"Finished '{fileName}'", LogType.Info);
         }
         
         Close();
@@ -115,6 +133,7 @@ class Program
             ConsoleLibrary.Log(message, LogType.Warning);
         }
         
+        ConsoleLibrary.Log("exiting...", LogType.Info);
         Environment.Exit(0);
     }
 }

@@ -14,4 +14,10 @@
       <PackageReference Include="System.Data.SQLite" Version="1.0.118" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Update="databases\atl.core.db">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
 </Project>

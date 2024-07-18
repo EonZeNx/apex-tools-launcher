@@ -32,6 +32,8 @@ public static class ConsoleHash
                 _ => ECommand.Exit
             };
         }
+        
+        ConsoleLibrary.Log("exiting...", LogType.Info);
     }
 
     private static ECommand HashInput()
@@ -42,9 +44,9 @@ public static class ConsoleHash
         if (string.Equals(userInput, SwitchMode)) return ECommand.Lookup;
 
         var hash = userInput.HashJenkins();
-        ConsoleLibrary.Log($"Hex (big endian):    {hash:X8}", ConsoleColor.White);
-        ConsoleLibrary.Log($"Hex (little endian): {hash.ReverseEndian():X8}", ConsoleColor.White);
-        ConsoleLibrary.Log($"UInt32:              {hash}", ConsoleColor.White);
+        ConsoleLibrary.Log($"Hex (big):    {hash:X8}", ConsoleColor.White);
+        ConsoleLibrary.Log($"Hex (little): {hash.ReverseEndian():X8}", ConsoleColor.White);
+        ConsoleLibrary.Log($"uint32:       {hash}", ConsoleColor.White);
 
         return ECommand.Hash;
     }
@@ -70,13 +72,13 @@ public static class ConsoleHash
         }
         
         var result = LookupHashes.Get(hash);
-        if (string.IsNullOrEmpty(result))
+        if (string.IsNullOrEmpty(result.Value))
         {
             ConsoleLibrary.Log("Hash not found in database", LogType.Warning);
         }
         else
         {
-            ConsoleLibrary.Log($"Found result: {result}", ConsoleColor.White);
+            ConsoleLibrary.Log($"Found result: {result.Value} [{result.Table}]", ConsoleColor.White);
         }
         
         return ECommand.Lookup;

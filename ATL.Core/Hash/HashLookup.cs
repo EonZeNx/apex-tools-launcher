@@ -14,12 +14,20 @@ public enum EHashType
     Misc = 8
 }
 
+public struct HashLookupResult
+{
+    public string Value = "";
+    public string Table = "unknown";
+
+    public HashLookupResult() { }
+}
+
 public static class LookupHashes
 {
     public static SQLiteConnection? DbConnection { get; set; } = null;
     public static bool TriedToOpenDb { get; set; } = false;
     
-    public static readonly Dictionary<uint, string> KnownHashes = new();
+    public static readonly Dictionary<uint, HashLookupResult> KnownHashes = new();
     public static readonly HashSet<uint> UnknownHashes = new();
     
     public static readonly Dictionary<EHashType, string> HashTypeToTable = new()
@@ -63,9 +71,13 @@ public static class LookupHashes
             while (dbr.Read())
             {
                 var hash = (uint) dbr.GetInt32(0);
-                var value = dbr.GetString(1);
-                
-                KnownHashes.TryAdd(hash, value);
+                var result = new HashLookupResult
+                {
+                    Value = dbr.GetString(1),
+                    Table = table
+                };
+
+                KnownHashes.TryAdd(hash, result);
             }
         }
     }
@@ -81,69 +93,74 @@ public static class LookupHashes
     
     public static bool Unknown(uint hash)
     {
-        return !KnownHashes.ContainsKey(hash) || UnknownHashes.Contains(hash);
+        return UnknownHashes.Contains(hash);
     }
     
-    public static string Get(byte[] bytes, EHashType hashType = EHashType.Unknown)
+    public static HashLookupResult Get(byte[] bytes, EHashType hashType = EHashType.Unknown)
     {
         return Get(BitConverter.ToUInt32(bytes), hashType);
     }
     
-    public static string Get(uint hash, EHashType hashType = EHashType.Unknown)
+    public static HashLookupResult Get(uint hash, EHashType hashType = EHashType.Unknown)
     {
-        if (!CoreAppConfig.Get().Cli.LookupHash) return string.Empty;
-        
-        if (Known(hash)) return KnownHashes[hash];
-        if (Unknown(hash)) return string.Empty;
+        var result = new HashLookupResult();
+        if (!CoreAppConfig.Get().Cli.LookupHash) return result;
+
+        if (Known(hash))
+        {
+            result = KnownHashes[hash];
+            return result;
+        }
+        if (Unknown(hash)) return result;
 
         if (DbConnection == null && !TriedToOpenDb) OpenDatabaseConnection();
-        if (DbConnection?.State != ConnectionState.Open) return string.Empty;
+        if (DbConnection?.State != ConnectionState.Open) return result;
         
         var tables = new List<string>();
-        if (hashType.HasFlag(EHashType.FilePath))
+        if (hashType.HasFlag(EHashType.FilePath) || hashType.HasFlag(EHashType.Unknown))
         {
             tables.Add(HashTypeToTable[EHashType.FilePath]);
         }
-        if (hashType.HasFlag(EHashType.Property))
+        if (hashType.HasFlag(EHashType.Property) || hashType.HasFlag(EHashType.Unknown))
         {
             tables.Add(HashTypeToTable[EHashType.Property]);
         }
-        if (hashType.HasFlag(EHashType.Class))
+        if (hashType.HasFlag(EHashType.Class) || hashType.HasFlag(EHashType.Unknown))
         {
             tables.Add(HashTypeToTable[EHashType.Class]);
         }
-        if (hashType.HasFlag(EHashType.Misc))
+        if (hashType.HasFlag(EHashType.Misc) || hashType.HasFlag(EHashType.Unknown))
         {
             tables.Add(HashTypeToTable[EHashType.Misc]);
         }
         
         var command = DbConnection.CreateCommand();
-        var foundValue = string.Empty;
         foreach (var table in tables)
         {
             command.CommandText = $"SELECT Value FROM '{table}' WHERE Hash = {(int) hash}";
             using var dbr = command.ExecuteReader();
             if (!dbr.Read()) continue;
             
-            foundValue = dbr.GetString(0);
+            result.Value = dbr.GetString(0);
+            result.Table = table;
             break;
         }
 
-        if (!string.IsNullOrEmpty(foundValue))
+        if (!string.IsNullOrEmpty(result.Value))
         {
-            AddKnown(hash, foundValue);
+            AddKnown(hash, result);
         }
         else
         {
             AddUnknown(hash);
         }
         
-        return foundValue;
+        return result;
     }
     
-    public static void AddKnown(uint hash, string value)
+    public static void AddKnown(uint hash, HashLookupResult result)
     {
-        KnownHashes.TryAdd(hash, value);
+        KnownHashes.TryAdd(hash, result);
     }
     
     public static void AddUnknown(uint hash)
