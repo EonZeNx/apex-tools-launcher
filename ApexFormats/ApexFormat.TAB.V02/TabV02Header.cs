@@ -1,6 +1,4 @@
-﻿using System.Text;
-using ATL.Core.Class;
-using CommunityToolkit.HighPerformance;
+﻿using CommunityToolkit.HighPerformance;
 
 namespace ApexFormat.TAB.V02;
 
