@@ -16,7 +16,7 @@ public static class RtpcV01Manager
         var outer = new XElement("entity");
         outer.SetAttributeValue("extension", "epe");
         outer.SetAttributeValue("format", "RTPC");
-        outer.SetAttributeValue("version", "3");
+        outer.SetAttributeValue("version", "1");
 
         var rootXElement = rootContainer.WriteXElement();
         outer.Add(rootXElement);

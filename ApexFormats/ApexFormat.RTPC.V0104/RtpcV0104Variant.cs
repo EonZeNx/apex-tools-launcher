@@ -1,5 +1,6 @@
 ﻿using System.Xml.Linq;
 using ATL.Core.Extensions;
+using ATL.Core.Hash;
 using CommunityToolkit.HighPerformance;
 
 namespace ApexFormat.RTPC.V0104;
@@ -69,7 +70,17 @@ public static class RtpcV0104VariantExtensions
     public static XElement WriteXElement(this RtpcV0104Variant variant)
     {
         var xe = new XElement("value");
-        xe.SetAttributeValue("id", $"{variant.NameHash:X8}");
+
+        var hashResult = LookupHashes.Get(variant.NameHash);
+        if (hashResult.Valid())
+        {
+            xe.SetAttributeValue("name", hashResult.Value);
+        }
+        else
+        {
+            xe.SetAttributeValue("id", $"{variant.NameHash:X8}");
+        }
+        
         xe.SetAttributeValue("type", variant.VariantType.XmlString());
 
         if (variant.Data is null) return xe;

@@ -60,16 +60,6 @@ class Program
             //     throw new Exception();
             // }
             
-            // RTPCv0104
-            // var inBuffer = new FileStream(pathArg, FileMode.Open);
-            //
-            // var targetFilePath = Path.GetDirectoryName(pathArg);
-            // var targetFileName = Path.GetFileNameWithoutExtension(pathArg);
-            // var targetXmlFilePath = Path.Join(targetFilePath, $"{targetFileName}.xml");
-            // var outBuffer = new FileStream(targetXmlFilePath, FileMode.Create);
-            //
-            // RtpcV0104Manager.Decompress(inBuffer, outBuffer);
-            
             // TABv02 test
             // var tabBuffer = new FileStream(pathArg, FileMode.Open);
             //
@@ -86,7 +76,7 @@ class Program
             //     throw new Exception();
             // }
             
-            // RTPCv01
+            // RTPCv0104
             var inBuffer = new FileStream(pathArg, FileMode.Open);
             
             var targetFilePath = Path.GetDirectoryName(pathArg);
@@ -94,7 +84,18 @@ class Program
             var targetXmlFilePath = Path.Join(targetFilePath, $"{targetFileName}.xml");
             var outBuffer = new FileStream(targetXmlFilePath, FileMode.Create);
             
-            RtpcV01Manager.Decompress(inBuffer, outBuffer);
+            RtpcV0104Manager.Decompress(inBuffer, outBuffer);
+            
+            // RTPCv01
+            // var inBuffer = new FileStream(pathArg, FileMode.Open);
+            //
+            // var targetFilePath = Path.GetDirectoryName(pathArg);
+            // var targetFileName = Path.GetFileNameWithoutExtension(pathArg);
+            // var targetXmlFilePath = Path.Join(targetFilePath, $"{targetFileName}.xml");
+            // var outBuffer = new FileStream(targetXmlFilePath, FileMode.Create);
+            //
+            // RtpcV01Manager.Decompress(inBuffer, outBuffer);
+            
             
             ConsoleLibrary.Log($"Finished '{fileName}'", LogType.Info);
         }
