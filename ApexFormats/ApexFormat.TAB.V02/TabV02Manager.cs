@@ -1,4 +1,5 @@
 using ATL.Core.Extensions;
+using ATL.Core.Hash;
 
 namespace ApexFormat.TAB.V02;
 
@@ -49,24 +50,34 @@ public static class TabV02Manager
 
     public static int Decompress(Stream inTabBuffer, Stream inArcBuffer, string outDirectory)
     {
+        if (!Directory.Exists(outDirectory))
+        {
+            return -1;
+        }
+        
         var optionHeader = inTabBuffer.ReadTabV02Header();
+        if (optionHeader.IsNone)
+        {
+            return -2;
+        }
+        
         var parseFileEntriesResult = ParseTabEntries(inTabBuffer, out var tabEntries);
         if (parseFileEntriesResult < 0)
         {
             return parseFileEntriesResult;
         }
 
-        if (!Directory.Exists(outDirectory))
-        {
-            return -1;
-        }
-
         var unknownDirectoryPath = Path.Join(outDirectory, "__UNKNOWN");
         var unknownDirectoryExists = Directory.Exists(unknownDirectoryPath);
         foreach (var tabEntry in tabEntries)
         {
-            // TODO: Lookup hash
             var filePath = Path.Join(unknownDirectoryPath, $"{tabEntry.NameHash:X8}");
+            
+            var hashLookupResult = LookupHashes.Get(tabEntry.NameHash, EHashType.FilePath);
+            if (hashLookupResult.Valid())
+            {
+                filePath = Path.Join(outDirectory, hashLookupResult.Value);
+            }
 
             if (!unknownDirectoryExists)
             { // cache result to reduce file system hit

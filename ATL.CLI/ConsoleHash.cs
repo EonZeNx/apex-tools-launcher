@@ -59,7 +59,6 @@ public static class ConsoleHash
         if (string.Equals(userInput, SwitchMode)) return ECommand.Hash;
 
         var parseSuccess = uint.TryParse(userInput, out var hash);
-        
         if (!parseSuccess)
         {
             parseSuccess = uint.TryParse(userInput, NumberStyles.HexNumber, null, out hash);

@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using ApexFormat.RTPC.V0104;
 using ApexFormat.RTPC.V01;
 using ApexFormat.SARC.V02;
 using ApexFormat.TAB.V02;
+using ATL.Core.Class;
 using ATL.Core.Config;
 using ATL.Core.Hash;
 using ATL.Core.Libraries;
@@ -27,33 +30,24 @@ class Program
             return;
         }
         
+        AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
         if (CoreAppConfig.Get().PreloadHashes)
         {
-            ConsoleLibrary.Log("Loading hashes into memory...", LogType.Info);
+            ConsoleLibrary.Log("Loading all hashes into memory...", LogType.Info);
             LookupHashes.LoadAll();
         }
-        AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
         
-        // TODO: Parse args and action files
-        foreach (var arg in args)
+        var pathArgs = args.Where(path => Path.Exists(path) && !path.EndsWith(".exe"));
+        foreach (var pathArg in pathArgs)
         {
-
-            var fileName = Path.GetFileName(arg);
-            if (Path.Exists(arg))
-            {
-                ConsoleLibrary.Log($"Processing '{fileName}'", LogType.Info);
-            }
-            else
-            {
-                ConsoleLibrary.Log($"'{fileName}' does not exist", LogType.Warning);
-                continue;
-            }
+            var fileName = Path.GetFileName(pathArg);
+            ConsoleLibrary.Log($"Processing '{fileName}'", LogType.Info);
 
             // SARCv02 test
-            // var inBuffer = new FileStream(arg, FileMode.Open);
+            // var inBuffer = new FileStream(pathArg, FileMode.Open);
             //
-            // var fileName = Path.GetFileNameWithoutExtension(arg);
-            // var directoryPath = Path.Join(Path.GetDirectoryName(arg), fileName);
+            // var fileName = Path.GetFileNameWithoutExtension(pathArg);
+            // var directoryPath = Path.Join(Path.GetDirectoryName(pathArg), fileName);
             //
             // if (!Directory.Exists(directoryPath))
             // {
@@ -67,24 +61,24 @@ class Program
             // }
             
             // RTPCv0104
-            // var inBuffer = new FileStream(arg, FileMode.Open);
+            // var inBuffer = new FileStream(pathArg, FileMode.Open);
             //
-            // var targetFilePath = Path.GetDirectoryName(arg);
-            // var targetFileName = Path.GetFileNameWithoutExtension(arg);
+            // var targetFilePath = Path.GetDirectoryName(pathArg);
+            // var targetFileName = Path.GetFileNameWithoutExtension(pathArg);
             // var targetXmlFilePath = Path.Join(targetFilePath, $"{targetFileName}.xml");
             // var outBuffer = new FileStream(targetXmlFilePath, FileMode.Create);
             //
             // RtpcV0104Manager.Decompress(inBuffer, outBuffer);
             
             // TABv02 test
-            // var tabBuffer = new FileStream(arg, FileMode.Open);
+            // var tabBuffer = new FileStream(pathArg, FileMode.Open);
             //
-            // var fileName = Path.GetFileNameWithoutExtension(arg);
-            // var directoryPath = Path.GetDirectoryName(arg);
+            // var directoryPath = Path.GetDirectoryName(pathArg);
             // if (!Directory.Exists(directoryPath)) continue;
             //
-            // var arcPath = Path.Join(directoryPath, $"{fileName}.arc");
-            // var arcBuffer = new FileStream(arcPath, FileMode.Open);
+            // var fileNameWoExtension = Path.GetFileNameWithoutExtension(pathArg);
+            // var arcPath = Path.Join(directoryPath, $"{fileNameWoExtension}.arc");
+            // using var arcBuffer = new FileStream(arcPath, FileMode.Open);
             //
             // var result = TabV02Manager.Decompress(tabBuffer, arcBuffer, directoryPath);
             // if (result < 0)
@@ -93,10 +87,10 @@ class Program
             // }
             
             // RTPCv01
-            var inBuffer = new FileStream(arg, FileMode.Open);
+            var inBuffer = new FileStream(pathArg, FileMode.Open);
             
-            var targetFilePath = Path.GetDirectoryName(arg);
-            var targetFileName = Path.GetFileNameWithoutExtension(arg);
+            var targetFilePath = Path.GetDirectoryName(pathArg);
+            var targetFileName = Path.GetFileNameWithoutExtension(pathArg);
             var targetXmlFilePath = Path.Join(targetFilePath, $"{targetFileName}.xml");
             var outBuffer = new FileStream(targetXmlFilePath, FileMode.Create);
             

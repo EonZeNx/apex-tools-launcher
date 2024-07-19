@@ -14,18 +14,19 @@ public enum EHashType
     Misc = 8
 }
 
-public struct HashLookupResult
+public class HashLookupResult
 {
     public string Value = "";
     public string Table = "unknown";
 
-    public HashLookupResult() { }
+    public bool Valid() => !string.IsNullOrEmpty(Value);
 }
 
 public static class LookupHashes
 {
     public static SQLiteConnection? DbConnection { get; set; } = null;
     public static bool TriedToOpenDb { get; set; } = false;
+    public static bool LoadedAllHashes { get; set; } = false;
     
     public static readonly Dictionary<uint, HashLookupResult> KnownHashes = new();
     public static readonly HashSet<uint> UnknownHashes = new();
@@ -80,6 +81,8 @@ public static class LookupHashes
                 KnownHashes.TryAdd(hash, result);
             }
         }
+
+        LoadedAllHashes = true;
     }
     
     #endregion
@@ -112,6 +115,11 @@ public static class LookupHashes
             return result;
         }
         if (Unknown(hash)) return result;
+        if (LoadedAllHashes)
+        { // don't bother searching
+            AddUnknown(hash);
+            return result;
+        }
 
         if (DbConnection == null && !TriedToOpenDb) OpenDatabaseConnection();
         if (DbConnection?.State != ConnectionState.Open) return result;
