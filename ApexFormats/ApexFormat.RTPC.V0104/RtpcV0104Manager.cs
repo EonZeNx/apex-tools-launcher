@@ -8,12 +8,16 @@ public static class RtpcV0104Manager
 {
     public static int Decompress(Stream inBuffer, Stream outBuffer)
     {
-        var header = inBuffer.ReadRtpcV0104Header();
+        var optionHeader = inBuffer.ReadRtpcV0104Header();
+        if (!optionHeader.IsSome(out var header))
+            return -1;
 
         var containers = new RtpcV0104Container[header.ContainerCount];
         for (var i = 0; i < header.ContainerCount; i++)
         {
-            containers[i] = inBuffer.ReadRtpcV01Container();
+            var optionContainer = inBuffer.ReadRtpcV01Container();
+            if (optionContainer.IsSome(out var container))
+                containers[i] = container;
         }
 
         var outer = new XElement("entity");

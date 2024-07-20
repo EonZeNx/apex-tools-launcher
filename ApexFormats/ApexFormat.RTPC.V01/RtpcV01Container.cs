@@ -56,9 +56,7 @@ public static class RtpcV01ContainerExtensions
         {
             var optionContainer = stream.ReadRtpcV01Container();
             if (optionContainer.IsSome(out var container))
-            {
                 result.Containers[i] = container;
-            }
         }
 
         stream.Seek(originalPosition, SeekOrigin.Begin);

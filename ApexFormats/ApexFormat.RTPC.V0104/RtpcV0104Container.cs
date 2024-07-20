@@ -1,45 +1,51 @@
 ﻿using System.Xml.Linq;
 using ATL.Core.Hash;
 using CommunityToolkit.HighPerformance;
+using RustyOptions;
 
 namespace ApexFormat.RTPC.V0104;
 
 /// <summary>
 /// Structure:
-/// <br/>NameHash - <see cref="uint"/>
-/// <br/>Version01 - <see cref="byte"/>
-/// <br/>Version02 - <see cref="ushort"/>
 /// <br/>PropertyCount - <see cref="ushort"/>
 /// </summary>
-public class RtpcV0104Container
+public class RtpcV0104Container : RtpcV0104ContainerHeader
 {
-    public uint NameHash = 0;
-    public byte Version01 = 0;
-    public ushort Version02 = 0;
-    public ushort PropertyCount = 0;
-    
     public RtpcV0104Variant[] Properties = [];
 }
 
 public static class RtpcV0104ContainerExtensions
 {
-    public static RtpcV0104Container ReadRtpcV01Container(this Stream stream)
+    public static RtpcV0104Container HeaderToContainer(this RtpcV0104ContainerHeader header)
     {
         var result = new RtpcV0104Container
         {
-            NameHash = stream.Read<uint>(),
-            Version01 = stream.Read<byte>(),
-            Version02 = stream.Read<ushort>(),
-            PropertyCount = stream.Read<ushort>(),
+            NameHash = header.NameHash,
+            MajorVersion = header.MajorVersion,
+            MinorVersion = header.MinorVersion,
+            PropertyCount = header.PropertyCount,
         };
+
+        return result;
+    }
+    
+    public static Option<RtpcV0104Container> ReadRtpcV01Container(this Stream stream)
+    {
+        var optionContainerHeader = stream.ReadRtpcV0104ContainerHeader();
+        if (!optionContainerHeader.IsSome(out var containerHeader))
+            return Option<RtpcV0104Container>.None;
+        
+        var result = containerHeader.HeaderToContainer();
         
         result.Properties = new RtpcV0104Variant[result.PropertyCount];
         for (var i = 0; i < result.PropertyCount; i++)
         {
-            result.Properties[i] = stream.ReadRtpcV0104Variant();
+            var optionVariant = stream.ReadRtpcV0104Variant();
+            if (optionVariant.IsSome(out var variant))
+                result.Properties[i] = variant;
         }
 
-        return result;
+        return Option.Some(result);
     }
 
     public static int SortNameThenId(XElement x, XElement y)
