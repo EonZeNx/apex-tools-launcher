@@ -1,6 +1,7 @@
 ﻿using System.Xml.Linq;
 using ATL.Core.Extensions;
 using ATL.Core.Hash;
+using RustyOptions;
 
 namespace ApexFormat.RTPC.V01;
 
@@ -32,26 +33,36 @@ public static class RtpcV01ContainerExtensions
         return result;
     }
     
-    public static RtpcV01Container ReadRtpcV01Container(this Stream stream)
+    public static Option<RtpcV01Container> ReadRtpcV01Container(this Stream stream)
     {
-        var result = stream.ReadRtpcV01ContainerHeader().HeaderToContainer();
+        var optionContainerHeader = stream.ReadRtpcV01ContainerHeader();
+        if (!optionContainerHeader.IsSome(out var containerHeader))
+            return Option<RtpcV01Container>.None;
+        
+        var result = containerHeader.HeaderToContainer();
         
         var originalPosition = stream.Position;
         stream.Seek(result.Offset, SeekOrigin.Begin);
         
         for (var i = 0; i < result.PropertyCount; i++)
         {
-            result.Properties[i] = stream.ReadRtpcV01Variant();
+            var optionVariant = stream.ReadRtpcV01Variant();
+            if (optionVariant.IsSome(out var variant))
+                result.Properties[i] = variant;
         }
 
         stream.Align(4);
         for (var i = 0; i < result.ContainerCount; i++)
         {
-            result.Containers[i] = stream.ReadRtpcV01Container();
+            var optionContainer = stream.ReadRtpcV01Container();
+            if (optionContainer.IsSome(out var container))
+            {
+                result.Containers[i] = container;
+            }
         }
 
         stream.Seek(originalPosition, SeekOrigin.Begin);
-        return result;
+        return Option.Some(result);
     }
 
     public static int SortNameThenId(XElement x, XElement y)

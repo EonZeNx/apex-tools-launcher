@@ -2,29 +2,38 @@
 using ATL.Core.Extensions;
 using ATL.Core.Hash;
 using CommunityToolkit.HighPerformance;
+using RustyOptions;
 
 namespace ApexFormat.RTPC.V01;
 
-public class RtpcV01Variant
+public class RtpcV01Variant : RtpcV01VariantHeader
 {
-    public uint NameHash = 0;
-    public byte[] Data = [4];
-    public ERtpcV01VariantType VariantType = ERtpcV01VariantType.Unassigned;
     public object? DeferredData = null;
 }
 
 public static class RtpcV01VariantExtensions
 {
-    public static RtpcV01Variant ReadRtpcV01Variant(this Stream stream)
+    public static RtpcV01Variant VariantHeaderToVariant(this RtpcV01VariantHeader header)
     {
         var result = new RtpcV01Variant
         {
-            NameHash = stream.Read<uint>(),
-            Data = stream.ReadBytes(4),
-            VariantType = stream.Read<ERtpcV01VariantType>(),
+            NameHash = header.NameHash,
+            Data = header.Data,
+            VariantType = header.VariantType,
         };
 
-        if (result.VariantType.IsPrimitive()) return result;
+        return result;
+    }
+    
+    public static Option<RtpcV01Variant> ReadRtpcV01Variant(this Stream stream)
+    {
+        var optionVariantHeader = stream.ReadRtpcV01VariantHeader();
+        if (!optionVariantHeader.IsSome(out var variantHeader))
+            return Option<RtpcV01Variant>.None;
+        
+        var result = variantHeader.VariantHeaderToVariant();
+        if (result.VariantType.IsPrimitive())
+            return Option.Some(result);
 
         var originalPosition = stream.Position;
         var offset = BitConverter.ToUInt32(result.Data);
@@ -80,7 +89,7 @@ public static class RtpcV01VariantExtensions
         }
 
         stream.Seek(originalPosition, SeekOrigin.Begin);
-        return result;
+        return Option.Some(result);
     }
 
     public static XElement WriteXElement(this RtpcV01Variant variant)

@@ -8,15 +8,20 @@ public static class RtpcV01Manager
 {
     public static int Decompress(Stream inBuffer, Stream outBuffer)
     {
-        var header = inBuffer.ReadRtpcV01Header();
-        var rootContainer = inBuffer.ReadRtpcV01Container();
+        var optionHeader = inBuffer.ReadRtpcV01Header();
+        if (!optionHeader.IsSome(out var header))
+            return -1;
+        
+        var optionContainer = inBuffer.ReadRtpcV01Container();
+        if (!optionContainer.IsSome(out var container))
+            return -2;
 
         var outer = new XElement("entity");
         outer.SetAttributeValue("extension", "epe");
         outer.SetAttributeValue("format", "RTPC");
         outer.SetAttributeValue("version", "1");
 
-        var rootXElement = rootContainer.WriteXElement();
+        var rootXElement = container.WriteXElement();
         outer.Add(rootXElement);
         
         var xd = new XDocument(XDocumentLibrary.AtlGeneratedComment(), outer);
