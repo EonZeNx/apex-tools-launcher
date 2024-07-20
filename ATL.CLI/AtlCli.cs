@@ -17,8 +17,8 @@ public static class AtlCli
 {
     public static readonly Dictionary<string, EMainMenuSelection> InputToSelection = new() {
         {"m", EMainMenuSelection.MainMenu},
-        {"-", EMainMenuSelection.HashMenu},
-        {"+", EMainMenuSelection.DatabaseMenu},
+        {"h", EMainMenuSelection.HashMenu},
+        {"d", EMainMenuSelection.DatabaseMenu},
         {"", EMainMenuSelection.Exit}
     };
     
@@ -29,7 +29,7 @@ public static class AtlCli
         var exit = false;
         while (!exit)
         {
-            var userInput = ConsoleLibrary.GetInput("Select: ");
+            var userInput = ConsoleLibrary.GetInput("Select: ") ?? "_";
             var selection = InputToSelection.GetValueOrDefault(userInput, EMainMenuSelection.Unknown);
 
             switch (selection)
@@ -57,7 +57,7 @@ public static class AtlCli
     {
         ConsoleLibrary.Log($"{ConstantsLibrary.AppTitle} Command Line Interface {ConstantsLibrary.AppVersion}", LogType.Info);
         ConsoleLibrary.Log("[m = main menu]", LogType.Info);
-        ConsoleLibrary.Log("[- = hash menu, + = database menu]", LogType.Info);
+        ConsoleLibrary.Log("[h = hash menu, d = database menu]", LogType.Info);
         ConsoleLibrary.Log("[empty = exit]", LogType.Info);
     }
 

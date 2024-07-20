@@ -22,8 +22,6 @@ class Program
 #endif
         CoreAppConfig.LoadAppConfig();
         
-        // Console hash should disrespect auto-close
-        // Should be before it
         if (args.Length == 0)
         {
             AtlCli.Loop();
