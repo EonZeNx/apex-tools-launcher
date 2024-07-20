@@ -25,7 +25,13 @@ public class SarcV02Header : ISizeOf
     public uint Version = SarcV02HeaderConstants.Version;
     public uint Size;
 
-    public static int SizeOf() => sizeof(uint) + sizeof(uint) + sizeof(uint) + sizeof(uint);
+    public static int SizeOf()
+    {
+        return sizeof(uint) + // MagicLength
+               sizeof(uint) + // Magic
+               sizeof(uint) + // Version
+               sizeof(uint); // Size
+    }
 }
 
 public static class SarcV02HeaderExtensions
