@@ -1,26 +1,27 @@
+using ATL.Core.Class;
 using ATL.Core.Extensions;
 using ATL.Core.Hash;
 
 namespace ApexFormat.TAB.V02;
 
-public static class TabV02Manager
+public class TabV02Manager : ICanProcessStream, ICanProcessPath
 {
-    public static bool SupportsPath(string path)
+    public static bool CanProcess(Stream stream)
     {
-        if (Path.Exists(path))
-        { // invalid path
-            return false;
-        }
-        
+        return !stream.ReadTabV02Header().IsNone;
+    }
+    
+    public static bool CanProcess(string path)
+    {
         if (Directory.Exists(path))
         { // don't support repacking directories just yet
             return false;
         }
         
-        if (!File.Exists(path))
-        { // check if file valid
+        if (File.Exists(path))
+        {
             using var fileStream = new FileStream(path, FileMode.Open);
-            return !fileStream.ReadTabV02Header().IsNone;
+            return CanProcess(fileStream);
         }
 
         return false;
