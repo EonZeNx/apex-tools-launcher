@@ -26,15 +26,15 @@ class Program
         // Should be before it
         if (args.Length == 0)
         {
-            ConsoleHash.Start();
-            return;
+            AtlCli.Loop();
+            Close();
         }
         
         AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
         if (CoreAppConfig.Get().PreloadHashes)
         {
             ConsoleLibrary.Log("Loading all hashes into memory...", LogType.Info);
-            LookupHashes.LoadAll();
+            HashDatabase.LoadAll();
         }
         
         var pathArgs = args.Where(path => Path.Exists(path) && !path.EndsWith(".exe"));

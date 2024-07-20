@@ -4,7 +4,7 @@ public static class ConstantsLibrary
 {
     public static string AppFullTitle => "Apex Tools & Launcher";
     public static string AppTitle => "ATL";
-    public static string AppVersion => "0.8.0";
+    public static string AppVersion => "v0.8.0";
     public static int[] AppWindowSize => [1280, 900];
     
     public static string AppConfigFileName = "atl_config";

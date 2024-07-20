@@ -22,7 +22,7 @@ public class HashLookupResult
     public bool Valid() => !string.IsNullOrEmpty(Value);
 }
 
-public static class LookupHashes
+public static class HashDatabase
 {
     public static SQLiteConnection? DbConnection { get; set; } = null;
     public static bool TriedToOpenDb { get; set; } = false;
@@ -84,37 +84,88 @@ public static class LookupHashes
 
         LoadedAllHashes = true;
     }
+
+    public static int AddToTable(string filePath, EHashType hashType)
+    {
+        if (!File.Exists(filePath))
+        {
+            return -1;
+        }
+        
+        var values = File.ReadLines(filePath);
+        var hashTable = HashTypeToTable[hashType];
+        var hashResults = values.ToDictionary(
+            v => v.HashJenkins(),
+            v => new HashLookupResult
+            {
+                Value = v,
+                Table = hashTable
+            }
+        );
+        
+        if (DbConnection == null && !TriedToOpenDb)
+        {
+            OpenDatabaseConnection();
+        }
+        
+        if (DbConnection?.State != ConnectionState.Open) return -2;
+        
+        var command = DbConnection.CreateCommand();
+        command.CommandText = $"INSERT INTO '{hashTable}' (Hash, Value)" +
+                              $"VALUES (@hash, @value)";
+        command.Parameters.Add(new SQLiteParameter("@hash", SqlDbType.Int));
+        command.Parameters.Add(new SQLiteParameter("@value", SqlDbType.Text));
+
+        var failedAdd = new Dictionary<uint, HashLookupResult>();
+        try {
+            foreach (var (hash, value) in hashResults) {
+                command.Parameters[0].Value = hash;
+                command.Parameters[1].Value = value;
+                
+                if (command.ExecuteNonQuery() != 1)
+                {
+                    failedAdd.Add(hash, value);
+                }
+            }
+        }
+        catch (Exception)
+        {
+            return -3;
+        }
+
+        return 0;
+    }
     
     #endregion
     
     # region Hash
     
-    public static bool Known(uint hash)
+    public static bool IsKnown(uint hash)
     {
         return KnownHashes.ContainsKey(hash);
     }
     
-    public static bool Unknown(uint hash)
+    public static bool IsUnknown(uint hash)
     {
         return UnknownHashes.Contains(hash);
     }
     
-    public static HashLookupResult Get(byte[] bytes, EHashType hashType = EHashType.Unknown)
+    public static HashLookupResult Lookup(byte[] bytes, EHashType hashType = EHashType.Unknown)
     {
-        return Get(BitConverter.ToUInt32(bytes), hashType);
+        return Lookup(BitConverter.ToUInt32(bytes), hashType);
     }
     
-    public static HashLookupResult Get(uint hash, EHashType hashType = EHashType.Unknown)
+    public static HashLookupResult Lookup(uint hash, EHashType hashType = EHashType.Unknown)
     {
         var result = new HashLookupResult();
         if (!CoreAppConfig.Get().Cli.LookupHash) return result;
 
-        if (Known(hash))
+        if (IsKnown(hash))
         {
             result = KnownHashes[hash];
             return result;
         }
-        if (Unknown(hash)) return result;
+        if (IsUnknown(hash)) return result;
         if (LoadedAllHashes)
         { // don't bother searching
             AddUnknown(hash);
@@ -125,21 +176,13 @@ public static class LookupHashes
         if (DbConnection?.State != ConnectionState.Open) return result;
         
         var tables = new List<string>();
-        if (hashType.HasFlag(EHashType.FilePath) || hashType.HasFlag(EHashType.Unknown))
+        foreach (var potentialHashType in Enum.GetValues<EHashType>())
         {
-            tables.Add(HashTypeToTable[EHashType.FilePath]);
-        }
-        if (hashType.HasFlag(EHashType.Property) || hashType.HasFlag(EHashType.Unknown))
-        {
-            tables.Add(HashTypeToTable[EHashType.Property]);
-        }
-        if (hashType.HasFlag(EHashType.Class) || hashType.HasFlag(EHashType.Unknown))
-        {
-            tables.Add(HashTypeToTable[EHashType.Class]);
-        }
-        if (hashType.HasFlag(EHashType.Misc) || hashType.HasFlag(EHashType.Unknown))
-        {
-            tables.Add(HashTypeToTable[EHashType.Misc]);
+            if (potentialHashType == EHashType.Unknown) continue;
+            if (hashType.HasFlag(potentialHashType) || hashType.HasFlag(EHashType.Unknown))
+            {
+                tables.Add(HashTypeToTable[potentialHashType]);
+            }
         }
         
         var command = DbConnection.CreateCommand();

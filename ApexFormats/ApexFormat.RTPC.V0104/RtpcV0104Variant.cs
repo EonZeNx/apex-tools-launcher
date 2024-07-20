@@ -71,7 +71,7 @@ public static class RtpcV0104VariantExtensions
     {
         var xe = new XElement("value");
 
-        var hashResult = LookupHashes.Get(variant.NameHash);
+        var hashResult = HashDatabase.Lookup(variant.NameHash);
         if (hashResult.Valid())
         {
             xe.SetAttributeValue("name", hashResult.Value);

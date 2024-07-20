@@ -73,7 +73,7 @@ public static class TabV02Manager
         {
             var filePath = Path.Join(unknownDirectoryPath, $"{tabEntry.NameHash:X8}");
             
-            var hashLookupResult = LookupHashes.Get(tabEntry.NameHash, EHashType.FilePath);
+            var hashLookupResult = HashDatabase.Lookup(tabEntry.NameHash, EHashType.FilePath);
             if (hashLookupResult.Valid())
             {
                 filePath = Path.Join(outDirectory, hashLookupResult.Value);
