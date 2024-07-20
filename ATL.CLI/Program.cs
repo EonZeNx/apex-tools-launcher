@@ -42,21 +42,21 @@ class Program
             ConsoleLibrary.Log($"Processing '{fileName}'", LogType.Info);
 
             // SARCv02 test
-            // var inBuffer = new FileStream(pathArg, FileMode.Open);
-            //
-            // var fileName = Path.GetFileNameWithoutExtension(pathArg);
-            // var directoryPath = Path.Join(Path.GetDirectoryName(pathArg), fileName);
-            //
-            // if (!Directory.Exists(directoryPath))
-            // {
-            //     Directory.CreateDirectory(directoryPath);
-            // }
-            //
-            // var result = SarcV02Manager.Decompress(inBuffer, directoryPath);
-            // if (result < 0)
-            // {
-            //     throw new Exception();
-            // }
+            var inBuffer = new FileStream(pathArg, FileMode.Open);
+            
+            var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(pathArg);
+            var directoryPath = Path.Join(Path.GetDirectoryName(pathArg), fileNameWithoutExtension);
+            
+            if (!Directory.Exists(directoryPath))
+            {
+                Directory.CreateDirectory(directoryPath);
+            }
+            
+            var result = SarcV02Manager.Decompress(inBuffer, directoryPath);
+            if (result < 0)
+            {
+                throw new Exception();
+            }
             
             // TABv02 test
             // var tabBuffer = new FileStream(pathArg, FileMode.Open);
@@ -75,14 +75,14 @@ class Program
             // }
             
             // RTPCv0104
-            var inBuffer = new FileStream(pathArg, FileMode.Open);
-            
-            var targetFilePath = Path.GetDirectoryName(pathArg);
-            var targetFileName = Path.GetFileNameWithoutExtension(pathArg);
-            var targetXmlFilePath = Path.Join(targetFilePath, $"{targetFileName}.xml");
-            var outBuffer = new FileStream(targetXmlFilePath, FileMode.Create);
-            
-            RtpcV0104Manager.Decompress(inBuffer, outBuffer);
+            // var inBuffer = new FileStream(pathArg, FileMode.Open);
+            //
+            // var targetFilePath = Path.GetDirectoryName(pathArg);
+            // var targetFileName = Path.GetFileNameWithoutExtension(pathArg);
+            // var targetXmlFilePath = Path.Join(targetFilePath, $"{targetFileName}.xml");
+            // var outBuffer = new FileStream(targetXmlFilePath, FileMode.Create);
+            //
+            // RtpcV0104Manager.Decompress(inBuffer, outBuffer);
             
             // RTPCv01
             // var inBuffer = new FileStream(pathArg, FileMode.Open);

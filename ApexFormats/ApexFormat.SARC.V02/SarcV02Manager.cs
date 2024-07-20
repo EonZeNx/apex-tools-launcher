@@ -10,19 +10,23 @@ public static class SarcV02Manager
     {
         outEntries = [];
         if (inBuffer.Length == 0)
-        {
             return -1;
-        }
 
-        var header = inBuffer.ReadSarcV02Header();
+        var optionHeader = inBuffer.ReadSarcV02Header();
+        if (!optionHeader.IsSome(out var header))
+            return -2;
+        
         var archiveEntries = new List<SarcV02ArchiveEntry>();
 
         var startPosition = inBuffer.Position;
         while (true)
         {
-            var archiveEntry = inBuffer.ReadSarcV02ArchiveEntry();
-            archiveEntries.Add(archiveEntry);
-
+            var optionArchiveEntry = inBuffer.ReadSarcV02ArchiveEntry();
+            if (optionArchiveEntry.IsSome(out var archiveEntry))
+            {
+                archiveEntries.Add(archiveEntry);
+            }
+            
             if (header.Size - (inBuffer.Position - startPosition) <= 15)
             {
                 break;
