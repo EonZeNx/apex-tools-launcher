@@ -6,22 +6,21 @@ public static class AafV01Manager
 {
     public static int Decompress(Stream inBuffer, Stream outBuffer)
     {
-        if (inBuffer.Length == 0)
-        {
+        if (inBuffer.Length == 0) 
             return -1;
-        }
 
-        var header = inBuffer.ReadAafV01Header();
-        if (header.Magic != AafV01HeaderConstants.Magic)
-        {
+        var optionHeader = inBuffer.ReadAafV01Header();
+        if (!optionHeader.IsSome(out var header))
             return -2;
-        }
         
         outBuffer.SetLength(header.TotalUnpackedSize);
-        for (var i = 0; i < header.NumChunks; i++)
+        for (var i = 0; i < header.ChunkCount; i++)
         {
             var startPosition = inBuffer.Position;
-            var chunk = inBuffer.ReadAafV01Chunk();
+            var optionChunk = inBuffer.ReadAafV01Chunk();
+            if (!optionChunk.IsSome(out var chunk))
+                continue;
+            
             if (chunk.Magic != AafV01ChunkConstants.Magic)
             {
                 return -3;
@@ -52,11 +51,6 @@ public static class AafV01Manager
             inBuffer.Seek(startPosition + chunk.ChunkSize, SeekOrigin.Begin);
         }
 
-        return 0;
-    }
-
-    public static int Compress(Stream inBuffer, Stream outBuffer)
-    {
         return 0;
     }
 }
