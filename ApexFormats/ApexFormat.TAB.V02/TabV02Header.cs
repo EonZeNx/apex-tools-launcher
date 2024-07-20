@@ -1,4 +1,5 @@
-﻿using CommunityToolkit.HighPerformance;
+﻿using ATL.Core.Class;
+using CommunityToolkit.HighPerformance;
 using RustyOptions;
 
 namespace ApexFormat.TAB.V02;
@@ -18,7 +19,7 @@ public static class TabV02HeaderConstants
 /// <br/>MinorVersion - <see cref="ushort"/>
 /// <br/>Alignment - <see cref="int"/>
 /// </summary>
-public class TabV02Header
+public class TabV02Header : ISizeOf
 {
     public uint Magic = TabV02HeaderConstants.Magic;
     public ushort MajorVersion = TabV02HeaderConstants.MajorVersion;

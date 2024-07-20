@@ -1,4 +1,5 @@
-﻿using CommunityToolkit.HighPerformance;
+﻿using ATL.Core.Class;
+using CommunityToolkit.HighPerformance;
 using RustyOptions;
 
 namespace ApexFormat.TAB.V02;
@@ -9,13 +10,13 @@ namespace ApexFormat.TAB.V02;
 /// <br/>Offset - <see cref="uint"/>
 /// <br/>Size - <see cref="uint"/>
 /// </summary>
-public class TabV02Entry
+public class TabV02Entry : ISizeOf
 {
     public uint NameHash = 0;
     public uint Offset = 0;
     public uint Size = 0;
     
-    public static uint SizeOf() => sizeof(uint) + sizeof(uint) + sizeof(uint);
+    public static int SizeOf() => sizeof(uint) + sizeof(uint) + sizeof(uint);
 }
 
 public static class TabV02EntryExtensions
