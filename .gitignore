@@ -10,6 +10,7 @@ riderModule.iml
 */bin/*
 */obj/*
 
+*.env
 /Builds/*
 /Resources/*
 /Tests/*
