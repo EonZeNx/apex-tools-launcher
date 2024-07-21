@@ -7,6 +7,7 @@ using ApexFormat.RTPC.V0104;
 using ApexFormat.RTPC.V01;
 using ApexFormat.SARC.V02;
 using ApexFormat.TAB.V02;
+using ATL.CLI.Console;
 using ATL.Core.Class;
 using ATL.Core.Config;
 using ATL.Core.Hash;
@@ -25,7 +26,7 @@ class Program
         
         if (args.Length == 0)
         {
-            AtlCli.Loop();
+            AtlConsole.Loop();
             Close();
         }
         

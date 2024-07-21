@@ -10,7 +10,7 @@ public enum EHashType
     FilePath = 0b_0000_0001,
     Property = 0b_0000_0010,
     Class    = 0b_0000_0100,
-    Misc     = 0b_0000_1000,
+    Various  = 0b_0000_1000,
     
     Unknown  = 0b_1000_0000
 }
@@ -36,9 +36,11 @@ public static class HashDatabase
     {
         { EHashType.FilePath, "filepaths" },
         { EHashType.Property, "properties" },
-        { EHashType.Class, "classes" },
-        { EHashType.Misc, "misc" },
+        { EHashType.Class,    "classes" },
+        { EHashType.Various,  "various" },
     };
+    public static readonly Dictionary<string, EHashType> TableToHashType = HashTypeToTable
+        .ToDictionary(kvp => kvp.Value, kvp => kvp.Key);
     
     # region Database
     
@@ -86,15 +88,11 @@ public static class HashDatabase
         LoadedAllHashes = true;
     }
 
-    public static int AddToTable(string filePath, EHashType hashType)
+    public static int AddToTable(IEnumerable<string> values, EHashType hashType, out List<string> failed)
     {
-        if (!File.Exists(filePath))
-        {
-            return -1;
-        }
+        failed = [];
         
-        var values = File.ReadLines(filePath);
-        var hashTable = HashTypeToTable[hashType];
+        var hashTable = HashTypeToTable.GetValueOrDefault(hashType, "unknown");
         var hashResults = values.ToDictionary(
             v => v.HashJenkins(),
             v => new HashLookupResult
@@ -109,7 +107,7 @@ public static class HashDatabase
             OpenDatabaseConnection();
         }
         
-        if (DbConnection?.State != ConnectionState.Open) return -2;
+        if (DbConnection?.State != ConnectionState.Open) return -1;
         
         var command = DbConnection.CreateCommand();
         command.CommandText = $"INSERT INTO '{hashTable}' (Hash, Value)" +
@@ -117,24 +115,25 @@ public static class HashDatabase
         command.Parameters.Add(new SQLiteParameter("@hash", SqlDbType.Int));
         command.Parameters.Add(new SQLiteParameter("@value", SqlDbType.Text));
 
-        var failedAdd = new Dictionary<uint, HashLookupResult>();
+        var failedAdd = 0;
         try {
-            foreach (var (hash, value) in hashResults) {
+            foreach (var (hash, hashResult) in hashResults) {
                 command.Parameters[0].Value = hash;
-                command.Parameters[1].Value = value;
+                command.Parameters[1].Value = hashResult;
+
+                if (command.ExecuteNonQuery() == 1)
+                    continue;
                 
-                if (command.ExecuteNonQuery() != 1)
-                {
-                    failedAdd.Add(hash, value);
-                }
+                failedAdd += 1;
+                failed.Add(hashResult.Value);
             }
         }
         catch (Exception)
         {
-            return -3;
+            return -2;
         }
 
-        return 0;
+        return failedAdd;
     }
     
     #endregion
