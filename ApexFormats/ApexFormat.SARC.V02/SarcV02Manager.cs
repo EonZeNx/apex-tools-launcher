@@ -1,11 +1,33 @@
 using System.Xml;
 using System.Xml.Linq;
+using ATL.Core.Class;
 using ATL.Core.Libraries;
 
 namespace ApexFormat.SARC.V02;
 
-public static class SarcV02Manager
+public class SarcV02Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
 {
+    public static bool CanProcess(Stream stream)
+    {
+        return !stream.ReadSarcV02Header().IsNone;
+    }
+    
+    public static bool CanProcess(string path)
+    {
+        if (Directory.Exists(path))
+        { // don't support repacking directories just yet
+            return false;
+        }
+        
+        if (File.Exists(path))
+        {
+            using var fileStream = new FileStream(path, FileMode.Open);
+            return CanProcess(fileStream);
+        }
+
+        return false;
+    }
+
     public static int ParseFileEntries(Stream inBuffer, out SarcV02ArchiveEntry[] outEntries)
     {
         outEntries = [];
@@ -122,5 +144,21 @@ public static class SarcV02Manager
         }
         
         return WriteEntryFile(outDirectory, outEntries);
+    }
+    
+    public int ProcessBasic(string inFilePath)
+    {
+        var inBuffer = new FileStream(inFilePath, FileMode.Open);
+            
+        var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(inFilePath);
+        var directoryPath = Path.Join(Path.GetDirectoryName(inFilePath), fileNameWithoutExtension);
+            
+        if (!Directory.Exists(directoryPath))
+        {
+            Directory.CreateDirectory(directoryPath);
+        }
+
+        var result = Decompress(inBuffer, directoryPath);
+        return result;
     }
 }

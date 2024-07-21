@@ -30,4 +30,10 @@
       <ProjectReference Include="..\ATL.Core\ATL.Core.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Update=".env">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
 </Project>

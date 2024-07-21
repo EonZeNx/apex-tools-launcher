@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using ApexFormat.AAF.V01;
 using ApexFormat.RTPC.V0104;
 using ApexFormat.RTPC.V01;
 using ApexFormat.SARC.V02;
@@ -40,6 +41,20 @@ class Program
         {
             var fileName = Path.GetFileName(pathArg);
             ConsoleLibrary.Log($"Processing '{fileName}'", LogType.Info);
+            
+            // AAFv01 test
+            // var inBuffer = new FileStream(pathArg, FileMode.Open);
+            //
+            // var targetFilePath = Path.GetDirectoryName(pathArg);
+            // var targetFileName = Path.GetFileNameWithoutExtension(pathArg);
+            // var targetSarcFilePath = Path.Join(targetFilePath, $"{targetFileName}.sarc");
+            // var outBuffer = new FileStream(targetSarcFilePath, FileMode.Create);
+            //
+            // var result = AafV01Manager.Decompress(inBuffer, outBuffer);
+            // if (result < 0)
+            // {
+            //     throw new Exception();
+            // }
 
             // SARCv02 test
             var inBuffer = new FileStream(pathArg, FileMode.Open);
@@ -51,7 +66,7 @@ class Program
             {
                 Directory.CreateDirectory(directoryPath);
             }
-            
+
             var result = SarcV02Manager.Decompress(inBuffer, directoryPath);
             if (result < 0)
             {
@@ -93,6 +108,9 @@ class Program
             // var outBuffer = new FileStream(targetXmlFilePath, FileMode.Create);
             //
             // RtpcV01Manager.Decompress(inBuffer, outBuffer);
+            
+            
+            
             
             
             ConsoleLibrary.Log($"Finished '{fileName}'", LogType.Info);

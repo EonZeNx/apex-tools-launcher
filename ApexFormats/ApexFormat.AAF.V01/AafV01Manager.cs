@@ -1,9 +1,31 @@
+using ATL.Core.Class;
 using Ionic.Zlib;
 
 namespace ApexFormat.AAF.V01;
 
-public static class AafV01Manager
+public class AafV01Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
 {
+    public static bool CanProcess(Stream stream)
+    {
+        return !stream.ReadAafV01Header().IsNone;
+    }
+    
+    public static bool CanProcess(string path)
+    {
+        if (Directory.Exists(path))
+        { // don't support repacking directories just yet
+            return false;
+        }
+        
+        if (File.Exists(path))
+        {
+            using var fileStream = new FileStream(path, FileMode.Open);
+            return CanProcess(fileStream);
+        }
+
+        return false;
+    }
+    
     public static int Decompress(Stream inBuffer, Stream outBuffer)
     {
         if (inBuffer.Length == 0) 
@@ -52,5 +74,18 @@ public static class AafV01Manager
         }
 
         return 0;
+    }
+
+    public int ProcessBasic(string inFilePath)
+    {
+        var inBuffer = new FileStream(inFilePath, FileMode.Open);
+        
+        var targetFilePath = Path.GetDirectoryName(inFilePath);
+        var targetFileName = Path.GetFileNameWithoutExtension(inFilePath);
+        var targetSarcFilePath = Path.Join(targetFilePath, $"{targetFileName}.sarc");
+        var outBuffer = new FileStream(targetSarcFilePath, FileMode.Create);
+        
+        var result = Decompress(inBuffer, outBuffer);
+        return result;
     }
 }

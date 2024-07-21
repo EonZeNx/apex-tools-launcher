@@ -4,7 +4,7 @@ using ATL.Core.Hash;
 
 namespace ApexFormat.TAB.V02;
 
-public class TabV02Manager : ICanProcessStream, ICanProcessPath
+public class TabV02Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
 {
     public static bool CanProcess(Stream stream)
     {
@@ -74,11 +74,13 @@ public class TabV02Manager : ICanProcessStream, ICanProcessPath
         {
             var filePath = Path.Join(unknownDirectoryPath, $"{tabEntry.NameHash:X8}");
             
+            var hashResult = HashDatabase.Lookup(tabEntry.NameHash, EHashType.FilePath);
+            if (hashResult.Valid())
+                filePath = Path.Join(unknownDirectoryPath, hashResult.Value);
+            
             var hashLookupResult = HashDatabase.Lookup(tabEntry.NameHash, EHashType.FilePath);
             if (hashLookupResult.Valid())
-            {
                 filePath = Path.Join(outDirectory, hashLookupResult.Value);
-            }
 
             if (!unknownDirectoryExists)
             { // cache result to reduce file system hit
@@ -92,5 +94,20 @@ public class TabV02Manager : ICanProcessStream, ICanProcessPath
         }
         
         return 0;
+    }
+    
+    public int ProcessBasic(string inFilePath)
+    {
+        var tabBuffer = new FileStream(inFilePath, FileMode.Open);
+        
+        var directoryPath = Path.GetDirectoryName(inFilePath);
+        if (!Directory.Exists(directoryPath)) return -1;
+        
+        var fileNameWoExtension = Path.GetFileNameWithoutExtension(inFilePath);
+        var arcPath = Path.Join(directoryPath, $"{fileNameWoExtension}.arc");
+        using var arcBuffer = new FileStream(arcPath, FileMode.Open);
+        
+        var result = Decompress(tabBuffer, arcBuffer, directoryPath);
+        return result;
     }
 }

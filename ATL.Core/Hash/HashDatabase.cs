@@ -7,11 +7,12 @@ namespace ATL.Core.Hash;
 [Flags]
 public enum EHashType
 {
-    Unknown = 0,
-    FilePath = 1,
-    Property = 2,
-    Class = 4,
-    Misc = 8
+    FilePath = 0b_0000_0001,
+    Property = 0b_0000_0010,
+    Class    = 0b_0000_0100,
+    Misc     = 0b_0000_1000,
+    
+    Unknown  = 0b_1000_0000
 }
 
 public class HashLookupResult
@@ -165,15 +166,18 @@ public static class HashDatabase
             result = KnownHashes[hash];
             return result;
         }
-        if (IsUnknown(hash)) return result;
+        if (IsUnknown(hash))
+            return result;
         if (LoadedAllHashes)
         { // don't bother searching
             AddUnknown(hash);
             return result;
         }
 
-        if (DbConnection == null && !TriedToOpenDb) OpenDatabaseConnection();
-        if (DbConnection?.State != ConnectionState.Open) return result;
+        if (DbConnection == null && !TriedToOpenDb)
+            OpenDatabaseConnection();
+        if (DbConnection?.State != ConnectionState.Open)
+            return result;
         
         var tables = new List<string>();
         foreach (var potentialHashType in Enum.GetValues<EHashType>())
