@@ -26,7 +26,8 @@
         <!-- set to True if you want to disable -->
         <DisableBeauty>False</DisableBeauty>
         <!-- set to False if you want to beauty on build -->
-        <BeautyOnPublishOnly>True</BeautyOnPublishOnly>
+        <BeautyOnPublishOnly Condition="'$(Configuration)' != 'Release'">True</BeautyOnPublishOnly>
+        <BeautyOnPublishOnly Condition="'$(Configuration)' == 'Release'">False</BeautyOnPublishOnly>
 
         <BeautySharedRuntimeMode>False</BeautySharedRuntimeMode>
         <!-- beauty into sub-directory, default is libs, quote with "" if contains space  -->

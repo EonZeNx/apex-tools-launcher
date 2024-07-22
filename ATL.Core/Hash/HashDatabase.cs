@@ -1,6 +1,7 @@
 using System.Data;
 using System.Data.SQLite;
 using ATL.Core.Config;
+using ATL.Core.Libraries;
 
 namespace ATL.Core.Hash;
 
@@ -53,8 +54,12 @@ public static class HashDatabase
     {
         TriedToOpenDb = true;
         
-        var dbFile = CoreAppConfig.Get().Cli.DatabasePath;
-        if (!File.Exists(dbFile)) return;
+        var dbFile = Path.Join(AppDomain.CurrentDomain.BaseDirectory, CoreAppConfig.Get().Cli.DatabasePath);
+        if (!File.Exists(dbFile))
+        {
+            ConsoleLibrary.Log($"Database does not exist '{dbFile}'", ConsoleColor.Red);
+            return;
+        }
             
         var dataSource = @$"Data Source={dbFile}";
         DbConnection = new SQLiteConnection(dataSource);
@@ -67,8 +72,13 @@ public static class HashDatabase
         {
             OpenDatabaseConnection();
         }
-        
-        if (DbConnection?.State != ConnectionState.Open) return;
+
+        if (DbConnection?.State != ConnectionState.Open)
+        {
+            var dbFile = Path.Join(AppDomain.CurrentDomain.BaseDirectory, CoreAppConfig.Get().Cli.DatabasePath);
+            ConsoleLibrary.Log($"Failed to load database from '{dbFile}'", ConsoleColor.Red);
+            return;
+        }
         
         var command = DbConnection.CreateCommand();
         var tables = new List<string>(HashTypeToTable.Values);
