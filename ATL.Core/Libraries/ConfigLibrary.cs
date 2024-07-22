@@ -9,11 +9,11 @@ public static class ConfigLibrary
 {
     public static AppConfig AppConfig = new();
     
-    public static string GetBaseConfigPath() => AppDomain.CurrentDomain.BaseDirectory;
-    public static string GetAppConfigPath() => Path.Join(GetBaseConfigPath(), $"{ConstantsLibrary.AppConfigFileName}.json");
-    public static string GetGameConfigPath() => Path.Join(GetBaseConfigPath(), AppConfig.GameConfigPath);
-    public static string GetProfileConfigPath(string gameId) => Path.Join(GetBaseConfigPath(), AppConfig.ProfileConfigPath, gameId);
-    public static string GetModConfigPath(string gameId) => Path.Join(GetBaseConfigPath(), AppConfig.ModsPath, gameId);
+    public static string GetBasePath() => AppDomain.CurrentDomain.BaseDirectory;
+    public static string GetAppConfigPath() => Path.Join(GetBasePath(), $"{ConstantsLibrary.AppConfigFileName}.json");
+    public static string GetGameConfigPath() => Path.Join(GetBasePath(), AppConfig.GameConfigPath);
+    public static string GetProfileConfigPath(string gameId) => Path.Join(GetBasePath(), AppConfig.ProfileConfigPath, gameId);
+    public static string GetModConfigPath(string gameId) => Path.Join(GetBasePath(), AppConfig.ModsPath, gameId);
     public static string GetModTargetPath(string modId, string targetVersion) => Path.Join(modId, targetVersion);
     
     // TODO: Move IO to relevant services
@@ -22,7 +22,7 @@ public static class ConfigLibrary
         var configPath = GetAppConfigPath();
         if (!File.Exists(configPath))
         {
-            Directory.CreateDirectory(GetBaseConfigPath());
+            Directory.CreateDirectory(GetBasePath());
 
             var defaultAppConfig = new AppConfig();
             var jsonSerializeOptions = new JsonSerializerOptions
@@ -43,7 +43,7 @@ public static class ConfigLibrary
         var configPath = GetAppConfigPath();
         if (!File.Exists(configPath))
         {
-            Directory.CreateDirectory(GetBaseConfigPath());
+            Directory.CreateDirectory(GetBasePath());
         }
 
         var jsonOptions = new JsonSerializerOptions

@@ -1,4 +1,6 @@
-using System.Text;
+using ATL.Core.Class;
+using CommunityToolkit.HighPerformance;
+using RustyOptions;
 
 namespace ApexFormat.AAF.V01;
 
@@ -8,28 +10,45 @@ public static class AafV01ChunkConstants
     public const uint Size = 4 + 4 + 4 + 4;
 }
 
-public class AafV01Chunk
+/// <summary>
+/// Structure:
+/// <br/>CompressedSize - <see cref="uint"/>
+/// <br/>DecompressedSize - <see cref="uint"/>
+/// <br/>ChunkSize - <see cref="uint"/>
+/// <br/>Magic - <see cref="uint"/>
+/// </summary>
+public class AafV01Chunk : ISizeOf
 {
     public uint CompressedSize = 0;
     public uint DecompressedSize = 0;
     public uint ChunkSize = 0;
     public uint Magic = AafV01ChunkConstants.Magic;
+
+    public static int SizeOf() => sizeof(uint) + sizeof(uint) + sizeof(uint) + sizeof(uint);
 }
 
 public static class AafV01ChunkExtensions
 {
-    public static AafV01Chunk ReadAafV01Chunk(this Stream stream)
+    public static Option<AafV01Chunk> ReadAafV01Chunk(this Stream stream)
     {
-        using var br = new BinaryReader(stream, Encoding.UTF8, true);
-
-        var chunk = new AafV01Chunk
+        if (stream.Length < AafV01Chunk.SizeOf())
         {
-            CompressedSize = br.ReadUInt32(),
-            DecompressedSize = br.ReadUInt32(),
-            ChunkSize = br.ReadUInt32(),
-            Magic = br.ReadUInt32(),
+            return Option<AafV01Chunk>.None;
+        }
+        
+        if (stream.Length - stream.Position < AafV01Chunk.SizeOf())
+        {
+            return Option<AafV01Chunk>.None;
+        }
+        
+        var result = new AafV01Chunk
+        {
+            CompressedSize = stream.Read<uint>(),
+            DecompressedSize = stream.Read<uint>(),
+            ChunkSize = stream.Read<uint>(),
+            Magic = stream.Read<uint>(),
         };
 
-        return chunk;
+        return Option.Some(result);
     }
 }

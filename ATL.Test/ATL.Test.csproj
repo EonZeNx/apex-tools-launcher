@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+
+        <IsPackable>false</IsPackable>
+        <IsTestProject>true</IsTestProject>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="coverlet.collector" Version="6.0.0"/>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0"/>
+        <PackageReference Include="NUnit" Version="3.14.0"/>
+        <PackageReference Include="NUnit.Analyzers" Version="3.9.0"/>
+        <PackageReference Include="NUnit3TestAdapter" Version="4.5.0"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Using Include="NUnit.Framework"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\ApexFormats\ApexFormat.AAF.V01\ApexFormat.AAF.V01.csproj" />
+      <ProjectReference Include="..\ApexFormats\ApexFormat.RTPC.V0104\ApexFormat.RTPC.V0104.csproj" />
+      <ProjectReference Include="..\ApexFormats\ApexFormat.RTPC.V01\ApexFormat.RTPC.V01.csproj" />
+      <ProjectReference Include="..\ApexFormats\ApexFormat.SARC.V02\ApexFormat.SARC.V02.csproj" />
+      <ProjectReference Include="..\ApexFormats\ApexFormat.TAB.V02\ApexFormat.TAB.V02.csproj" />
+      <ProjectReference Include="..\ATL.Core\ATL.Core.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update=".env">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
+</Project>

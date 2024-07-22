@@ -1,4 +1,6 @@
-﻿using CommunityToolkit.HighPerformance;
+﻿using ATL.Core.Class;
+using CommunityToolkit.HighPerformance;
+using RustyOptions;
 
 namespace ApexFormat.RTPC.V0104;
 
@@ -10,21 +12,38 @@ public static class RtpcV0104HeaderConstants
 
 /// <summary>
 /// Structure:
-/// <br/>Version01 - <see cref="byte"/>
-/// <br/>Version02 - <see cref="ushort"/>
+/// <br/>MajorVersion - <see cref="byte"/>
+/// <br/>MinorVersion - <see cref="ushort"/>
 /// <br/>ContainerCount - <see cref="ushort"/>
 /// </summary>
-public class RtpcV0104Header
+public class RtpcV0104Header : ISizeOf
 {
     public byte MajorVersion = RtpcV0104HeaderConstants.MajorVersion;
     public ushort MinorVersion = RtpcV0104HeaderConstants.MinorVersion;
     public ushort ContainerCount = 0;
+
+    public static int SizeOf()
+    {
+        return sizeof(byte) + // MajorVersion
+               sizeof(ushort) + // MinorVersion
+               sizeof(ushort); // ContainerCount
+    }
 }
 
 public static class RtpcV0104HeaderExtensions
 {
-    public static RtpcV0104Header ReadRtpcV0104Header(this Stream stream)
+    public static Option<RtpcV0104Header> ReadRtpcV0104Header(this Stream stream)
     {
+        if (stream.Length < RtpcV0104Header.SizeOf())
+        {
+            return Option<RtpcV0104Header>.None;
+        }
+        
+        if (stream.Length - stream.Position < RtpcV0104Header.SizeOf())
+        {
+            return Option<RtpcV0104Header>.None;
+        }
+
         var result = new RtpcV0104Header
         {
             MajorVersion = (byte) stream.ReadByte(),
@@ -34,14 +53,14 @@ public static class RtpcV0104HeaderExtensions
 
         if (result.MajorVersion != RtpcV0104HeaderConstants.MajorVersion)
         {
-            throw new FileLoadException($"{nameof(result.MajorVersion)} is {result.MajorVersion}, expected {RtpcV0104HeaderConstants.MajorVersion}");
+            return Option<RtpcV0104Header>.None;
         }
 
         if (result.MinorVersion != RtpcV0104HeaderConstants.MinorVersion)
         {
-            throw new FileLoadException($"{nameof(result.MinorVersion)} is {result.MinorVersion}, expected {RtpcV0104HeaderConstants.MinorVersion}");
+            return Option<RtpcV0104Header>.None;
         }
 
-        return result;
+        return Option.Some(result);
     }
 }

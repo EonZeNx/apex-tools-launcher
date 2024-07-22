@@ -1,27 +1,48 @@
+using ATL.Core.Class;
 using Ionic.Zlib;
 
 namespace ApexFormat.AAF.V01;
 
-public static class AafV01Manager
+public class AafV01Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
 {
-    public static int Decompress(Stream inBuffer, Stream outBuffer)
+    public static bool CanProcess(Stream stream)
     {
-        if (inBuffer.Length == 0)
-        {
-            return -1;
-        }
-
-        var header = inBuffer.ReadAafV01Header();
-        if (header.Magic != AafV01HeaderConstants.Magic)
-        {
-            return -2;
+        return !stream.ReadAafV01Header().IsNone;
+    }
+    
+    public static bool CanProcess(string path)
+    {
+        if (Directory.Exists(path))
+        { // don't support repacking directories just yet
+            return false;
         }
         
+        if (File.Exists(path))
+        {
+            using var fileStream = new FileStream(path, FileMode.Open);
+            return CanProcess(fileStream);
+        }
+
+        return false;
+    }
+    
+    public static int Decompress(Stream inBuffer, Stream outBuffer)
+    {
+        if (inBuffer.Length == 0) 
+            return -1;
+
+        var optionHeader = inBuffer.ReadAafV01Header();
+        if (!optionHeader.IsSome(out var header))
+            return -2;
+        
         outBuffer.SetLength(header.TotalUnpackedSize);
-        for (var i = 0; i < header.NumChunks; i++)
+        for (var i = 0; i < header.ChunkCount; i++)
         {
             var startPosition = inBuffer.Position;
-            var chunk = inBuffer.ReadAafV01Chunk();
+            var optionChunk = inBuffer.ReadAafV01Chunk();
+            if (!optionChunk.IsSome(out var chunk))
+                continue;
+            
             if (chunk.Magic != AafV01ChunkConstants.Magic)
             {
                 return -3;
@@ -55,8 +76,16 @@ public static class AafV01Manager
         return 0;
     }
 
-    public static int Compress(Stream inBuffer, Stream outBuffer)
+    public int ProcessBasic(string inFilePath)
     {
-        return 0;
+        var inBuffer = new FileStream(inFilePath, FileMode.Open);
+        
+        var targetFilePath = Path.GetDirectoryName(inFilePath);
+        var targetFileName = Path.GetFileNameWithoutExtension(inFilePath);
+        var targetSarcFilePath = Path.Join(targetFilePath, $"{targetFileName}.sarc");
+        var outBuffer = new FileStream(targetSarcFilePath, FileMode.Create);
+        
+        var result = Decompress(inBuffer, outBuffer);
+        return result;
     }
 }

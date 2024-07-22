@@ -20,6 +20,9 @@ public class AppConfig
     [JsonPropertyName("steam_path")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public string SteamPath { get; set; } = @"C:\Program Files (x86)\Steam";
+    
+    [JsonPropertyName("preload_hash")]
+    public bool PreloadHashes { get; set; } = true;
 
     [JsonPropertyName("cli")]
     public CliConfig Cli { get; set; } = new();

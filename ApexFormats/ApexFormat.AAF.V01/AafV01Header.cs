@@ -1,5 +1,7 @@
-using System.Text;
+using ATL.Core.Class;
 using ATL.Core.Extensions;
+using CommunityToolkit.HighPerformance;
+using RustyOptions;
 
 namespace ApexFormat.AAF.V01;
 
@@ -7,35 +9,62 @@ public static class AafV01HeaderConstants
 {
     public const uint Magic = 0x00464141; // "_FAA"
     public const uint Version = 0x01;
-    public const string Magic2 = "AVALANCHEARCHIVEFORMATISCOOL";
+    public const string Comment = "AVALANCHEARCHIVEFORMATISCOOL";
 }
 
-public class AafV01Header
+/// <summary>
+/// Structure:
+/// <br/>Magic - <see cref="uint"/>
+/// <br/>Version - <see cref="uint"/>
+/// <br/>Comment - <see cref="string"/>
+/// <br/>TotalUnpackedSize - <see cref="uint"/>
+/// <br/>RequiredUnpackBufferSize - <see cref="uint"/>
+/// <br/>ChunkCount - <see cref="uint"/>
+/// </summary>
+public class AafV01Header : ISizeOf
 {
     public uint Magic = AafV01HeaderConstants.Magic;
     public uint Version = AafV01HeaderConstants.Version;
-    public string Magic2 = AafV01HeaderConstants.Magic2;
+    public string Comment = AafV01HeaderConstants.Comment;
     public uint TotalUnpackedSize = 0;
     public uint RequiredUnpackBufferSize = 0;
-    public uint NumChunks = 0;
+    public uint ChunkCount = 0;
+
+    public static int SizeOf()
+    {
+        return sizeof(uint) + // Magic
+               sizeof(uint) + // Version
+               AafV01HeaderConstants.Comment.Length + // Comment
+               sizeof(uint) + // TotalUnpackedSize
+               sizeof(uint) + // RequiredUnpackBufferSize
+               sizeof(uint); // ChunkCount
+    }
 }
 
 public static class AafV01HeaderExtensions
 {
-    public static AafV01Header ReadAafV01Header(this Stream stream)
+    public static Option<AafV01Header> ReadAafV01Header(this Stream stream)
     {
-        using var br = new BinaryReader(stream, Encoding.UTF8, true);
-
-        var header = new AafV01Header
+        if (stream.Length < AafV01Header.SizeOf())
         {
-            Magic = br.ReadUInt32(),
-            Version = br.ReadUInt32(),
-            Magic2 = br.ReadStringOfLength(AafV01HeaderConstants.Magic2.Length),
-            TotalUnpackedSize = br.ReadUInt32(),
-            RequiredUnpackBufferSize = br.ReadUInt32(),
-            NumChunks = br.ReadUInt32()
+            return Option<AafV01Header>.None;
+        }
+        
+        if (stream.Length - stream.Position < AafV01Header.SizeOf())
+        {
+            return Option<AafV01Header>.None;
+        }
+
+        var result = new AafV01Header
+        {
+            Magic = stream.Read<uint>(),
+            Version = stream.Read<uint>(),
+            Comment = stream.ReadStringOfLength(AafV01HeaderConstants.Comment.Length),
+            TotalUnpackedSize = stream.Read<uint>(),
+            RequiredUnpackBufferSize = stream.Read<uint>(),
+            ChunkCount = stream.Read<uint>()
         };
 
-        return header;
+        return Option.Some(result);
     }
 }

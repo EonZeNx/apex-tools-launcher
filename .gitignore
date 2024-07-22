@@ -10,6 +10,8 @@ riderModule.iml
 */bin/*
 */obj/*
 
+*.env
+/ATL.Core/databases/*
 /Builds/*
 /Resources/*
 /Tests/*

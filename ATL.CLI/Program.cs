@@ -1,10 +1,17 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using ApexFormat.AAF.V01;
 using ApexFormat.RTPC.V0104;
 using ApexFormat.RTPC.V01;
 using ApexFormat.SARC.V02;
 using ApexFormat.TAB.V02;
+using ATL.CLI.Console;
+using ATL.Core.Class;
 using ATL.Core.Config;
+using ATL.Core.Hash;
 using ATL.Core.Libraries;
 
 namespace ATL.CLI;
@@ -16,78 +23,62 @@ class Program
 #if !DEBUG
         AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 #endif
+        CoreAppConfig.LoadAppConfig();
         
-        // Console hash should disrespect auto-close
-        // Should be before it
         if (args.Length == 0)
         {
-            ConsoleHash.Start();
-            return;
+            AtlConsole.Loop();
+            Close();
         }
-
-        CoreAppConfig.LoadAppConfig();
-        AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
         
-        // TODO: Parse args and action files
-        foreach (var arg in args)
+        AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
+        if (CoreAppConfig.Get().PreloadHashes)
         {
-            if (!File.Exists(arg)) continue;
-
-            // SARCv02 test
-            // var inBuffer = new FileStream(arg, FileMode.Open);
-            //
-            // var fileName = Path.GetFileNameWithoutExtension(arg);
-            // var directoryPath = Path.Join(Path.GetDirectoryName(arg), fileName);
-            //
-            // if (!Directory.Exists(directoryPath))
-            // {
-            //     Directory.CreateDirectory(directoryPath);
-            // }
-            //
-            // var result = SarcV02Manager.Decompress(inBuffer, directoryPath);
-            // if (result < 0)
-            // {
-            //     throw new Exception();
-            // }
-            
-            // RTPCv0104
-            // var inBuffer = new FileStream(arg, FileMode.Open);
-            //
-            // var targetFilePath = Path.GetDirectoryName(arg);
-            // var targetFileName = Path.GetFileNameWithoutExtension(arg);
-            // var targetXmlFilePath = Path.Join(targetFilePath, $"{targetFileName}.xml");
-            // var outBuffer = new FileStream(targetXmlFilePath, FileMode.Create);
-            //
-            // RtpcV0104Manager.Decompress(inBuffer, outBuffer);
-            
-            // TABv02 test
-            // var tabBuffer = new FileStream(arg, FileMode.Open);
-            //
-            // var fileName = Path.GetFileNameWithoutExtension(arg);
-            // var directoryPath = Path.GetDirectoryName(arg);
-            // if (!Directory.Exists(directoryPath)) continue;
-            //
-            // var arcPath = Path.Join(directoryPath, $"{fileName}.arc");
-            // var arcBuffer = new FileStream(arcPath, FileMode.Open);
-            //
-            // var result = TabV02Manager.Decompress(tabBuffer, arcBuffer, directoryPath);
-            // if (result < 0)
-            // {
-            //     throw new Exception();
-            // }
-            
-            // RTPCv01
-            var inBuffer = new FileStream(arg, FileMode.Open);
-            
-            var targetFilePath = Path.GetDirectoryName(arg);
-            var targetFileName = Path.GetFileNameWithoutExtension(arg);
-            var targetXmlFilePath = Path.Join(targetFilePath, $"{targetFileName}.xml");
-            var outBuffer = new FileStream(targetXmlFilePath, FileMode.Create);
-            
-            RtpcV01Manager.Decompress(inBuffer, outBuffer);
+            ConsoleLibrary.Log("Loading all hashes into memory...", LogType.Info);
+            HashDatabase.LoadAll();
         }
+        
+        var pathArgs = args.Where(path => Path.Exists(path) && !path.EndsWith(".exe")).ToArray();
+        Parallel.For(0, pathArgs.Length, i =>
+        {
+            OperateFiles(pathArgs[i]);
+        });
         
         Close();
+    }
+
+    public static void OperateFiles(string filePath)
+    {
+        var fileName = Path.GetFileName(filePath);
+        ConsoleLibrary.Log($"Processing '{fileName}'", LogType.Info);
+
+        if (TabV02Manager.CanProcess(filePath))
+        {
+            var manager = new TabV02Manager();
+            manager.ProcessBasic(filePath);
+        }
+        else if (SarcV02Manager.CanProcess(filePath))
+        {
+            var manager = new SarcV02Manager();
+            manager.ProcessBasic(filePath);
+        }
+        else if (AafV01Manager.CanProcess(filePath))
+        {
+            var manager = new AafV01Manager();
+            manager.ProcessBasic(filePath);
+        }
+        else if (RtpcV01Manager.CanProcess(filePath))
+        {
+            var manager = new RtpcV01Manager();
+            manager.ProcessBasic(filePath);
+        }
+        else if (RtpcV0104Manager.CanProcess(filePath))
+        {
+            var manager = new RtpcV0104Manager();
+            manager.ProcessBasic(filePath);
+        }
+            
+        ConsoleLibrary.Log($"Finished '{fileName}'", LogType.Info);
     }
     
     public static void CurrentDomain_ProcessExit(object? sender, EventArgs e)
@@ -115,6 +106,7 @@ class Program
             ConsoleLibrary.Log(message, LogType.Warning);
         }
         
+        ConsoleLibrary.Log("exiting...", LogType.Info);
         Environment.Exit(0);
     }
 }

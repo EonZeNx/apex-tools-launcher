@@ -1,4 +1,6 @@
-﻿using CommunityToolkit.HighPerformance;
+﻿using ATL.Core.Class;
+using CommunityToolkit.HighPerformance;
+using RustyOptions;
 
 namespace ApexFormat.RTPC.V01;
 
@@ -12,19 +14,37 @@ public static class RtpcV01HeaderConstants
 /// <summary>
 /// Structure:
 /// <br/>Magic - <see cref="uint"/>
-/// <br/>Version - <see cref="uint"/>
+/// <br/>MajorVersion - <see cref="ushort"/>
+/// <br/>MinorVersion - <see cref="ushort"/>
 /// </summary>
-public class RtpcV01Header
+public class RtpcV01Header : ISizeOf
 {
     public uint Magic = RtpcV01HeaderConstants.Magic;
     public ushort MajorVersion = RtpcV01HeaderConstants.MajorVersion;
     public ushort MinorVersion = RtpcV01HeaderConstants.MinorVersion;
+
+    public static int SizeOf()
+    {
+        return sizeof(uint) + // Magic
+               sizeof(ushort) + // MajorVersion
+               sizeof(ushort); // MinorVersion
+    }
 }
 
 public static class RtpcV01HeaderExtensions
 {
-    public static RtpcV01Header ReadRtpcV01Header(this Stream stream)
+    public static Option<RtpcV01Header> ReadRtpcV01Header(this Stream stream)
     {
+        if (stream.Length < RtpcV01Header.SizeOf())
+        {
+            return Option<RtpcV01Header>.None;
+        }
+        
+        if (stream.Length - stream.Position < RtpcV01Header.SizeOf())
+        {
+            return Option<RtpcV01Header>.None;
+        }
+        
         var result = new RtpcV01Header
         {
             Magic = stream.Read<uint>(),
@@ -34,19 +54,19 @@ public static class RtpcV01HeaderExtensions
 
         if (result.Magic != RtpcV01HeaderConstants.Magic)
         {
-            throw new FileLoadException($"{nameof(result.Magic)} is {result.Magic}, expected {RtpcV01HeaderConstants.Magic}");
+            return Option<RtpcV01Header>.None;
         }
 
         if (result.MajorVersion != RtpcV01HeaderConstants.MajorVersion)
         {
-            throw new FileLoadException($"{nameof(result.MajorVersion)} is {result.MajorVersion}, expected {RtpcV01HeaderConstants.MajorVersion}");
+            return Option<RtpcV01Header>.None;
         }
 
         if (result.MinorVersion != RtpcV01HeaderConstants.MinorVersion)
         {
-            throw new FileLoadException($"{nameof(result.MinorVersion)} is {result.MinorVersion}, expected {RtpcV01HeaderConstants.MinorVersion}");
+            return Option<RtpcV01Header>.None;
         }
 
-        return result;
+        return Option.Some(result);
     }
 }

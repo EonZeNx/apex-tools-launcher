@@ -1,9 +1,32 @@
+using ATL.Core.Class;
 using ATL.Core.Extensions;
+using ATL.Core.Hash;
 
 namespace ApexFormat.TAB.V02;
 
-public static class TabV02Manager
+public class TabV02Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
 {
+    public static bool CanProcess(Stream stream)
+    {
+        return !stream.ReadTabV02Header().IsNone;
+    }
+    
+    public static bool CanProcess(string path)
+    {
+        if (Directory.Exists(path))
+        { // don't support repacking directories just yet
+            return false;
+        }
+        
+        if (File.Exists(path))
+        {
+            using var fileStream = new FileStream(path, FileMode.Open);
+            return CanProcess(fileStream);
+        }
+
+        return false;
+    }
+    
     public static int ParseTabEntries(Stream inTabBuffer, out TabV02Entry[] outTabEntries)
     {
         outTabEntries = [];
@@ -15,8 +38,11 @@ public static class TabV02Manager
         var archiveEntries = new List<TabV02Entry>();
         while (inTabBuffer.Position + TabV02Entry.SizeOf() <= inTabBuffer.Length)
         {
-            var archiveEntry = inTabBuffer.ReadTabV02Entry();
-            archiveEntries.Add(archiveEntry);
+            var optionArchiveEntry = inTabBuffer.ReadTabV02Entry();
+            if (optionArchiveEntry.IsSome(out var archiveEntry))
+            {
+                archiveEntries.Add(archiveEntry);
+            }
         }
         outTabEntries = archiveEntries.ToArray();
 
@@ -25,30 +51,52 @@ public static class TabV02Manager
 
     public static int Decompress(Stream inTabBuffer, Stream inArcBuffer, string outDirectory)
     {
-        var header = inTabBuffer.ReadTabV02Header();
+        if (!Directory.Exists(outDirectory))
+        {
+            return -1;
+        }
+        
+        var optionHeader = inTabBuffer.ReadTabV02Header();
+        if (optionHeader.IsNone)
+        {
+            return -2;
+        }
+        
         var parseFileEntriesResult = ParseTabEntries(inTabBuffer, out var tabEntries);
         if (parseFileEntriesResult < 0)
         {
             return parseFileEntriesResult;
         }
 
-        if (!Directory.Exists(outDirectory))
-        {
-            return -1;
-        }
-
         var unknownDirectoryPath = Path.Join(outDirectory, "__UNKNOWN");
         var unknownDirectoryExists = Directory.Exists(unknownDirectoryPath);
         foreach (var tabEntry in tabEntries)
         {
-            // TODO: Lookup hash
             var filePath = Path.Join(unknownDirectoryPath, $"{tabEntry.NameHash:X8}");
+            
+            var hashResult = HashDatabase.Lookup(tabEntry.NameHash, EHashType.FilePath);
+            if (hashResult.Valid())
+            {
+                filePath = Path.Join(unknownDirectoryPath, hashResult.Value);
+            }
+                
+            
+            var hashLookupResult = HashDatabase.Lookup(tabEntry.NameHash, EHashType.FilePath);
+            if (hashLookupResult.Valid())
+                filePath = Path.Join(outDirectory, hashLookupResult.Value);
 
-            if (!unknownDirectoryExists)
+            if (!hashResult.Valid() && !unknownDirectoryExists)
             { // cache result to reduce file system hit
                 Directory.CreateDirectory(unknownDirectoryPath);
                 unknownDirectoryExists = Directory.Exists(unknownDirectoryPath);
             }
+            else if (hashResult.Valid())
+            {
+                var fileDirectoryPath = Path.GetDirectoryName(filePath);
+                if (fileDirectoryPath is not null && !Directory.Exists(fileDirectoryPath))
+                    Directory.CreateDirectory(fileDirectoryPath);
+            }
+            
             using var fileStream = new FileStream(filePath, FileMode.Create);
             
             inArcBuffer.Seek((int)tabEntry.Offset, SeekOrigin.Begin);
@@ -56,5 +104,20 @@ public static class TabV02Manager
         }
         
         return 0;
+    }
+    
+    public int ProcessBasic(string inFilePath)
+    {
+        var tabBuffer = new FileStream(inFilePath, FileMode.Open);
+        
+        var directoryPath = Path.GetDirectoryName(inFilePath);
+        if (!Directory.Exists(directoryPath)) return -1;
+        
+        var fileNameWoExtension = Path.GetFileNameWithoutExtension(inFilePath);
+        var arcPath = Path.Join(directoryPath, $"{fileNameWoExtension}.arc");
+        using var arcBuffer = new FileStream(arcPath, FileMode.Open);
+        
+        var result = Decompress(tabBuffer, arcBuffer, directoryPath);
+        return result;
     }
 }

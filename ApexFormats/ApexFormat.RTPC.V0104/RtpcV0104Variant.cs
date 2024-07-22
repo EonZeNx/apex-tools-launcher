@@ -1,26 +1,36 @@
 ﻿using System.Xml.Linq;
 using ATL.Core.Extensions;
+using ATL.Core.Hash;
 using CommunityToolkit.HighPerformance;
+using RustyOptions;
 
 namespace ApexFormat.RTPC.V0104;
 
-public class RtpcV0104Variant
+public class RtpcV0104Variant : RtpcV0104VariantHeader
 {
-    public uint NameHash = 0;
-    public ERtpcV0104VariantType VariantType = ERtpcV0104VariantType.Unassigned;
     public object? Data = null;
 }
 
 public static class RtpcV0104VariantExtensions
 {
-    public static RtpcV0104Variant ReadRtpcV0104Variant(this Stream stream)
+    public static RtpcV0104Variant HeaderToContainer(this RtpcV0104VariantHeader header)
     {
         var result = new RtpcV0104Variant
         {
-            NameHash = stream.Read<uint>(),
-            VariantType = stream.Read<ERtpcV0104VariantType>(),
+            NameHash = header.NameHash,
+            VariantType = header.VariantType,
         };
 
+        return result;
+    }
+    
+    public static Option<RtpcV0104Variant> ReadRtpcV0104Variant(this Stream stream)
+    {
+        var optionContainerHeader = stream.ReadRtpcV0104VariantHeader();
+        if (!optionContainerHeader.IsSome(out var containerHeader))
+            return Option<RtpcV0104Variant>.None;
+        
+        var result = containerHeader.HeaderToContainer();
         switch (result.VariantType)
         {
             case ERtpcV0104VariantType.Integer32:
@@ -60,16 +70,26 @@ public static class RtpcV0104VariantExtensions
                 break;
             case ERtpcV0104VariantType.Unassigned:
             default:
-                throw new ArgumentOutOfRangeException();
+                break;
         }
 
-        return result;
+        return Option.Some(result);
     }
 
     public static XElement WriteXElement(this RtpcV0104Variant variant)
     {
         var xe = new XElement("value");
-        xe.SetAttributeValue("id", $"{variant.NameHash:X8}");
+
+        var hashResult = HashDatabase.Lookup(variant.NameHash);
+        if (hashResult.Valid())
+        {
+            xe.SetAttributeValue("name", hashResult.Value);
+        }
+        else
+        {
+            xe.SetAttributeValue("id", $"{variant.NameHash:X8}");
+        }
+        
         xe.SetAttributeValue("type", variant.VariantType.XmlString());
 
         if (variant.Data is null) return xe;

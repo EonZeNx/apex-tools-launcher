@@ -1,5 +1,7 @@
-﻿using ATL.Core.Extensions;
+﻿using ATL.Core.Class;
+using ATL.Core.Extensions;
 using CommunityToolkit.HighPerformance;
+using RustyOptions;
 
 namespace ApexFormat.SARC.V02;
 
@@ -15,17 +17,29 @@ public static class SarcV02ArchiveEntryConstants
 /// <br/>DataOffset - <see cref="uint"/>
 /// <br/>Size - <see cref="uint"/>
 /// </summary>
-public class SarcV02ArchiveEntry
+public class SarcV02ArchiveEntry : ISizeOf
 {
-    public string FilePath = "";
+    public string FilePath = ""; // length prefix, min size = uint
     public uint DataOffset = 0;
     public uint Size = 0;
+    
+    public static int SizeOf() => sizeof(uint) + sizeof(uint) + sizeof(uint);
 }
 
 public static class SarcV02ArchiveEntryExtensions
 {
-    public static SarcV02ArchiveEntry ReadSarcV02ArchiveEntry(this Stream stream)
+    public static Option<SarcV02ArchiveEntry> ReadSarcV02ArchiveEntry(this Stream stream)
     {
+        if (stream.Length < SarcV02ArchiveEntry.SizeOf())
+        {
+            return Option<SarcV02ArchiveEntry>.None;
+        }
+        
+        if (stream.Length - stream.Position < SarcV02ArchiveEntry.SizeOf())
+        {
+            return Option<SarcV02ArchiveEntry>.None;
+        }
+        
         var result = new SarcV02ArchiveEntry
         {
             FilePath = stream.ReadStringLengthPrefix().Replace("\0", ""),
@@ -33,6 +47,6 @@ public static class SarcV02ArchiveEntryExtensions
             Size = stream.Read<uint>()
         };
 
-        return result;
+        return Option.Some(result);
     }
 }
