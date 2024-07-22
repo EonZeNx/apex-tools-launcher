@@ -44,11 +44,10 @@ public class SarcV02Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
         while (true)
         {
             var optionArchiveEntry = inBuffer.ReadSarcV02ArchiveEntry();
-            if (optionArchiveEntry.IsSome(out var archiveEntry))
-            {
-                archiveEntries.Add(archiveEntry);
-            }
+            if (!optionArchiveEntry.IsSome(out var archiveEntry))
+                continue;
             
+            archiveEntries.Add(archiveEntry);
             if (header.Size - (inBuffer.Position - startPosition) <= 15)
             {
                 break;

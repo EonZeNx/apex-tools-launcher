@@ -36,13 +36,13 @@ public class TabV02Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
         }
 
         var archiveEntries = new List<TabV02Entry>();
-        while (inTabBuffer.Position + TabV02Entry.SizeOf() <= inTabBuffer.Length)
+        while (inTabBuffer.Position < inTabBuffer.Length)
         {
             var optionArchiveEntry = inTabBuffer.ReadTabV02Entry();
-            if (optionArchiveEntry.IsSome(out var archiveEntry))
-            {
-                archiveEntries.Add(archiveEntry);
-            }
+            if (!optionArchiveEntry.IsSome(out var archiveEntry))
+                continue;
+            
+            archiveEntries.Add(archiveEntry);
         }
         outTabEntries = archiveEntries.ToArray();
 
@@ -99,7 +99,7 @@ public class TabV02Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
             
             using var fileStream = new FileStream(filePath, FileMode.Create);
             
-            inArcBuffer.Seek((int)tabEntry.Offset, SeekOrigin.Begin);
+            inArcBuffer.Seek((int) tabEntry.Offset, SeekOrigin.Begin);
             inArcBuffer.CopyToLimit(fileStream, (int) tabEntry.Size);
         }
         
