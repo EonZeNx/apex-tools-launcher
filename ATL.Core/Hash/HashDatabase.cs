@@ -21,6 +21,11 @@ public class HashLookupResult
     public string Table = "unknown";
 
     public bool Valid() => !string.IsNullOrEmpty(Value);
+
+    public override string ToString()
+    {
+        return $"{Value} [{Table}]";
+    }
 }
 
 public static class HashDatabase
@@ -93,14 +98,22 @@ public static class HashDatabase
         failed = [];
         
         var hashTable = HashTypeToTable.GetValueOrDefault(hashType, "unknown");
-        var hashResults = values.ToDictionary(
-            v => v.HashJenkins(),
-            v => new HashLookupResult
+
+        var hashResults = new Dictionary<uint, HashLookupResult>();
+        foreach (var value in values)
+        {
+            var hash = value.HashJenkins();
+            var hashResult = new HashLookupResult
             {
-                Value = v,
+                Value = value,
                 Table = hashTable
+            };
+
+            if (!hashResults.TryAdd(hash, hashResult))
+            {
+                ;
             }
-        );
+        }
         
         if (DbConnection == null && !TriedToOpenDb)
         {
@@ -108,18 +121,26 @@ public static class HashDatabase
         }
         
         if (DbConnection?.State != ConnectionState.Open) return -1;
-        
-        var command = DbConnection.CreateCommand();
-        command.CommandText = $"INSERT INTO '{hashTable}' (Hash, Value)" +
+
+        using var transaction = DbConnection.BeginTransaction();
+        using var command = DbConnection.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandType = CommandType.Text;
+        // TODO: Batch in 5 - 10 at a time?
+        command.CommandText = $"INSERT OR IGNORE INTO '{hashTable}' (Hash, Value)" +
                               $"VALUES (@hash, @value)";
-        command.Parameters.Add(new SQLiteParameter("@hash", SqlDbType.Int));
-        command.Parameters.Add(new SQLiteParameter("@value", SqlDbType.Text));
+
+        var hashParameter = new SQLiteParameter("@hash", DbType.UInt32);
+        command.Parameters.Add(hashParameter);
+        
+        var valueParameter = new SQLiteParameter("@value", DbType.String);
+        command.Parameters.Add(valueParameter);
 
         var failedAdd = 0;
         try {
             foreach (var (hash, hashResult) in hashResults) {
                 command.Parameters[0].Value = hash;
-                command.Parameters[1].Value = hashResult;
+                command.Parameters[1].Value = hashResult.Value;
 
                 if (command.ExecuteNonQuery() == 1)
                     continue;
@@ -127,6 +148,8 @@ public static class HashDatabase
                 failedAdd += 1;
                 failed.Add(hashResult.Value);
             }
+            
+            transaction.Commit();
         }
         catch (Exception)
         {

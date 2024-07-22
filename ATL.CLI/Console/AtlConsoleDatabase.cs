@@ -76,7 +76,7 @@ public static class AtlConsoleDatabase
         if (string.IsNullOrEmpty(databaseName))
             return;
 
-        var dateTimeString = DateTime.Now.ToString("yyyy-MMM-dd_hh:mm:ss").ToUpper();
+        var dateTimeString = DateTime.Now.ToString("yyyy-MMM-dd_hh-mm-ss").ToUpper();
         var databasePath = Path.Join(ConfigLibrary.GetBasePath(), CoreAppConfig.Get().Cli.DatabasePath);
         if (File.Exists(databasePath))
         {
@@ -89,10 +89,11 @@ public static class AtlConsoleDatabase
             
             var databaseBackupPath = Path.Join(databaseDirectoryPath, $"{databaseName}_{dateTimeString}.db");
             File.Copy(databasePath, databaseBackupPath);
+            ConsoleLibrary.Log($"Database backup created at '{databaseBackupPath}'", ConsoleColor.White);
         }
         
         var lines = File.ReadLines(filePath);
-        HashDatabase.AddToTable(lines, EHashType.FilePath, out var failed);
+        HashDatabase.AddToTable(lines, hashType, out var failed);
 
         if (failed.Count > 0)
         {

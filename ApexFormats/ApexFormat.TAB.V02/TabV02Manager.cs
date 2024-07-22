@@ -76,17 +76,27 @@ public class TabV02Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
             
             var hashResult = HashDatabase.Lookup(tabEntry.NameHash, EHashType.FilePath);
             if (hashResult.Valid())
+            {
                 filePath = Path.Join(unknownDirectoryPath, hashResult.Value);
+            }
+                
             
             var hashLookupResult = HashDatabase.Lookup(tabEntry.NameHash, EHashType.FilePath);
             if (hashLookupResult.Valid())
                 filePath = Path.Join(outDirectory, hashLookupResult.Value);
 
-            if (!unknownDirectoryExists)
+            if (!hashResult.Valid() && !unknownDirectoryExists)
             { // cache result to reduce file system hit
                 Directory.CreateDirectory(unknownDirectoryPath);
                 unknownDirectoryExists = Directory.Exists(unknownDirectoryPath);
             }
+            else if (hashResult.Valid())
+            {
+                var fileDirectoryPath = Path.GetDirectoryName(filePath);
+                if (fileDirectoryPath is not null && !Directory.Exists(fileDirectoryPath))
+                    Directory.CreateDirectory(fileDirectoryPath);
+            }
+            
             using var fileStream = new FileStream(filePath, FileMode.Create);
             
             inArcBuffer.Seek((int)tabEntry.Offset, SeekOrigin.Begin);
