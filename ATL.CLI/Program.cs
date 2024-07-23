@@ -13,6 +13,8 @@ using ATL.Core.Class;
 using ATL.Core.Config;
 using ATL.Core.Hash;
 using ATL.Core.Libraries;
+using CommandLine;
+using CommandLine.Text;
 
 namespace ATL.CLI;
 
@@ -32,52 +34,91 @@ class Program
         }
         
         AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
+
+        var optionParser = new CommandLine.Parser(s => s.HelpWriter = null);
+        var options = optionParser.ParseArguments<AtlClOptions>(args);
+        options
+            .WithParsed(MainWithOptions)
+            .WithNotParsed(e => MainWithErrors(options, e));
+        
+        Close();
+    }
+
+    public static void MainWithOptions(AtlClOptions inOptions)
+    {
+        var options = (AtlClOptions) inOptions.Clone();
+        
         if (CoreAppConfig.Get().PreloadHashes)
         {
             ConsoleLibrary.Log("Loading all hashes into memory...", LogType.Info);
             HashDatabase.LoadAll();
         }
         
-        var pathArgs = args.Where(path => Path.Exists(path) && !path.EndsWith(".exe")).ToArray();
+        if (!string.IsNullOrEmpty(options.OutputDirectory))
+        {
+            if (!Directory.Exists(options.OutputDirectory))
+                Directory.CreateDirectory(options.OutputDirectory);
+        }
+        
+        var pathArgs = options.FilePaths.Where(path => Path.Exists(path) && !path.EndsWith(".exe")).ToArray();
         Parallel.For(0, pathArgs.Length, i =>
         {
-            OperateFiles(pathArgs[i]);
+            OperateFile(pathArgs[i], options.OutputDirectory);
         });
-        
-        Close();
     }
 
-    public static void OperateFiles(string filePath)
+    public static void MainWithErrors(ParserResult<AtlClOptions> result, IEnumerable<Error> errors)
+    {
+        var helpText = HelpText.AutoBuild(result, h =>
+        {
+            h.AdditionalNewLineAfterOption = false;
+            h.Heading = $"{ConstantsLibrary.AppFullTitle} {ConstantsLibrary.AppVersion}";
+
+            return HelpText.DefaultParsingErrorsHandler(result, h);
+        }, e => e);
+        
+        ConsoleLibrary.Log(helpText, ConsoleColor.White);
+    }
+
+    public static void OperateFile(string filePath, string outDirectory)
     {
         var fileName = Path.GetFileName(filePath);
-        ConsoleLibrary.Log($"Processing '{fileName}'", LogType.Info);
+        var message = $"Processing '{fileName}'";
 
+        IProcessBasic manager;
         if (TabV02Manager.CanProcess(filePath))
         {
-            var manager = new TabV02Manager();
-            manager.ProcessBasic(filePath);
+            manager = new TabV02Manager();
+            message = $"{message} as TABv02";
         }
         else if (SarcV02Manager.CanProcess(filePath))
         {
-            var manager = new SarcV02Manager();
-            manager.ProcessBasic(filePath);
+            manager = new SarcV02Manager();
+            message = $"{message} as SARCv02";
         }
         else if (AafV01Manager.CanProcess(filePath))
         {
-            var manager = new AafV01Manager();
-            manager.ProcessBasic(filePath);
+            manager = new AafV01Manager();
+            message = $"{message} as AAFv01";
         }
         else if (RtpcV01Manager.CanProcess(filePath))
         {
-            var manager = new RtpcV01Manager();
-            manager.ProcessBasic(filePath);
+            manager = new RtpcV01Manager();
+            message = $"{message} as RTPCv01";
         }
         else if (RtpcV0104Manager.CanProcess(filePath))
-        {
-            var manager = new RtpcV0104Manager();
-            manager.ProcessBasic(filePath);
+        { // should be last
+            manager = new RtpcV0104Manager();
+            message = $"{message} as RTPCv0104";
         }
-            
+        else
+        {
+            ConsoleLibrary.Log($"File not supported '{fileName}'", LogType.Warning);
+            return;
+        }
+        
+        ConsoleLibrary.Log(message, LogType.Info);
+        manager.ProcessBasic(filePath, outDirectory);
         ConsoleLibrary.Log($"Finished '{fileName}'", LogType.Info);
     }
     
@@ -106,7 +147,7 @@ class Program
             ConsoleLibrary.Log(message, LogType.Warning);
         }
         
-        ConsoleLibrary.Log("exiting...", LogType.Info);
+        ConsoleLibrary.Log("Exiting...", LogType.Info);
         Environment.Exit(0);
     }
 }

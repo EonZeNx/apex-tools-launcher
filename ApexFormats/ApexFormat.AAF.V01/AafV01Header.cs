@@ -64,6 +64,16 @@ public static class AafV01HeaderExtensions
             RequiredUnpackBufferSize = stream.Read<uint>(),
             ChunkCount = stream.Read<uint>()
         };
+        
+        if (result.Magic != AafV01HeaderConstants.Magic)
+        {
+            return Option<AafV01Header>.None;
+        }
+
+        if (result.Version != AafV01HeaderConstants.Version)
+        {
+            return Option<AafV01Header>.None;
+        }
 
         return Option.Some(result);
     }

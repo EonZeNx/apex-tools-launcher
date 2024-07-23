@@ -42,7 +42,7 @@ public class TabV02Tests
     public void DecompressSuccess()
     {
         var manager = new TabV02Manager();
-        var result = manager.ProcessBasic(SuccessPath);
+        var result = manager.ProcessBasic(SuccessPath, null);
         
         Assert.That(result, Is.AtLeast(0));
     }

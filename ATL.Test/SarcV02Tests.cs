@@ -42,7 +42,7 @@ public class SarcV02Tests
     public void DecompressSuccess()
     {
         var manager = new SarcV02Manager();
-        var result = manager.ProcessBasic(SuccessPath);
+        var result = manager.ProcessBasic(SuccessPath, null);
         
         Assert.That(result, Is.AtLeast(0));
     }

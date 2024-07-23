@@ -191,7 +191,8 @@ public static class HashDatabase
     public static HashLookupResult Lookup(uint hash, EHashType hashType = EHashType.Unknown)
     {
         var result = new HashLookupResult();
-        if (!CoreAppConfig.Get().Cli.LookupHash) return result;
+        if (!CoreAppConfig.Get().Cli.LookupHash)
+            return result;
 
         if (IsKnown(hash))
         {
@@ -221,12 +222,14 @@ public static class HashDatabase
             }
         }
         
-        var command = DbConnection.CreateCommand();
+        using var command = DbConnection.CreateCommand();
         foreach (var table in tables)
         {
-            command.CommandText = $"SELECT Value FROM '{table}' WHERE Hash = {(int) hash}";
+            command.CommandText = $"SELECT Value FROM '{table}'" +
+                                  $"WHERE Hash = {hash}";
             using var dbr = command.ExecuteReader();
-            if (!dbr.Read()) continue;
+            if (!dbr.Read())
+                continue;
             
             result.Value = dbr.GetString(0);
             result.Table = table;

@@ -145,17 +145,19 @@ public class SarcV02Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
         return WriteEntryFile(outDirectory, outEntries);
     }
     
-    public int ProcessBasic(string inFilePath)
+    public int ProcessBasic(string inFilePath, string outDirectory)
     {
         var inBuffer = new FileStream(inFilePath, FileMode.Open);
-            
+        
+        var outDirectoryPath = Path.GetDirectoryName(inFilePath);
+        if (!string.IsNullOrEmpty(outDirectory) && Directory.Exists(outDirectory))
+            outDirectoryPath = outDirectory;
+        
         var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(inFilePath);
-        var directoryPath = Path.Join(Path.GetDirectoryName(inFilePath), fileNameWithoutExtension);
+        var directoryPath = Path.Join(outDirectoryPath, fileNameWithoutExtension);
             
         if (!Directory.Exists(directoryPath))
-        {
             Directory.CreateDirectory(directoryPath);
-        }
 
         var result = Decompress(inBuffer, directoryPath);
         return result;

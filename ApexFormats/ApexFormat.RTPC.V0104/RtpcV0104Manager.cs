@@ -69,16 +69,20 @@ public class RtpcV0104Manager : ICanProcessStream, ICanProcessPath, IProcessBasi
         return 0;
     }
     
-    public int ProcessBasic(string inFilePath)
+    public int ProcessBasic(string inFilePath, string outDirectory)
     {
         var inBuffer = new FileStream(inFilePath, FileMode.Open);
         
-        var targetFilePath = Path.GetDirectoryName(inFilePath);
-        var targetFileName = Path.GetFileNameWithoutExtension(inFilePath);
-        var targetXmlFilePath = Path.Join(targetFilePath, $"{targetFileName}.xml");
-        var outBuffer = new FileStream(targetXmlFilePath, FileMode.Create);
+        var outDirectoryPath = Path.GetDirectoryName(inFilePath);
+        if (!string.IsNullOrEmpty(outDirectory) && Directory.Exists(outDirectory))
+            outDirectoryPath = outDirectory;
         
+        var fileName = Path.GetFileNameWithoutExtension(inFilePath);
+        var xmlFilePath = Path.Join(outDirectoryPath, $"{fileName}.xml");
+        
+        var outBuffer = new FileStream(xmlFilePath, FileMode.Create);
         var result = Decompress(inBuffer, outBuffer);
+        
         return result;
     }
 }

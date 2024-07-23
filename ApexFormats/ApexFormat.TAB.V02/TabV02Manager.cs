@@ -31,9 +31,7 @@ public class TabV02Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
     {
         outTabEntries = [];
         if (inTabBuffer.Length == 0)
-        {
             return -1;
-        }
 
         var archiveEntries = new List<TabV02Entry>();
         while (inTabBuffer.Position < inTabBuffer.Length)
@@ -52,15 +50,11 @@ public class TabV02Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
     public static int Decompress(Stream inTabBuffer, Stream inArcBuffer, string outDirectory)
     {
         if (!Directory.Exists(outDirectory))
-        {
             return -1;
-        }
         
         var optionHeader = inTabBuffer.ReadTabV02Header();
         if (optionHeader.IsNone)
-        {
             return -2;
-        }
         
         var parseFileEntriesResult = ParseTabEntries(inTabBuffer, out var tabEntries);
         if (parseFileEntriesResult < 0)
@@ -106,18 +100,22 @@ public class TabV02Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
         return 0;
     }
     
-    public int ProcessBasic(string inFilePath)
+    public int ProcessBasic(string inFilePath, string outDirectory)
     {
         var tabBuffer = new FileStream(inFilePath, FileMode.Open);
         
         var directoryPath = Path.GetDirectoryName(inFilePath);
-        if (!Directory.Exists(directoryPath)) return -1;
+        if (!Directory.Exists(directoryPath))
+            return -1;
+        
+        if (string.IsNullOrEmpty(outDirectory) || !Directory.Exists(outDirectory))
+            outDirectory = directoryPath;
         
         var fileNameWoExtension = Path.GetFileNameWithoutExtension(inFilePath);
         var arcPath = Path.Join(directoryPath, $"{fileNameWoExtension}.arc");
         using var arcBuffer = new FileStream(arcPath, FileMode.Open);
         
-        var result = Decompress(tabBuffer, arcBuffer, directoryPath);
+        var result = Decompress(tabBuffer, arcBuffer, outDirectory);
         return result;
     }
 }
