@@ -18,6 +18,9 @@
       <None Update="databases\atl.core.db">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
+      <None Update="databases\atl.jc3.db">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
 </Project>

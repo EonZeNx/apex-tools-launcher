@@ -68,14 +68,14 @@ public class TabV02Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
         {
             var filePath = Path.Join(unknownDirectoryPath, $"{tabEntry.NameHash:X8}");
             
-            var hashResult = HashDatabase.Lookup(tabEntry.NameHash, EHashType.FilePath);
+            var hashResult = HashDatabases.Lookup(tabEntry.NameHash, EHashType.FilePath);
             if (hashResult.Valid())
             {
                 filePath = Path.Join(unknownDirectoryPath, hashResult.Value);
             }
                 
             
-            var hashLookupResult = HashDatabase.Lookup(tabEntry.NameHash, EHashType.FilePath);
+            var hashLookupResult = HashDatabases.Lookup(tabEntry.NameHash, EHashType.FilePath);
             if (hashLookupResult.Valid())
                 filePath = Path.Join(outDirectory, hashLookupResult.Value);
 

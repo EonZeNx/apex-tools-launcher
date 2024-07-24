@@ -77,7 +77,7 @@ public static class AtlConsoleDatabase
             return;
 
         var dateTimeString = DateTime.Now.ToString("yyyy-MMM-dd_hh-mm-ss").ToUpper();
-        var databasePath = Path.Join(ConfigLibrary.GetBasePath(), CoreAppConfig.Get().Cli.DatabasePath);
+        var databasePath = Path.Join(CoreConfig.AppConfig.DatabasesDirectory, $"{databaseName}.db");
         if (File.Exists(databasePath))
         {
             var databaseDirectoryPath = Path.GetDirectoryName(databasePath);
@@ -92,23 +92,23 @@ public static class AtlConsoleDatabase
             ConsoleLibrary.Log($"Database backup created at '{databaseBackupPath}'", ConsoleColor.White);
         }
         
-        var lines = File.ReadLines(filePath);
-        HashDatabase.AddToTable(lines, hashType, out var failed);
+        var lines = File.ReadLines(filePath).ToArray();
+        var failed = HashDatabases.AddToDatabase(lines, databaseName, hashType).ToArray();
 
-        if (failed.Count > 0)
+        if (failed.Length > 0)
         {
-            ConsoleLibrary.Log($"Failed to add {failed.Count} values", ConsoleColor.Yellow);
+            ConsoleLibrary.Log($"Failed to add {failed.Length} values", ConsoleColor.Yellow);
             
             try
             { // Save failed values to file
-                var logPath = Path.Join(ConfigLibrary.GetBasePath(), CoreAppConfig.Get().Cli.LogPath);
+                var logPath = Path.Join(ConfigLibrary.GetBasePath(), CoreConfig.AppConfig.LogPath);
                 if (!Directory.Exists(logPath))
                     Directory.CreateDirectory(logPath);
                 
                 var failedFilePath = Path.Join(logPath, $"db_add_failed_{dateTimeString}.txt");
                 using var failedFileStream = new FileStream(failedFilePath, FileMode.Create);
 
-                for (var i = 0; i < failed.Count; i += 1)
+                for (var i = 0; i < failed.Length; i += 1)
                 {
                     var failedString = failed[i];
                     if (i != 0)
@@ -134,9 +134,7 @@ public static class AtlConsoleDatabase
             var userInput = ConsoleLibrary.GetInput("Target filepath: ") ?? string.Empty;
 
             if (string.IsNullOrEmpty(userInput))
-            {
                 return Option<string>.None;
-            }
 
             if (!File.Exists(userInput))
             {
@@ -154,6 +152,13 @@ public static class AtlConsoleDatabase
     public static Option<EHashType> GetHashType()
     {
         EHashType hashType;
+        
+        var hashTypeMessage = "Choose a hash type";
+        hashTypeMessage += string.Join("", HashDatabase.TableToHashType
+            .Where(kvp => kvp.Value != EHashType.Unknown)
+            .Select(kvp => $"\n- {kvp.Key}"));
+        ConsoleLibrary.Log(hashTypeMessage, ConsoleColor.White);
+        
         while (true)
         {
             var userInput = ConsoleLibrary.GetInput("Hash type: ") ?? string.Empty;
@@ -166,15 +171,7 @@ public static class AtlConsoleDatabase
                 break;
 
             ConsoleLibrary.Log($"Invalid input '{userInput}'", ConsoleColor.Yellow);
-            ConsoleLibrary.Log("Valid inputs:", ConsoleColor.White);
-
-            var filteredKeys = HashDatabase.TableToHashType
-                .Where(kvp => kvp.Value != EHashType.Unknown)
-                .Select(kvp => kvp.Key);
-            foreach (var table in filteredKeys)
-            {
-                ConsoleLibrary.Log(table, ConsoleColor.White);
-            }
+            ConsoleLibrary.Log(hashTypeMessage, ConsoleColor.White);
         }
         
         return Option.Some(hashType);
@@ -184,9 +181,13 @@ public static class AtlConsoleDatabase
     {
         string databaseName;
 
-        var databasePath = Path.Join(ConfigLibrary.GetBasePath(), Path.GetDirectoryName(CoreAppConfig.Get().Cli.DatabasePath));
-        var databasePaths = Directory.GetFiles(databasePath, "*.db");
+        var databasePaths = Directory.GetFiles(CoreConfig.AppConfig.DatabasesDirectory, "*.db");
         var databaseNames = databasePaths.Select(Path.GetFileNameWithoutExtension).ToList();
+        
+        var databaseMessage = "Choose a hash database";
+        databaseMessage += string.Join("", databasePaths.Select(db => $"\n- {Path.GetFileNameWithoutExtension(db)}"));
+        ConsoleLibrary.Log(databaseMessage, ConsoleColor.White);
+        
         while (true)
         {
             var userInput = ConsoleLibrary.GetInput("Database: ") ?? string.Empty;
@@ -199,11 +200,7 @@ public static class AtlConsoleDatabase
                 break;
 
             ConsoleLibrary.Log($"Invalid input '{userInput}'", ConsoleColor.Yellow);
-            ConsoleLibrary.Log("Valid inputs:", ConsoleColor.White);
-            foreach (var potentialDatabaseName in databaseNames)
-            {
-                ConsoleLibrary.Log(potentialDatabaseName ?? "error", ConsoleColor.White);
-            }
+            ConsoleLibrary.Log(databaseMessage, ConsoleColor.White);
         }
         
         return Option.Some(databaseName);

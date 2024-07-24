@@ -71,9 +71,13 @@ public static class AtlConsoleHash
     private static void HashInput(string input)
     {
         var hash = input.HashJenkins();
-        ConsoleLibrary.Log($"Hex (big):    {hash:X8}", ConsoleColor.White);
-        ConsoleLibrary.Log($"Hex (little): {hash.ReverseEndian():X8}", ConsoleColor.White);
-        ConsoleLibrary.Log($"uint32:       {hash}", ConsoleColor.White);
+        // ConsoleLibrary.Log($"Hex (big):    {hash:X8}", ConsoleColor.White);
+        // ConsoleLibrary.Log($"Hex (little): {hash.ReverseEndian():X8}", ConsoleColor.White);
+        // ConsoleLibrary.Log($"uint32:       {hash}", ConsoleColor.White);
+        // ConsoleLibrary.Log($"int32:        {(int) hash}", ConsoleColor.White);
+        
+        ConsoleLibrary.Log($"Hex (big / little): {hash:X8} / {hash.ReverseEndian():X8}", ConsoleColor.White);
+        ConsoleLibrary.Log($"Un/signed int32:    {hash} / {(int) hash}", ConsoleColor.White);
     }
 
     private static void LookupInput(string input)
@@ -90,14 +94,14 @@ public static class AtlConsoleHash
             return;
         }
         
-        var result = HashDatabase.Lookup(hash);
+        var result = HashDatabases.Lookup(hash);
         if (string.IsNullOrEmpty(result.Value))
         {
             ConsoleLibrary.Log("Hash not found in database", LogType.Warning);
         }
         else
         {
-            ConsoleLibrary.Log($"Found result: {result.Value} [{result.Table}]", ConsoleColor.White);
+            ConsoleLibrary.Log($"Found result: {result.Value} [{result.Table} | {result.Database}]", ConsoleColor.White);
         }
     }
 }
