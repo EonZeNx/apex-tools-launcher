@@ -19,8 +19,11 @@ public class HashDatabases
             ConsoleLibrary.Log($"Failed to open database '{filePath}'", ConsoleColor.Red);
             return;
         }
-        
-        Databases.Add(database);
+
+        lock (Databases)
+        {
+            Databases.Add(database);
+        }
     }
     
     public static void FindAndOpenAll()
@@ -47,26 +50,32 @@ public class HashDatabases
     
     public static void LoadAll()
     {
-        foreach (var database in Databases)
+        lock (Databases)
         {
-            var success = database.LoadAll();
-            if (!success)
-                ConsoleLibrary.Log($"Failed to load database '{database.DatabaseName}'", ConsoleColor.Red);
+            foreach (var database in Databases)
+            {
+                var success = database.LoadAll();
+                if (!success)
+                    ConsoleLibrary.Log($"Failed to load database '{database.DatabaseName}'", ConsoleColor.Red);
+            }
         }
     }
 
     public static IEnumerable<string> AddToDatabase(string[] values, string databaseName, EHashType hashType)
     {
-        var optionDatabase = Databases
-            .Where(db => string.Equals(db.DatabaseName, databaseName))
-            .FirstOrNone();
-        if (!optionDatabase.IsSome(out var database))
+        lock (Databases)
         {
-            ConsoleLibrary.Log($"Failed to find database '{databaseName}'", ConsoleColor.Yellow);
-            return values;
-        }
+            var optionDatabase = Databases
+                .Where(db => string.Equals(db.DatabaseName, databaseName))
+                .FirstOrNone();
+            if (!optionDatabase.IsSome(out var database))
+            {
+                ConsoleLibrary.Log($"Failed to find database '{databaseName}'", ConsoleColor.Yellow);
+                return values;
+            }
         
-        return database.AddToTable(values, hashType);
+            return database.AddToTable(values, hashType);
+        }
     }
     
     #endregion
@@ -75,102 +84,114 @@ public class HashDatabases
     
     public static bool IsKnown(uint hash, string databaseName = "")
     {
-        if (string.IsNullOrEmpty(databaseName))
+        lock (Databases)
         {
-            if (Databases.Any(db => db.IsKnown(hash)))
+            if (string.IsNullOrEmpty(databaseName))
             {
-                return true;
+                if (Databases.Any(db => db.IsKnown(hash)))
+                {
+                    return true;
+                }
             }
-        }
 
-        var optionDatabase = Databases
-            .Where(db => string.Equals(db.DatabaseName, databaseName))
-            .FirstOrNone();
-        if (!optionDatabase.IsSome(out var database))
-        {
-            ConsoleLibrary.Log($"Failed to find database '{databaseName}'", ConsoleColor.Yellow);
-            return false;
-        }
+            var optionDatabase = Databases
+                .Where(db => string.Equals(db.DatabaseName, databaseName))
+                .FirstOrNone();
+            if (!optionDatabase.IsSome(out var database))
+            {
+                ConsoleLibrary.Log($"Failed to find database '{databaseName}'", ConsoleColor.Yellow);
+                return false;
+            }
         
-        return database.IsKnown(hash);
+            return database.IsKnown(hash);
+        }
     }
     
     public static bool IsUnknown(uint hash, string databaseName = "")
     {
-        if (string.IsNullOrEmpty(databaseName))
+        lock (Databases)
         {
-            if (Databases.Any(db => db.IsUnknown(hash)))
+            if (string.IsNullOrEmpty(databaseName))
             {
-                return true;
+                if (Databases.Any(db => db.IsUnknown(hash)))
+                {
+                    return true;
+                }
             }
-        }
 
-        var optionDatabase = Databases
-            .Where(db => string.Equals(db.DatabaseName, databaseName))
-            .FirstOrNone();
-        if (!optionDatabase.IsSome(out var database))
-        {
-            ConsoleLibrary.Log($"Failed to find database '{databaseName}'", ConsoleColor.Yellow);
-            return false;
-        }
+            var optionDatabase = Databases
+                .Where(db => string.Equals(db.DatabaseName, databaseName))
+                .FirstOrNone();
+            if (!optionDatabase.IsSome(out var database))
+            {
+                ConsoleLibrary.Log($"Failed to find database '{databaseName}'", ConsoleColor.Yellow);
+                return false;
+            }
         
-        return database.IsUnknown(hash);
+            return database.IsUnknown(hash);
+        }
     }
 
     public static Option<HashLookupResult> Lookup(uint hash, EHashType hashType = EHashType.Unknown, string databaseName = "")
     {
-        if (!CoreConfig.AppConfig.Cli.LookupHash)
-            return Option<HashLookupResult>.None;
+        lock (Databases)
+        {
+            if (!CoreConfig.AppConfig.Cli.LookupHash)
+                return Option<HashLookupResult>.None;
 
-        if (Databases.Count == 0 && !TriedFindAndOpenAll)
-            FindAndOpenAll();
+            if (Databases.Count == 0 && !TriedFindAndOpenAll)
+                FindAndOpenAll();
         
-        if (Databases.Count == 0)
-        {
-            ConsoleLibrary.Log($"Failed to load any databases at '{CoreConfig.AppConfig.DatabasesDirectory}'", ConsoleColor.Yellow);
-            return Option<HashLookupResult>.None;
-        }
-        
-        if (string.IsNullOrEmpty(databaseName))
-        {
-            foreach (var db in Databases)
+            if (Databases.Count == 0)
             {
-                var optionResult = db.GetKnown(hash);
-                
-                if (optionResult.IsNone)
-                    optionResult = db.Lookup(hash);
-
-                if (!optionResult.IsNone)
-                    return optionResult;
+                ConsoleLibrary.Log($"Failed to load any databases at '{CoreConfig.AppConfig.DatabasesDirectory}'", ConsoleColor.Yellow);
+                return Option<HashLookupResult>.None;
             }
+        
+            if (string.IsNullOrEmpty(databaseName))
+            {
+                foreach (var db in Databases)
+                {
+                    var optionResult = db.GetKnown(hash);
+                
+                    if (optionResult.IsNone)
+                        optionResult = db.Lookup(hash);
 
-            return Option<HashLookupResult>.None;
-        }
+                    if (!optionResult.IsNone)
+                        return optionResult;
+                }
+
+                return Option<HashLookupResult>.None;
+            }
         
-        var optionDatabase = Databases
-            .Where(db => string.Equals(db.DatabaseName, databaseName))
-            .FirstOrNone();
-        if (!optionDatabase.IsSome(out var database))
-        {
-            ConsoleLibrary.Log($"Failed to find '{hash}' in '{databaseName}'", ConsoleColor.Yellow);
-            return Option<HashLookupResult>.None;
-        }
+            var optionDatabase = Databases
+                .Where(db => string.Equals(db.DatabaseName, databaseName))
+                .FirstOrNone();
+            if (!optionDatabase.IsSome(out var database))
+            {
+                ConsoleLibrary.Log($"Failed to find '{hash}' in '{databaseName}'", ConsoleColor.Yellow);
+                return Option<HashLookupResult>.None;
+            }
         
-        return database.Lookup(hash, hashType);
+            return database.Lookup(hash, hashType);
+        }
     }
     
     public static void AddKnown(uint hash, HashLookupResult result)
     {
-        var optionDatabase = Databases
-            .Where(db => string.Equals(db.DatabaseName, result.Database))
-            .FirstOrNone();
-        if (!optionDatabase.IsSome(out var database))
+        lock (Databases)
         {
-            ConsoleLibrary.Log($"Failed to add '{hash}' to '{result.Database}'", ConsoleColor.Yellow);
-            return;
-        }
+            var optionDatabase = Databases
+                .Where(db => string.Equals(db.DatabaseName, result.Database))
+                .FirstOrNone();
+            if (!optionDatabase.IsSome(out var database))
+            {
+                ConsoleLibrary.Log($"Failed to add '{hash}' to '{result.Database}'", ConsoleColor.Yellow);
+                return;
+            }
         
-        database.AddKnown(hash, result);
+            database.AddKnown(hash, result);
+        }
     }
     
     public static void AddUnknown(uint hash, string databaseName)

@@ -26,7 +26,7 @@ public class HashLookupResult
 
     public override string ToString()
     {
-        return $"{Value} [{Table} | {Database}]";
+        return $"'{Value}' [{Table} | {Database}]";
     }
 }
 
@@ -40,8 +40,8 @@ public class HashDatabase
     public bool LoadedAllHashes { get; set; } = false;
     public bool TriedToOpenDb { get; set; } = false;
     
-    public readonly Dictionary<uint, HashLookupResult> KnownHashes = new();
-    public readonly HashSet<uint> UnknownHashes = new();
+    protected readonly Dictionary<uint, HashLookupResult> KnownHashes = new();
+    protected readonly HashSet<uint> UnknownHashes = new();
     
     public static Dictionary<EHashType, string> HashTypeToTable = new()
     {
@@ -194,9 +194,10 @@ public class HashDatabase
     public Option<HashLookupResult> GetKnown(uint hash)
     {
         var result = Option<HashLookupResult>.None;
-        if (IsKnown(hash))
-            result = KnownHashes.GetValueOrNone(hash);
-
+        if (!IsKnown(hash))
+            return result;
+        
+        result = KnownHashes.GetValueOrNone(hash);
         return result;
     }
     
@@ -207,10 +208,7 @@ public class HashDatabase
     
     public bool IsUnknown(uint hash)
     {
-        lock (UnknownHashes)
-        {
-            return UnknownHashes.Contains(hash);
-        }
+        return UnknownHashes.Contains(hash);
     }
     
     public Option<HashLookupResult> Lookup(uint hash, EHashType hashType = EHashType.Unknown)
@@ -262,18 +260,12 @@ public class HashDatabase
     
     public void AddKnown(uint hash, HashLookupResult result)
     {
-        lock (KnownHashes)
-        {
-            KnownHashes.TryAdd(hash, result);
-        }
+        KnownHashes.TryAdd(hash, result);
     }
     
     public void AddUnknown(uint hash)
     {
-        lock (UnknownHashes)
-        {
-            UnknownHashes.Add(hash);
-        }
+        UnknownHashes.Add(hash);
     }
     
     #endregion
