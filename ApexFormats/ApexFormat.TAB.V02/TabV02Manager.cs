@@ -67,28 +67,23 @@ public class TabV02Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
         foreach (var tabEntry in tabEntries)
         {
             var filePath = Path.Join(unknownDirectoryPath, $"{tabEntry.NameHash:X8}");
-            
-            var hashResult = HashDatabases.Lookup(tabEntry.NameHash, EHashType.FilePath);
-            if (hashResult.Valid())
-            {
-                filePath = Path.Join(unknownDirectoryPath, hashResult.Value);
-            }
-                
-            
-            var hashLookupResult = HashDatabases.Lookup(tabEntry.NameHash, EHashType.FilePath);
-            if (hashLookupResult.Valid())
-                filePath = Path.Join(outDirectory, hashLookupResult.Value);
 
-            if (!hashResult.Valid() && !unknownDirectoryExists)
-            { // cache result to reduce file system hit
-                Directory.CreateDirectory(unknownDirectoryPath);
-                unknownDirectoryExists = Directory.Exists(unknownDirectoryPath);
-            }
-            else if (hashResult.Valid())
+            var optionHashResult = HashDatabases.Lookup(tabEntry.NameHash, EHashType.FilePath);
+            if (optionHashResult.IsSome(out var hashResult))
             {
+                filePath = Path.Join(outDirectory, hashResult.Value);
+                
                 var fileDirectoryPath = Path.GetDirectoryName(filePath);
                 if (fileDirectoryPath is not null && !Directory.Exists(fileDirectoryPath))
                     Directory.CreateDirectory(fileDirectoryPath);
+            }
+            else
+            {
+                if (!unknownDirectoryExists)
+                { // cache result to reduce file system hit
+                    Directory.CreateDirectory(unknownDirectoryPath);
+                    unknownDirectoryExists = Directory.Exists(unknownDirectoryPath);
+                }
             }
             
             using var fileStream = new FileStream(filePath, FileMode.Create);

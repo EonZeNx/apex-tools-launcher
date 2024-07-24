@@ -95,9 +95,9 @@ public static class RtpcV01VariantExtensions
     public static XElement WriteXElement(this RtpcV01Variant variant)
     {
         var xe = new XElement("value");
-
-        var hashResult = HashDatabases.Lookup(variant.NameHash);
-        if (hashResult.Valid())
+        
+        var optionHashResult = HashDatabases.Lookup(variant.NameHash, EHashType.FilePath);
+        if (optionHashResult.IsSome(out var hashResult))
         {
             xe.SetAttributeValue("name", hashResult.Value);
         }

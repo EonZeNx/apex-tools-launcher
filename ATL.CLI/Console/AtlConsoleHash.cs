@@ -94,14 +94,10 @@ public static class AtlConsoleHash
             return;
         }
         
-        var result = HashDatabases.Lookup(hash);
-        if (string.IsNullOrEmpty(result.Value))
-        {
-            ConsoleLibrary.Log("Hash not found in database", LogType.Warning);
-        }
-        else
-        {
+        var optionResult = HashDatabases.Lookup(hash);
+        if (optionResult.IsSome(out var result))
             ConsoleLibrary.Log($"Found result: {result.Value} [{result.Table} | {result.Database}]", ConsoleColor.White);
-        }
+        else
+            ConsoleLibrary.Log("Hash not found in database", LogType.Warning);
     }
 }

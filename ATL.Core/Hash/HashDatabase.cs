@@ -190,6 +190,15 @@ public class HashDatabase
     #endregion
     
     # region Hash
+
+    public Option<HashLookupResult> GetKnown(uint hash)
+    {
+        var result = Option<HashLookupResult>.None;
+        if (IsKnown(hash))
+            result = KnownHashes.GetValueOrNone(hash);
+
+        return result;
+    }
     
     public bool IsKnown(uint hash)
     {
@@ -198,32 +207,21 @@ public class HashDatabase
     
     public bool IsUnknown(uint hash)
     {
-        return UnknownHashes.Contains(hash);
+        lock (UnknownHashes)
+        {
+            return UnknownHashes.Contains(hash);
+        }
     }
     
-    public HashLookupResult Lookup(uint hash, EHashType hashType = EHashType.Unknown)
+    public Option<HashLookupResult> Lookup(uint hash, EHashType hashType = EHashType.Unknown)
     {
-        var result = new HashLookupResult();
         if (!CoreConfig.AppConfig.Cli.LookupHash)
-            return result;
-
-        if (IsKnown(hash))
-        {
-            result = KnownHashes[hash];
-            return result;
-        }
-        if (IsUnknown(hash))
-            return result;
-        if (LoadedAllHashes)
-        { // don't bother searching
-            AddUnknown(hash);
-            return result;
-        }
+            return Option<HashLookupResult>.None;
 
         if (DbConnection == null && !TriedToOpenDb)
             OpenConnection();
         if (DbConnection?.State != ConnectionState.Open)
-            return result;
+            return Option<HashLookupResult>.None;
         
         var tables = new List<string>();
         foreach (var potentialHashType in Enum.GetValues<EHashType>())
@@ -235,11 +233,12 @@ public class HashDatabase
             }
         }
         
+        var result = new HashLookupResult();
         using var command = DbConnection.CreateCommand();
         foreach (var table in tables)
         {
             command.CommandText = $"SELECT Value FROM '{table}'" +
-                                  $"WHERE Hash = {hash}";
+                                  $"WHERE Hash = {(int) hash}";
             using var dbr = command.ExecuteReader();
             if (!dbr.Read())
                 continue;
@@ -251,16 +250,14 @@ public class HashDatabase
             break;
         }
 
-        if (!string.IsNullOrEmpty(result.Value))
-        {
-            AddKnown(hash, result);
-        }
-        else
+        if (!result.Valid())
         {
             AddUnknown(hash);
+            return Option<HashLookupResult>.None;
         }
         
-        return result;
+        AddKnown(hash, result);
+        return Option.Some(result);
     }
     
     public void AddKnown(uint hash, HashLookupResult result)

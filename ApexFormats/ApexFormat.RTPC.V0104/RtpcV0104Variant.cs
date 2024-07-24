@@ -80,8 +80,8 @@ public static class RtpcV0104VariantExtensions
     {
         var xe = new XElement("value");
 
-        var hashResult = HashDatabases.Lookup(variant.NameHash);
-        if (hashResult.Valid())
+        var optionHashResult = HashDatabases.Lookup(variant.NameHash, EHashType.FilePath);
+        if (optionHashResult.IsSome(out var hashResult))
         {
             xe.SetAttributeValue("name", hashResult.Value);
         }
