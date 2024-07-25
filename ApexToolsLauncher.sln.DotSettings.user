@@ -6,5 +6,8 @@
   &lt;Or&gt;&#xD;
     &lt;ProjectFile&gt;5BD0CF67-D889-4DBB-A505-48432D954E31/f:SarcV02Tests.cs&lt;/ProjectFile&gt;&#xD;
     &lt;ProjectFile&gt;5BD0CF67-D889-4DBB-A505-48432D954E31/f:TabV02Tests.cs&lt;/ProjectFile&gt;&#xD;
+    &lt;TestAncestor&gt;&#xD;
+      &lt;TestId&gt;NUnit3x::5BD0CF67-D889-4DBB-A505-48432D954E31::net8.0::ATL.Test.AdfV04Tests&lt;/TestId&gt;&#xD;
+    &lt;/TestAncestor&gt;&#xD;
   &lt;/Or&gt;&#xD;
 &lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>

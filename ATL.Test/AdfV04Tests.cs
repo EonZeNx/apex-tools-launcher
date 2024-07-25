@@ -1,11 +1,11 @@
-using ApexFormat.TAB.V02;
+using ApexFormat.ADF.V04;
 using ATL.Core.Class;
 
 namespace ATL.Test;
 
-public class TabV02Tests
+public class AdfV04Tests
 {
-    public static string SuccessPath { get; set; } = @".\Tests\TABv02\game67.tab";
+    public static string SuccessPath { get; set; } = @".\Tests\ADFv04\w011_pistol_u_pozhar_98.wtunec";
     public static string FailPath { get; set; } = @".\Tests\fail.txt";
     public static string OutDirectory { get; set; } = @".\Tests\out";
     
@@ -14,7 +14,7 @@ public class TabV02Tests
     {
         DotEnv.Load();
 
-        var envSuccessPath = Environment.GetEnvironmentVariable("TEST_PATH_TAB_V02_SUCCESS");
+        var envSuccessPath = Environment.GetEnvironmentVariable("TEST_PATH_ADF_V04_SUCCESS");
         if (File.Exists(envSuccessPath))
             SuccessPath = envSuccessPath;
         
@@ -30,7 +30,7 @@ public class TabV02Tests
     [Test]
     public void CanProcessSuccess()
     {
-        var result = TabV02Manager.CanProcess(SuccessPath);
+        var result = AdfV04Manager.CanProcess(SuccessPath);
         
         Assert.That(result, Is.True);
     }
@@ -38,7 +38,7 @@ public class TabV02Tests
     [Test]
     public void CanProcessFail()
     {
-        var result = TabV02Manager.CanProcess(FailPath);
+        var result = AdfV04Manager.CanProcess(FailPath);
         
         Assert.That(result, Is.False);
     }
@@ -46,7 +46,7 @@ public class TabV02Tests
     [Test]
     public void DecompressSuccess()
     {
-        var manager = new TabV02Manager();
+        var manager = new AdfV04Manager();
         var result = manager.ProcessBasic(SuccessPath, OutDirectory);
         
         Assert.That(result, Is.AtLeast(0));

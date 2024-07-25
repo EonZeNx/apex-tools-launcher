@@ -26,7 +26,7 @@ public class TabV02Header : ISizeOf
     public ushort MinorVersion = TabV02HeaderConstants.MinorVersion;
     public int Alignment = TabV02HeaderConstants.Alignment;
 
-    public static int SizeOf() => sizeof(uint) + sizeof(ushort) + sizeof(ushort) + sizeof(int);
+    public static uint SizeOf() => sizeof(uint) + sizeof(ushort) + sizeof(ushort) + sizeof(int);
 }
 
 public static class TabV02HeaderExtensions
@@ -37,11 +37,6 @@ public static class TabV02HeaderExtensions
     /// <returns>Number, 0 = valid, 0 > invalid, 1+ valid with issue</returns>
     public static Option<TabV02Header> ReadTabV02Header(this Stream stream)
     {
-        if (stream.Length < TabV02Header.SizeOf())
-        {
-            return Option<TabV02Header>.None;
-        }
-        
         if (stream.Length - stream.Position < TabV02Header.SizeOf())
         {
             return Option<TabV02Header>.None;

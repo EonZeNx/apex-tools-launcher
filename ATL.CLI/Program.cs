@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using ApexFormat.AAF.V01;
+using ApexFormat.ADF.V04;
 using ApexFormat.RTPC.V0104;
 using ApexFormat.RTPC.V01;
 using ApexFormat.SARC.V02;
@@ -61,6 +62,7 @@ class Program
                 if (TabV02Manager.CanProcess(inputPath) ||
                     SarcV02Manager.CanProcess(inputPath) ||
                     AafV01Manager.CanProcess(inputPath) ||
+                    AdfV04Manager.CanProcess(inputPath) ||
                     RtpcV01Manager.CanProcess(inputPath) ||
                     RtpcV0104Manager.CanProcess(inputPath)
                 ) {
@@ -180,6 +182,11 @@ class Program
         {
             manager = new AafV01Manager();
             message = $"{message} as AAFv01";
+        }
+        else if (AdfV04Manager.CanProcess(inPath))
+        {
+            manager = new AdfV04Manager();
+            message = $"{message} as ADFv04";
         }
         else if (RtpcV01Manager.CanProcess(inPath))
         {

@@ -23,18 +23,13 @@ public class SarcV02ArchiveEntry : ISizeOf
     public uint DataOffset = 0;
     public uint Size = 0;
     
-    public static int SizeOf() => sizeof(uint) + sizeof(uint) + sizeof(uint);
+    public static uint SizeOf() => sizeof(uint) + sizeof(uint) + sizeof(uint);
 }
 
 public static class SarcV02ArchiveEntryExtensions
 {
     public static Option<SarcV02ArchiveEntry> ReadSarcV02ArchiveEntry(this Stream stream)
     {
-        if (stream.Length < SarcV02ArchiveEntry.SizeOf())
-        {
-            return Option<SarcV02ArchiveEntry>.None;
-        }
-        
         if (stream.Length - stream.Position < SarcV02ArchiveEntry.SizeOf())
         {
             return Option<SarcV02ArchiveEntry>.None;

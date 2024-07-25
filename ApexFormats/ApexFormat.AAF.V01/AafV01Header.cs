@@ -30,14 +30,14 @@ public class AafV01Header : ISizeOf
     public uint RequiredUnpackBufferSize = 0;
     public uint ChunkCount = 0;
 
-    public static int SizeOf()
+    public static uint SizeOf()
     {
-        return sizeof(uint) + // Magic
-               sizeof(uint) + // Version
-               AafV01HeaderConstants.Comment.Length + // Comment
-               sizeof(uint) + // TotalUnpackedSize
-               sizeof(uint) + // RequiredUnpackBufferSize
-               sizeof(uint); // ChunkCount
+        return (uint) (sizeof(uint) + // Magic
+                       sizeof(uint) + // Version
+                       AafV01HeaderConstants.Comment.Length + // Comment
+                       sizeof(uint) + // TotalUnpackedSize
+                       sizeof(uint) + // RequiredUnpackBufferSize
+                       sizeof(uint)); // ChunkCount
     }
 }
 
@@ -45,11 +45,6 @@ public static class AafV01HeaderExtensions
 {
     public static Option<AafV01Header> ReadAafV01Header(this Stream stream)
     {
-        if (stream.Length < AafV01Header.SizeOf())
-        {
-            return Option<AafV01Header>.None;
-        }
-        
         if (stream.Length - stream.Position < AafV01Header.SizeOf())
         {
             return Option<AafV01Header>.None;

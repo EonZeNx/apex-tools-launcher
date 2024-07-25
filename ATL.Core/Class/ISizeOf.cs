@@ -2,5 +2,5 @@
 
 public interface ISizeOf
 {
-    static abstract int SizeOf();
+    static abstract uint SizeOf();
 }
