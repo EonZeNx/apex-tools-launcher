@@ -20,7 +20,7 @@ public static class StreamExtensions
         var charList = new List<byte>();
         
         // Hardcoded sanity check
-        while (charList.Count < 2000)
+        while (charList.Count < 2048)
         {
             var newChar = stream.Read<byte>();
             if (newChar == '\0')

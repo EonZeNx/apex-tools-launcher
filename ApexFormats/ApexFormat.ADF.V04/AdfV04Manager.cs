@@ -38,7 +38,10 @@ public class AdfV04Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
             Header = header
         };
         file.AddBuiltInTypes();
-        file.AddTypes(inBuffer);
+        
+        file.ReadStringHashes(inBuffer);
+        var localStringTable = file.ReadStringTable(inBuffer);
+        file.ReadTypes(inBuffer, localStringTable.ToArray());
         // TODO: Add types from other places
         
         var outer = new XElement("adf");
@@ -46,7 +49,7 @@ public class AdfV04Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
         outer.SetAttributeValue("format", "ADF");
         outer.SetAttributeValue("version", "4");
 
-        var rootXElement = file.WriteInstances(inBuffer);
+        var rootXElement = file.WriteInstances(inBuffer, localStringTable);
         outer.Add(rootXElement);
         
         var xd = new XDocument(XDocumentLibrary.AtlGeneratedComment(), outer);

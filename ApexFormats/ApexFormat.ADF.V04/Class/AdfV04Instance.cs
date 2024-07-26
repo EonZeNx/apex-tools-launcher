@@ -10,7 +10,7 @@ namespace ApexFormat.ADF.V04.Class;
 /// <br/>TypeHash - <see cref="uint"/>
 /// <br/>PayloadOffset - <see cref="uint"/>
 /// <br/>PayloadSize - <see cref="uint"/>
-/// <br/>Name - <see cref="ulong"/>
+/// <br/>NameIndex - <see cref="ulong"/>
 /// </summary>
 public class AdfV04Instance : ISizeOf
 {

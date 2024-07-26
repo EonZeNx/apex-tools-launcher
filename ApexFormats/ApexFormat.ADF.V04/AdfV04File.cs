@@ -3,6 +3,7 @@ using ApexFormat.ADF.V04.Class;
 using ApexFormat.ADF.V04.Enum;
 using ATL.Core.Extensions;
 using ATL.Core.Hash;
+using ATL.Core.Libraries;
 using CommunityToolkit.HighPerformance;
 using RustyOptions;
 
@@ -13,8 +14,11 @@ public class AdfV04File
     public AdfV04Header Header = new();
     public List<AdfV04Type> Types = [];
     public List<AdfV04Type> InternalTypes = [];
-    public List<string> Strings = [];
+    // Note: can container null characters
+    public List<string> StringTable = [];
     public Dictionary<uint, string> StringHashes = [];
+    
+    private static readonly string[] CharactersToRemove = ["\0"];
 
     public void AddBuiltInType(EAdfV04Type type, EAdfV04ScalarType scalarType, uint size, string name, ushort flags = 3)
     {
@@ -28,12 +32,12 @@ public class AdfV04File
             alignment = 8;
         }
 
-        if (!Strings.Contains(name))
+        if (!StringTable.Contains(name))
         {
-            Strings.Add(name);
+            StringTable.Add(name);
         }
 
-        var nameIndex = Strings.FindIndex(s => string.Equals(s, name));
+        var nameIndex = StringTable.FindIndex(s => string.Equals(s, name));
         var definition = new AdfV04Type
         {
             Type = type,
@@ -43,7 +47,7 @@ public class AdfV04File
             NameIndex = (ulong) nameIndex,
             Flags = flags,
             ScalarType = scalarType,
-            SubTypeHash = 0,
+            ScalarTypeHash = 0,
             BitCountOrArrayLength = 0,
             MemberCountOrDataAlign = 0,
         };
@@ -77,79 +81,133 @@ public class AdfV04File
         return Types.FirstOrNone(t => t.TypeHash == typeHash);
     }
 
-    public void AddTypes(Stream stream)
+    public static string GetString(ulong index, string[] stringTable, bool removeCharacters = true)
     {
-        if (Header.FirstStringHashOffset > 0)
-        { // TODO: This is untested
-            stream.Seek(Header.FirstStringHashOffset, SeekOrigin.Begin);
+        var result = stringTable[(int) index];
+        if (removeCharacters)
+            result = result.RemoveAll(CharactersToRemove);
 
-            var strings = new string[Header.StringHashCount];
-            for (var i = 0; i < Header.StringHashCount; i++)
-            {
-                strings[i] = stream.ReadStringZ();
-            }
-            
-            for (var i = 0; i < Header.StringHashCount; i++)
-            {
-                var hash = stream.Read<ulong>();
+        return result;
+    }
+    
+    public string GetString(ulong index, bool removeCharacters = true)
+    {
+        return GetString(index, StringTable.ToArray(), removeCharacters);
+    }
+    
+    public int GetStringIndex(string value)
+    {
+        return StringTable.FindIndex(s => string.Equals(s, value));
+    }
+
+    public int ReadStringHashes(Stream stream)
+    {
+        var count = 0;
+
+        if (Header.StringHashOffset <= 0)
+            return count;
+        
+        stream.Seek(Header.StringHashOffset, SeekOrigin.Begin);
+
+        for (var i = 0; i < Header.StringHashCount; i++)
+        {
+            var value = stream.ReadStringZ();
+            var hash = stream.Read<ulong>();
                 
-                // Note: hashes are stored as uint64/ulong, but only 32 bits are used
-                StringHashes.Add((uint) hash, strings[i]);
-            }
+            // Note: hashes are stored as uint64/ulong, but only 32 bits are used
+            count += StringHashes.TryAdd((uint) hash, value) ? 1 : 0;
         }
 
-        if (Header.FirstStringDataOffset > 0)
+        return count;
+    }
+    
+    public string[] ReadStringTable(Stream stream)
+    {
+        var results = new List<string>();
+        
+        if (Header.StringTableOffset <= 0)
+            return results.ToArray();
+        
+        stream.Seek(Header.StringTableOffset, SeekOrigin.Begin);
+            
+        var stringLengths = new byte[Header.StringTableCount];
+        for (var i = 0; i < Header.StringTableCount; i += 1)
         {
-            stream.Seek(Header.FirstStringDataOffset, SeekOrigin.Begin);
-            
-            var strings = new string[Header.StringCount];
-            var stringLengths = new byte[Header.StringCount];
+            stringLengths[i] = (byte) (stream.Read<byte>() + 1);
+        }
         
-            for (var i = 0; i < Header.StringCount; i += 1)
-            {
-                stringLengths[i] = (byte) (stream.Read<byte>() + 1);
-            }
-        
-            for (var i = 0; i < Header.StringCount; i += 1)
-            {
-                strings[i] = stream.ReadStringOfLength(stringLengths[i]);
-            }
-            
-            Strings.AddRange(strings);
+        for (var i = 0; i < Header.StringTableCount; i += 1)
+        {
+            var value = stream.ReadStringOfLength(stringLengths[i]);
+            results.Add(value);
         }
 
-        if (Header.FirstTypeOffset > 0)
+        StringTable.AddRange(results);
+        return results.ToArray();
+    }
+    
+    public int ReadTypes(Stream stream, string[] localStringTable)
+    {
+        if (Header.TypeOffset <= 0)
+            return 0;
+        
+        stream.Seek(Header.TypeOffset, SeekOrigin.Begin);
+
+        var count = 0;
+        var types = new AdfV04Type[Header.TypeCount];
+        for (var i = 0; i < Header.TypeCount; i += 1)
         {
-            stream.Seek(Header.FirstTypeOffset, SeekOrigin.Begin);
+            var optionType = stream.ReadAdfV04Type();
+            if (!optionType.IsSome(out var adfType))
+                continue;
 
-            var types = new AdfV04Type[Header.TypeCount];
-            for (var i = 0; i < Header.TypeCount; i += 1)
+            if (HasType(adfType.TypeHash))
+                continue;
+
+            // reindex name, loading several types at once can displace it
+            var name = GetString(adfType.NameIndex, localStringTable, false);
+            adfType.NameIndex = (uint) GetStringIndex(name);
+
+            switch (adfType.Type)
             {
-                var optionType = stream.ReadAdfV04Type();
-                if (!optionType.IsSome(out var adfType))
-                    continue;
-
-                if (HasType(adfType.TypeHash))
+                case EAdfV04Type.Struct:
                 {
-                    stream.Seek(adfType.DataSize(), SeekOrigin.Current);
-                    continue;
+                    for (var j = 0; j < adfType.MemberCountOrDataAlign; j++)
+                    {
+                        var member = adfType.Members[j];
+                        var memberName = localStringTable[(int) member.NameIndex];
+                        adfType.Members[j].NameIndex = (uint) GetStringIndex(memberName);
+                    }
+                    break;
                 }
-                    
-                types[i] = adfType;
-                // TODO: Reindex string and member strings?
-                // TODO: AdfV04Member Members here
-                
-                Types.Add(adfType);
-                InternalTypes.Add(adfType);
+                case EAdfV04Type.Enum:
+                {
+                    for (var j = 0; j < adfType.MemberCountOrDataAlign; j++)
+                    {
+                        var enumFlag = adfType.EnumFlags[j];
+                        var enumName = localStringTable[(int) enumFlag.NameIndex];
+                        adfType.EnumFlags[j].NameIndex = (uint) GetStringIndex(enumName);
+                    }
+                    break;
+                }
             }
+                
+            types[i] = adfType;
+            
+            Types.Add(adfType);
+            InternalTypes.Add(adfType);
+
+            count += 1;
         }
+
+        return count;
     }
 
     public Stream ReadInstanceData(Stream stream, uint nameHash, uint typeHash)
     {
         var optionResult = Option<AdfV04Instance>.None;
 
-        stream.Seek(Header.FirstInstanceOffset, SeekOrigin.Begin);
+        stream.Seek(Header.InstanceOffset, SeekOrigin.Begin);
         for (var i = 0; i < Header.InstanceCount; i++)
         {
             var optionInstance = stream.ReadAdfV04Instance();
@@ -209,7 +267,7 @@ public class AdfV04File
         return instanceData;
     }
 
-    public Option<AdfV04InstanceInfo> GetInstance(Stream stream)
+    public Option<AdfV04InstanceInfo> GetInstanceInfo(Stream stream)
     {
         if (stream.Length - stream.Position < AdfV04Instance.SizeOf())
         {
@@ -224,7 +282,7 @@ public class AdfV04File
         {
             NameHash = instance.NameHash,
             TypeHash = instance.TypeHash,
-            // TODO: String lookup
+            NameIndex = instance.NameIndex
         };
 
         var optionAdfType = FindType(result.TypeHash);
@@ -278,7 +336,7 @@ public class AdfV04File
         case EAdfV04Type.Struct:
         {
             var xeStruct = new XElement("struct");
-            xeStruct.SetAttributeValue("type", adfType.Type);
+            xeStruct.SetAttributeValue("type", GetString(adfType.NameIndex));
 
             for (var i = 0; i < adfType.MemberCountOrDataAlign; i += 1)
             {
@@ -289,13 +347,16 @@ public class AdfV04File
                     continue;
                 
                 var xeMember = new XElement("member");
-                xeMember.SetAttributeValue("name",
-                    Strings.Count > (int) member.NameIndex
-                        ? Strings[(int) member.NameIndex]
-                        : "name index out of bounds");
-                WriteInstance(inBuffer, subtype, xeMember, offset + member.Offset);
+                xeMember.SetAttributeValue("name", GetString(member.NameIndex));
+
+                var memberDataOffset = offset + member.Offset;
+                memberDataOffset = MathLibrary.Align(memberDataOffset, subtype.Alignment);
+                WriteInstance(inBuffer, subtype, xeMember, memberDataOffset);
+                
+                xeStruct.Add(xeMember);
             }
             
+            parent.Add(xeStruct);
             break;
         }
         case EAdfV04Type.Pointer:
@@ -303,19 +364,26 @@ public class AdfV04File
             break;
         case EAdfV04Type.Array:
         {
-            var relativeOffset = inBuffer.Read<uint>();
-            var count = inBuffer.Read<uint>();
-            
-            var optionSubType = FindType(adfType.SubTypeHash);
+            var optionSubType = FindType(adfType.ScalarTypeHash);
             if (!optionSubType.IsSome(out var subtype))
                 break;
-
+            
             var xeArray = new XElement("array");
-            xeArray.SetAttributeValue("type", subtype.Type);
+            xeArray.SetAttributeValue("type", GetString(subtype.NameIndex));
+            
+            var potentialOffset = (uint) ((ulong) inBuffer.Read<uint>());
+            if (potentialOffset <= 0)
+            {
+                parent.Add(xeArray);
+                break;
+            }
+            
+            var unknown01 = inBuffer.Read<uint>();
+            var count = inBuffer.Read<uint>();
             
             for (var i = 0; i < count; i += 1)
             {
-                WriteInstance(inBuffer, subtype, xeArray, (uint) (relativeOffset + (subtype.Size * i)));
+                WriteInstance(inBuffer, subtype, xeArray, (uint) (potentialOffset + (subtype.Size * i)));
                 if (subtype.Type == EAdfV04Type.Scalar && i != 0)
                 {
                     xeArray.Add(" ");
@@ -327,7 +395,7 @@ public class AdfV04File
         }
         case EAdfV04Type.InlineArray:
         {
-            var optionSubType = FindType(adfType.SubTypeHash);
+            var optionSubType = FindType(adfType.ScalarTypeHash);
             if (!optionSubType.IsSome(out var subtype))
                 break;
 
@@ -336,15 +404,16 @@ public class AdfV04File
                 subtypeSize = 8;
             
             var xeArray = new XElement("inline");
-            xeArray.SetAttributeValue("type", subtype.Type);
+            xeArray.SetAttributeValue("type", GetString(subtype.NameIndex));
             
-            for (var i = 0; i < adfType.MemberCountOrDataAlign; i += 1)
+            for (var i = 0; i < adfType.BitCountOrArrayLength; i += 1)
             {
-                WriteInstance(inBuffer, subtype, xeArray, (uint) (offset + (subtypeSize * i)));
                 if (subtype.Type == EAdfV04Type.Scalar && i != 0)
                 {
                     xeArray.Add(" ");
                 }
+                
+                WriteInstance(inBuffer, subtype, xeArray, (uint) (offset + (subtypeSize * i)));
             }
             
             parent.Add(xeArray);
@@ -366,29 +435,30 @@ public class AdfV04File
         }
     }
     
-    public XElement WriteInstances(Stream inBuffer)
+    public XElement WriteInstances(Stream inBuffer, string[] localStringTable)
     {
-        inBuffer.Seek(Header.FirstInstanceOffset, SeekOrigin.Begin);
+        inBuffer.Seek(Header.InstanceOffset, SeekOrigin.Begin);
 
         var xeInstances = new XElement("instances");
         
         for (var i = 0; i < Header.InstanceCount; i++)
         {
-            var optionInstanceInfo = GetInstance(inBuffer);
+            var optionInstanceInfo = GetInstanceInfo(inBuffer);
             if (!optionInstanceInfo.IsSome(out var instanceInfo))
                 continue;
 
             if (instanceInfo.InstanceOffset == 0 || instanceInfo.InstanceSize == 0)
-            {
                 continue;
-            }
-
-            var xeInstance = new XElement("instance");
             
             var optionAdfType = FindType(instanceInfo.TypeHash);
             if (!optionAdfType.IsSome(out var adfType))
                 continue;
 
+            var xeInstance = new XElement("instance");
+            var name = GetString(instanceInfo.NameIndex, localStringTable);
+                
+            xeInstance.SetAttributeValue("name", name.RemoveAll(CharactersToRemove));
+            xeInstance.SetAttributeValue("type", $"{instanceInfo.TypeHash.ReverseEndian():X8}");
             WriteInstance(inBuffer, adfType, xeInstance, instanceInfo.InstanceOffset);
             
             xeInstances.Add(xeInstance);
