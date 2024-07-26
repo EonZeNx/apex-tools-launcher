@@ -1,6 +1,7 @@
 ﻿using System.Xml.Linq;
 using ApexFormat.ADF.V04.Class;
 using ApexFormat.ADF.V04.Enum;
+using ATL.Core.Config;
 using ATL.Core.Extensions;
 using ATL.Core.Hash;
 using ATL.Core.Libraries;
@@ -295,13 +296,14 @@ public class AdfV04File
         return Option.Some(result);
     }
 
-    public void WriteInstance(Stream inBuffer, AdfV04Type adfType, XElement parent, uint offset = 0)
+    public void WriteInstance(Stream inBuffer, AdfV04Type adfType, XElement parent, uint instanceOffset, uint offset = 0)
     {
-        inBuffer.Seek(offset, SeekOrigin.Begin);
+        inBuffer.Seek(instanceOffset + offset, SeekOrigin.Begin);
         
         switch (adfType.Type)
         {
         case EAdfV04Type.Scalar:
+            parent.SetAttributeValue("type", GetString(adfType.NameIndex));
             switch (adfType.ScalarType)
             {
             case EAdfV04ScalarType.Signed:
@@ -352,7 +354,7 @@ public class AdfV04File
                 var memberDataOffset = offset + member.Offset;
                 memberDataOffset = MathLibrary.Align(memberDataOffset, memberType.Alignment);
                 
-                WriteInstance(inBuffer, memberType, xeMember, memberDataOffset);
+                WriteInstance(inBuffer, memberType, xeMember, instanceOffset, memberDataOffset);
                 xeStruct.Add(xeMember);
             }
             
@@ -379,12 +381,12 @@ public class AdfV04File
             
             xeArray.SetAttributeValue("type", GetString(subtype.NameIndex));
             
-            var unknown01 = inBuffer.Read<uint>();
+            var flags = inBuffer.Read<uint>();
             var count = inBuffer.Read<uint>();
             
             for (var i = 0; i < count; i += 1)
             {
-                var childOffset = arrayOffset + (uint) (subtype.Size * i);
+                var childOffset = instanceOffset + arrayOffset + (uint) (subtype.Size * i);
                 WriteInstance(inBuffer, subtype, xeArray, childOffset);
                 if (subtype.Type == EAdfV04Type.Scalar && i != 0)
                 {
@@ -415,7 +417,7 @@ public class AdfV04File
                     xeArray.Add(" ");
                 }
                 
-                WriteInstance(inBuffer, subtype, xeArray, (uint) (offset + (subtypeSize * i)));
+                WriteInstance(inBuffer, subtype, xeArray, (uint) (instanceOffset + offset + (subtypeSize * i)));
             }
             
             parent.Add(xeArray);
@@ -423,15 +425,56 @@ public class AdfV04File
             break;
         }
         case EAdfV04Type.String:
+        {
+            var xeString = new XElement("string");
+            
+            var stringOffset = inBuffer.Read<uint>();
+            if (stringOffset <= 0)
+            {
+                parent.Add(xeString);
+                break;
+            }
+
+            inBuffer.Seek(instanceOffset + stringOffset, SeekOrigin.Begin);
+            var value = inBuffer.ReadStringZ();
+            xeString.Add(value);
+            
+            parent.Add(xeString);
             break;
+        }
         case EAdfV04Type.Recursive:
             break;
         case EAdfV04Type.Bitfield:
             break;
         case EAdfV04Type.Enum:
+        {
+            var xElement = new XElement("enum");
+            
+            var enumValue = inBuffer.Read<uint>();
+            xElement.Add(enumValue);
+            
+            parent.Add(xElement);
             break;
+        }
         case EAdfV04Type.StringHash:
+        {
+            var xElement = new XElement("stringhash");
+            
+            var stringHash = inBuffer.Read<uint>();
+            var value = $"{stringHash.ReverseEndian():X8}";
+            if (CoreConfig.AppConfig.Cli.LookupHash)
+            {
+                var optionResult = HashDatabases.Lookup(stringHash);
+                if (optionResult.IsSome(out var lookupResult))
+                {
+                    value = lookupResult.Value;
+                }
+            }
+            xElement.Add(value);
+            
+            parent.Add(xElement);
             break;
+        }
         default:
             throw new ArgumentOutOfRangeException();
         }

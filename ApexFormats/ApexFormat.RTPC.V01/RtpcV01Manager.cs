@@ -40,7 +40,6 @@ public class RtpcV01Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
 
         var outer = new XElement("entity");
         outer.SetAttributeValue("extension", "epe");
-        outer.SetAttributeValue("format", "RTPC");
         outer.SetAttributeValue("version", "1");
 
         var rootXElement = container.WriteXElement();

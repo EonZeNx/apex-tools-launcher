@@ -42,9 +42,8 @@ public class RtpcV0104Manager : ICanProcessStream, ICanProcessPath, IProcessBasi
                 containers[i] = container;
         }
 
-        var outer = new XElement("entity");
-        outer.SetAttributeValue("extension", "epe");
-        outer.SetAttributeValue("format", "RTPC");
+        var outer = new XElement("inline");
+        outer.SetAttributeValue("extension", "bin");
         outer.SetAttributeValue("version", "0104");
     
         var root = new XElement("object");

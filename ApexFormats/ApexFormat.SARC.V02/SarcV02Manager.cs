@@ -80,7 +80,6 @@ public class SarcV02Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
     {
         var outer = new XElement("archive");
         outer.SetAttributeValue("extension", "ee");
-        outer.SetAttributeValue("format", "SARC");
         outer.SetAttributeValue("version", "2");
         
         var root = new XElement("files");

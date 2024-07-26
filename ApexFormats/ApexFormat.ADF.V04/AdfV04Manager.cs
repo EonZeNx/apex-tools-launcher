@@ -46,7 +46,6 @@ public class AdfV04Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
         
         var outer = new XElement("adf");
         outer.SetAttributeValue("extension", "adf");
-        outer.SetAttributeValue("format", "ADF");
         outer.SetAttributeValue("version", "4");
 
         var rootXElement = file.WriteInstances(inBuffer, localStringTable);
