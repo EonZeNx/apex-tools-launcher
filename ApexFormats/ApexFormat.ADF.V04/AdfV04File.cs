@@ -342,17 +342,17 @@ public class AdfV04File
             {
                 var member = adfType.Members[i];
                 
-                var optionSubType = FindType(member.TypeHash);
-                if (!optionSubType.IsSome(out var subtype))
+                var optionMemberType = FindType(member.TypeHash);
+                if (!optionMemberType.IsSome(out var memberType))
                     continue;
                 
                 var xeMember = new XElement("member");
                 xeMember.SetAttributeValue("name", GetString(member.NameIndex));
 
                 var memberDataOffset = offset + member.Offset;
-                memberDataOffset = MathLibrary.Align(memberDataOffset, subtype.Alignment);
-                WriteInstance(inBuffer, subtype, xeMember, memberDataOffset);
+                memberDataOffset = MathLibrary.Align(memberDataOffset, memberType.Alignment);
                 
+                WriteInstance(inBuffer, memberType, xeMember, memberDataOffset);
                 xeStruct.Add(xeMember);
             }
             
@@ -364,26 +364,28 @@ public class AdfV04File
             break;
         case EAdfV04Type.Array:
         {
-            var optionSubType = FindType(adfType.ScalarTypeHash);
-            if (!optionSubType.IsSome(out var subtype))
-                break;
-            
             var xeArray = new XElement("array");
-            xeArray.SetAttributeValue("type", GetString(subtype.NameIndex));
             
-            var potentialOffset = (uint) ((ulong) inBuffer.Read<uint>());
-            if (potentialOffset <= 0)
+            var arrayOffset = inBuffer.Read<uint>();
+            if (arrayOffset <= 0)
             {
                 parent.Add(xeArray);
                 break;
             }
+            
+            var optionSubType = FindType(adfType.ScalarTypeHash);
+            if (!optionSubType.IsSome(out var subtype))
+                break;
+            
+            xeArray.SetAttributeValue("type", GetString(subtype.NameIndex));
             
             var unknown01 = inBuffer.Read<uint>();
             var count = inBuffer.Read<uint>();
             
             for (var i = 0; i < count; i += 1)
             {
-                WriteInstance(inBuffer, subtype, xeArray, (uint) (potentialOffset + (subtype.Size * i)));
+                var childOffset = arrayOffset + (uint) (subtype.Size * i);
+                WriteInstance(inBuffer, subtype, xeArray, childOffset);
                 if (subtype.Type == EAdfV04Type.Scalar && i != 0)
                 {
                     xeArray.Add(" ");
