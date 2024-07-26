@@ -3,15 +3,15 @@ Mod tools for [Avalanche Studios](https://avalanchestudios.com/) games. Launch, 
 
 ## File type status
 ### Just Cause 3
-|  File type  | Version |   Status   |
-| ----------- | ------- | ---------- |
-| RTPC        | 1.4     | Extract    |
-| RTPC        | 1       | Extract    |
-| AAF         | 1       | Extract    |
-| SARC        | 2       | Extract    |
-| ADF         | 4       | ToDo       |
-| TAB / ARC   | 2       | Extract    |
-| DDSC / AVTX | X       | ToDo       |
+|   File type   | Version |   Status   |
+| ------------- | ------- | ---------- |
+| RTPC (inline) | 1.4     | Extract    |
+| RTPC          | 1       | Extract    |
+| AAF           | 1       | Extract    |
+| SARC          | 2       | Extract    |
+| ADF           | 4       | Extract    |
+| TAB / ARC     | 2       | Extract    |
+| DDSC / AVTX   | 1       | ToDo       |
 
 ## External dependencies
 - None so far
