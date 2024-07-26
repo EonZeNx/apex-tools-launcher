@@ -1,7 +1,7 @@
 using System.Data;
 using System.Data.SQLite;
 using ATL.Core.Config;
-using ATL.Core.Libraries;
+using RustyOptions;
 
 namespace ATL.Core.Hash;
 
@@ -20,67 +20,80 @@ public class HashLookupResult
 {
     public string Value = "";
     public string Table = "unknown";
+    public string Database = "unknown";
 
     public bool Valid() => !string.IsNullOrEmpty(Value);
 
     public override string ToString()
     {
-        return $"{Value} [{Table}]";
+        return $"'{Value}' [{Table} | {Database}]";
     }
 }
 
-public static class HashDatabase
+public class HashDatabase
 {
-    public static SQLiteConnection? DbConnection { get; set; } = null;
-    public static bool TriedToOpenDb { get; set; } = false;
-    public static bool LoadedAllHashes { get; set; } = false;
+    public SQLiteConnection? DbConnection { get; set; } = null;
+    public string DatabasePath { get; set; }
+    public string DatabaseName => Path.GetFileNameWithoutExtension(DatabasePath);
+    public bool ValidConnection => DbConnection?.State == ConnectionState.Open;
     
-    public static readonly Dictionary<uint, HashLookupResult> KnownHashes = new();
-    public static readonly HashSet<uint> UnknownHashes = new();
+    public bool LoadedAllHashes { get; set; } = false;
+    public bool TriedToOpenDb { get; set; } = false;
     
-    public static readonly Dictionary<EHashType, string> HashTypeToTable = new()
+    protected readonly Dictionary<uint, HashLookupResult> KnownHashes = new();
+    protected readonly HashSet<uint> UnknownHashes = new();
+    
+    public static Dictionary<EHashType, string> HashTypeToTable = new()
     {
         { EHashType.FilePath, "filepaths" },
         { EHashType.Property, "properties" },
         { EHashType.Class,    "classes" },
         { EHashType.Various,  "various" },
     };
-    public static readonly Dictionary<string, EHashType> TableToHashType = HashTypeToTable
+    public static Dictionary<string, EHashType> TableToHashType = HashTypeToTable
         .ToDictionary(kvp => kvp.Value, kvp => kvp.Key);
+
+    public HashDatabase(string databasePath)
+    {
+        DatabasePath = databasePath;
+    }
     
     # region Database
+
+    public static Option<HashDatabase> Create(string databasePath)
+    {
+        var result = new HashDatabase(databasePath);
+        result.OpenConnection();
+
+        if (result.ValidConnection)
+            return Option.Some(result);
+
+        return Option<HashDatabase>.None;
+    }
     
-    public static void OpenDatabaseConnection()
+    public void OpenConnection()
     {
         TriedToOpenDb = true;
         
-        var dbFile = Path.Join(AppDomain.CurrentDomain.BaseDirectory, CoreAppConfig.Get().Cli.DatabasePath);
-        if (!File.Exists(dbFile))
-        {
-            ConsoleLibrary.Log($"Database does not exist '{dbFile}'", ConsoleColor.Red);
+        if (!File.Exists(DatabasePath))
             return;
-        }
             
-        var dataSource = @$"Data Source={dbFile}";
+        var dataSource = @$"Data Source={DatabasePath}";
         DbConnection = new SQLiteConnection(dataSource);
         DbConnection.Open();
     }
     
-    public static void LoadAll()
+    public bool LoadAll()
     {
         if (DbConnection == null && !TriedToOpenDb)
         {
-            OpenDatabaseConnection();
+            OpenConnection();
         }
 
         if (DbConnection?.State != ConnectionState.Open)
-        {
-            var dbFile = Path.Join(AppDomain.CurrentDomain.BaseDirectory, CoreAppConfig.Get().Cli.DatabasePath);
-            ConsoleLibrary.Log($"Failed to load database from '{dbFile}'", ConsoleColor.Red);
-            return;
-        }
+            return false;
         
-        var command = DbConnection.CreateCommand();
+        using var command = DbConnection.CreateCommand();
         var tables = new List<string>(HashTypeToTable.Values);
         
         foreach (var table in tables)
@@ -101,11 +114,18 @@ public static class HashDatabase
         }
 
         LoadedAllHashes = true;
+        return true;
     }
 
-    public static int AddToTable(IEnumerable<string> values, EHashType hashType, out List<string> failed)
+    public IEnumerable<string> AddToTable(string[] values, EHashType hashType)
     {
-        failed = [];
+        if (DbConnection == null && !TriedToOpenDb)
+        {
+            OpenConnection();
+        }
+        
+        if (DbConnection?.State != ConnectionState.Open)
+            return values;
         
         var hashTable = HashTypeToTable.GetValueOrDefault(hashType, "unknown");
 
@@ -121,16 +141,9 @@ public static class HashDatabase
 
             if (!hashResults.TryAdd(hash, hashResult))
             {
-                ;
+                continue;
             }
         }
-        
-        if (DbConnection == null && !TriedToOpenDb)
-        {
-            OpenDatabaseConnection();
-        }
-        
-        if (DbConnection?.State != ConnectionState.Open) return -1;
 
         using var transaction = DbConnection.BeginTransaction();
         using var command = DbConnection.CreateCommand();
@@ -140,22 +153,27 @@ public static class HashDatabase
         command.CommandText = $"INSERT OR IGNORE INTO '{hashTable}' (Hash, Value)" +
                               $"VALUES (@hash, @value)";
 
-        var hashParameter = new SQLiteParameter("@hash", DbType.UInt32);
-        command.Parameters.Add(hashParameter);
-        
-        var valueParameter = new SQLiteParameter("@value", DbType.String);
-        command.Parameters.Add(valueParameter);
+        command.Parameters.Add(new SQLiteParameter("@hash", DbType.UInt32));
+        command.Parameters.Add(new SQLiteParameter("@value", DbType.String));
 
-        var failedAdd = 0;
-        try {
-            foreach (var (hash, hashResult) in hashResults) {
+        var index = 0;
+        var failed = new List<string>();
+        try
+        {
+            var hashes = hashResults.Keys.ToArray();
+            for (var i = 0; i < hashes.Length; i += 1)
+            {
+                index = i;
+
+                var hash = hashes[i];
+                var hashResult = hashResults[hash];
+                
                 command.Parameters[0].Value = hash;
                 command.Parameters[1].Value = hashResult.Value;
 
                 if (command.ExecuteNonQuery() == 1)
                     continue;
                 
-                failedAdd += 1;
                 failed.Add(hashResult.Value);
             }
             
@@ -163,53 +181,45 @@ public static class HashDatabase
         }
         catch (Exception)
         {
-            return -2;
+            return failed.Concat(values[index..]);
         }
 
-        return failedAdd;
+        return failed;
     }
     
     #endregion
     
     # region Hash
+
+    public Option<HashLookupResult> GetKnown(uint hash)
+    {
+        var result = Option<HashLookupResult>.None;
+        if (!IsKnown(hash))
+            return result;
+        
+        result = KnownHashes.GetValueOrNone(hash);
+        return result;
+    }
     
-    public static bool IsKnown(uint hash)
+    public bool IsKnown(uint hash)
     {
         return KnownHashes.ContainsKey(hash);
     }
     
-    public static bool IsUnknown(uint hash)
+    public bool IsUnknown(uint hash)
     {
         return UnknownHashes.Contains(hash);
     }
     
-    public static HashLookupResult Lookup(byte[] bytes, EHashType hashType = EHashType.Unknown)
+    public Option<HashLookupResult> Lookup(uint hash, EHashType hashType = EHashType.Unknown)
     {
-        return Lookup(BitConverter.ToUInt32(bytes), hashType);
-    }
-    
-    public static HashLookupResult Lookup(uint hash, EHashType hashType = EHashType.Unknown)
-    {
-        var result = new HashLookupResult();
-        if (!CoreAppConfig.Get().Cli.LookupHash) return result;
-
-        if (IsKnown(hash))
-        {
-            result = KnownHashes[hash];
-            return result;
-        }
-        if (IsUnknown(hash))
-            return result;
-        if (LoadedAllHashes)
-        { // don't bother searching
-            AddUnknown(hash);
-            return result;
-        }
+        if (!CoreConfig.AppConfig.Cli.LookupHash)
+            return Option<HashLookupResult>.None;
 
         if (DbConnection == null && !TriedToOpenDb)
-            OpenDatabaseConnection();
+            OpenConnection();
         if (DbConnection?.State != ConnectionState.Open)
-            return result;
+            return Option<HashLookupResult>.None;
         
         var tables = new List<string>();
         foreach (var potentialHashType in Enum.GetValues<EHashType>())
@@ -221,36 +231,39 @@ public static class HashDatabase
             }
         }
         
-        var command = DbConnection.CreateCommand();
+        var result = new HashLookupResult();
+        using var command = DbConnection.CreateCommand();
         foreach (var table in tables)
         {
-            command.CommandText = $"SELECT Value FROM '{table}' WHERE Hash = {(int) hash}";
+            command.CommandText = $"SELECT Value FROM '{table}'" +
+                                  $"WHERE Hash = {(int) hash}";
             using var dbr = command.ExecuteReader();
-            if (!dbr.Read()) continue;
+            if (!dbr.Read())
+                continue;
             
             result.Value = dbr.GetString(0);
             result.Table = table;
+            result.Database = DatabaseName;
+            
             break;
         }
 
-        if (!string.IsNullOrEmpty(result.Value))
-        {
-            AddKnown(hash, result);
-        }
-        else
+        if (!result.Valid())
         {
             AddUnknown(hash);
+            return Option<HashLookupResult>.None;
         }
         
-        return result;
+        AddKnown(hash, result);
+        return Option.Some(result);
     }
     
-    public static void AddKnown(uint hash, HashLookupResult result)
+    public void AddKnown(uint hash, HashLookupResult result)
     {
         KnownHashes.TryAdd(hash, result);
     }
     
-    public static void AddUnknown(uint hash)
+    public void AddUnknown(uint hash)
     {
         UnknownHashes.Add(hash);
     }

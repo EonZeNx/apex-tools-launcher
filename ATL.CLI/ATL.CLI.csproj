@@ -10,6 +10,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\ApexFormats\ApexFormat.AAF.V01\ApexFormat.AAF.V01.csproj" />
+      <ProjectReference Include="..\ApexFormats\ApexFormat.ADF.V04\ApexFormat.ADF.V04.csproj" />
       <ProjectReference Include="..\ApexFormats\ApexFormat.RTPC.V0104\ApexFormat.RTPC.V0104.csproj" />
       <ProjectReference Include="..\ApexFormats\ApexFormat.RTPC.V01\ApexFormat.RTPC.V01.csproj" />
       <ProjectReference Include="..\ApexFormats\ApexFormat.SARC.V02\ApexFormat.SARC.V02.csproj" />
@@ -18,6 +19,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <PackageReference Include="CommandLineParser" Version="2.9.1" />
       <PackageReference Include="nulastudio.NetBeauty" Version="2.1.4.5" />
     </ItemGroup>
 

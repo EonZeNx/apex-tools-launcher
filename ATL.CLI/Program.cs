@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using ApexFormat.AAF.V01;
+using ApexFormat.ADF.V04;
 using ApexFormat.RTPC.V0104;
 using ApexFormat.RTPC.V01;
 using ApexFormat.SARC.V02;
@@ -13,6 +14,8 @@ using ATL.Core.Class;
 using ATL.Core.Config;
 using ATL.Core.Hash;
 using ATL.Core.Libraries;
+using CommandLine;
+using CommandLine.Text;
 
 namespace ATL.CLI;
 
@@ -23,7 +26,7 @@ class Program
 #if !DEBUG
         AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 #endif
-        CoreAppConfig.LoadAppConfig();
+        CoreConfig.LoadAppConfig();
         
         if (args.Length == 0)
         {
@@ -32,58 +35,186 @@ class Program
         }
         
         AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
-        if (CoreAppConfig.Get().PreloadHashes)
-        {
-            ConsoleLibrary.Log("Loading all hashes into memory...", LogType.Info);
-            HashDatabase.LoadAll();
-        }
-        
-        var pathArgs = args.Where(path => Path.Exists(path) && !path.EndsWith(".exe")).ToArray();
-        Parallel.For(0, pathArgs.Length, i =>
-        {
-            OperateFiles(pathArgs[i]);
-        });
+
+        var optionParser = new CommandLine.Parser(s => s.HelpWriter = null);
+        var options = optionParser.ParseArguments<AtlClOptions>(args);
+        options
+            .WithParsed(MainWithOptions)
+            .WithNotParsed(e => MainWithErrors(options, e));
         
         Close();
     }
 
-    public static void OperateFiles(string filePath)
+    public static string[] FilterUnsupportedPaths(IEnumerable<string> inPaths)
     {
-        var fileName = Path.GetFileName(filePath);
-        ConsoleLibrary.Log($"Processing '{fileName}'", LogType.Info);
+        var supportedPaths = new List<string>();
+        var pathsToCheck = inPaths.ToList();
+        
+        for (var i = 0; i < pathsToCheck.Count; i++)
+        {
+            var inputPath = pathsToCheck[i];
 
-        if (TabV02Manager.CanProcess(filePath))
-        {
-            var manager = new TabV02Manager();
-            manager.ProcessBasic(filePath);
+            try
+            {
+                if (!Path.Exists(inputPath))
+                    continue;
+
+                if (TabV02Manager.CanProcess(inputPath) ||
+                    SarcV02Manager.CanProcess(inputPath) ||
+                    AafV01Manager.CanProcess(inputPath) ||
+                    AdfV04Manager.CanProcess(inputPath) ||
+                    RtpcV01Manager.CanProcess(inputPath) ||
+                    RtpcV0104Manager.CanProcess(inputPath)
+                ) {
+                    supportedPaths.Add(inputPath);
+                    continue;
+                }
+
+                if (Directory.Exists(inputPath))
+                { // directory unsupported, try process child files
+                    pathsToCheck.AddRange(Directory.GetFiles(inputPath, "*", SearchOption.TopDirectoryOnly));
+                }
+            }
+            catch (Exception e)
+            {
+                ConsoleLibrary.Log($"Failed to check '{inputPath}'", ConsoleColor.Yellow);
+                ConsoleLibrary.Log($"{e}: {e.Message}", ConsoleColor.Red);
+            }
         }
-        else if (SarcV02Manager.CanProcess(filePath))
+
+        return supportedPaths.ToArray();
+    }
+
+    public static void MainWithOptions(AtlClOptions inOptions)
+    {
+        var options = (AtlClOptions) inOptions.Clone();
+
+        if (options.AutoClose >= 0)
+            CoreConfig.AppConfig.Cli.AutoClose = options.AutoClose != 0;
+
+        var targetDatabases = options.TargetDatabases.ToArray();
+        if (targetDatabases.Length != 0)
         {
-            var manager = new SarcV02Manager();
-            manager.ProcessBasic(filePath);
+            foreach (var targetDatabase in targetDatabases)
+            {
+                HashDatabases.OpenConnection(targetDatabase);
+            }
+
+            CoreConfig.AppConfig.PreloadHashes = true;
         }
-        else if (AafV01Manager.CanProcess(filePath))
+        
+        if (CoreConfig.AppConfig.PreloadHashes)
         {
-            var manager = new AafV01Manager();
-            manager.ProcessBasic(filePath);
+            ConsoleLibrary.Log("Loading all hashes into memory...", LogType.Info);
+            HashDatabases.LoadAll();
         }
-        else if (RtpcV01Manager.CanProcess(filePath))
+        
+        if (!string.IsNullOrEmpty(options.OutputDirectory))
         {
-            var manager = new RtpcV01Manager();
-            manager.ProcessBasic(filePath);
+            if (!Directory.Exists(options.OutputDirectory))
+                Directory.CreateDirectory(options.OutputDirectory);
         }
-        else if (RtpcV0104Manager.CanProcess(filePath))
+
+        var paths = FilterUnsupportedPaths(options.InputPaths);
+        
+#if DEBUG
+        for (var i = 0; i < paths.Length; i++)
         {
-            var manager = new RtpcV0104Manager();
-            manager.ProcessBasic(filePath);
+            OperateFile(paths[i], options.OutputDirectory);
         }
-            
-        ConsoleLibrary.Log($"Finished '{fileName}'", LogType.Info);
+#else
+        Parallel.For(0, paths.Length, i =>
+        {
+            OperateFile(paths[i], options.OutputDirectory);
+        });
+#endif
+    }
+
+    public static void MainWithErrors(ParserResult<AtlClOptions> result, IEnumerable<Error> errors)
+    {
+        CoreConfig.AppConfig.Cli.AutoClose = false;
+        
+        var helpText = HelpText.AutoBuild(result, h =>
+        {
+            h.AdditionalNewLineAfterOption = false;
+            h.Heading = $"{ConstantsLibrary.AppFullTitle} {ConstantsLibrary.AppVersion}";
+
+            return HelpText.DefaultParsingErrorsHandler(result, h);
+        }, e => e);
+        
+        ConsoleLibrary.Log(helpText, ConsoleColor.White);
+    }
+
+    public static string GetAbsoluteDirectory(string inPath, string outDirectory)
+    {
+        var result = Path.GetDirectoryName(inPath) ?? inPath;
+        
+        if (!string.IsNullOrEmpty(outDirectory))
+        { // outDirectory is valid
+            result = Path.IsPathFullyQualified(outDirectory)
+                ? outDirectory
+                : Path.GetFullPath(outDirectory, AppDomain.CurrentDomain.BaseDirectory);
+        }
+
+        return result;
+    }
+    
+    public static void OperateFile(string inPath, string outDirectory)
+    {
+        var pathName = Path.GetFileName(inPath);
+        if (string.IsNullOrEmpty(pathName))
+            pathName = Path.GetDirectoryName(inPath);
+        
+        var message = $"Processing '{pathName}'";
+
+        IProcessBasic manager;
+        if (TabV02Manager.CanProcess(inPath))
+        {
+            manager = new TabV02Manager();
+            message = $"{message} as TABv02";
+        }
+        else if (SarcV02Manager.CanProcess(inPath))
+        {
+            manager = new SarcV02Manager();
+            message = $"{message} as SARCv02";
+        }
+        else if (AafV01Manager.CanProcess(inPath))
+        {
+            manager = new AafV01Manager();
+            message = $"{message} as AAFv01";
+        }
+        else if (AdfV04Manager.CanProcess(inPath))
+        {
+            manager = new AdfV04Manager();
+            message = $"{message} as ADFv04";
+        }
+        else if (RtpcV01Manager.CanProcess(inPath))
+        {
+            manager = new RtpcV01Manager();
+            message = $"{message} as RTPCv01";
+        }
+        else if (RtpcV0104Manager.CanProcess(inPath))
+        { // should be last
+            manager = new RtpcV0104Manager();
+            message = $"{message} as RTPCv0104";
+        }
+        else
+        {
+            ConsoleLibrary.Log($"File not supported '{pathName}'", LogType.Warning);
+            return;
+        }
+        
+        ConsoleLibrary.Log(message, LogType.Info);
+        
+        var absoluteOutDirectory = GetAbsoluteDirectory(inPath, outDirectory);
+        manager.ProcessBasic(inPath, absoluteOutDirectory);
+        
+        ConsoleLibrary.Log($"Finished '{pathName}'", LogType.Info);
     }
     
     public static void CurrentDomain_ProcessExit(object? sender, EventArgs e)
     {
-        if (!CoreAppConfig.Get().Cli.AutoClose)
+        if (!CoreConfig.AppConfig.Cli.AutoClose)
         {
             ConsoleLibrary.GetInput("Press any key to continue...");
         }
@@ -106,7 +237,7 @@ class Program
             ConsoleLibrary.Log(message, LogType.Warning);
         }
         
-        ConsoleLibrary.Log("exiting...", LogType.Info);
+        ConsoleLibrary.Log("Exiting...", LogType.Info);
         Environment.Exit(0);
     }
 }

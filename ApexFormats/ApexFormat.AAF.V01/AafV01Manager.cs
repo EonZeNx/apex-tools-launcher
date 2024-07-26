@@ -76,16 +76,20 @@ public class AafV01Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
         return 0;
     }
 
-    public int ProcessBasic(string inFilePath)
+    public int ProcessBasic(string inFilePath, string outDirectory)
     {
         var inBuffer = new FileStream(inFilePath, FileMode.Open);
         
-        var targetFilePath = Path.GetDirectoryName(inFilePath);
-        var targetFileName = Path.GetFileNameWithoutExtension(inFilePath);
-        var targetSarcFilePath = Path.Join(targetFilePath, $"{targetFileName}.sarc");
-        var outBuffer = new FileStream(targetSarcFilePath, FileMode.Create);
+        var outDirectoryPath = Path.GetDirectoryName(inFilePath);
+        if (!string.IsNullOrEmpty(outDirectory) && Directory.Exists(outDirectory))
+            outDirectoryPath = outDirectory;
         
+        var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(inFilePath);
+        var sarcFilePath = Path.Join(outDirectoryPath, $"{fileNameWithoutExtension}.sarc");
+        
+        var outBuffer = new FileStream(sarcFilePath, FileMode.Create);
         var result = Decompress(inBuffer, outBuffer);
+        
         return result;
     }
 }

@@ -7,6 +7,7 @@ public class SarcV02Tests
 {
     public static string SuccessPath { get; set; } = @".\Tests\SARCv02\v0604.sarc";
     public static string FailPath { get; set; } = @".\Tests\fail.txt";
+    public static string OutDirectory { get; set; } = @".\Tests\out";
 
     [SetUp]
     public void Setup()
@@ -20,6 +21,10 @@ public class SarcV02Tests
         var envFailPath = Environment.GetEnvironmentVariable("TEST_PATH_FAIL");
         if (File.Exists(envFailPath))
             FailPath = envFailPath;
+        
+        var envOutDirectory = Environment.GetEnvironmentVariable("TEST_PATH_OUT_DIRECTORY");
+        if (File.Exists(envOutDirectory))
+            OutDirectory = envOutDirectory;
     }
     
     [Test]
@@ -42,7 +47,7 @@ public class SarcV02Tests
     public void DecompressSuccess()
     {
         var manager = new SarcV02Manager();
-        var result = manager.ProcessBasic(SuccessPath);
+        var result = manager.ProcessBasic(SuccessPath, OutDirectory);
         
         Assert.That(result, Is.AtLeast(0));
     }

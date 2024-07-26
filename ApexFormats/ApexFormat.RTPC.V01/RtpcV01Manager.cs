@@ -40,7 +40,6 @@ public class RtpcV01Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
 
         var outer = new XElement("entity");
         outer.SetAttributeValue("extension", "epe");
-        outer.SetAttributeValue("format", "RTPC");
         outer.SetAttributeValue("version", "1");
 
         var rootXElement = container.WriteXElement();
@@ -57,16 +56,20 @@ public class RtpcV01Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
         return 0;
     }
     
-    public int ProcessBasic(string inFilePath)
+    public int ProcessBasic(string inFilePath, string outDirectory)
     {
         var inBuffer = new FileStream(inFilePath, FileMode.Open);
         
-        var targetFilePath = Path.GetDirectoryName(inFilePath);
-        var targetFileName = Path.GetFileNameWithoutExtension(inFilePath);
-        var targetXmlFilePath = Path.Join(targetFilePath, $"{targetFileName}.xml");
-        var outBuffer = new FileStream(targetXmlFilePath, FileMode.Create);
+        var outDirectoryPath = Path.GetDirectoryName(inFilePath);
+        if (!string.IsNullOrEmpty(outDirectory) && Directory.Exists(outDirectory))
+            outDirectoryPath = outDirectory;
         
+        var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(inFilePath);
+        var xmlFilePath = Path.Join(outDirectoryPath, $"{fileNameWithoutExtension}.xml");
+        
+        var outBuffer = new FileStream(xmlFilePath, FileMode.Create);
         var result = Decompress(inBuffer, outBuffer);
+        
         return result;
     }
 }

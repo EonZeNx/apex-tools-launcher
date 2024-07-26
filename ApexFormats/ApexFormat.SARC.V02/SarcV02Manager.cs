@@ -44,11 +44,10 @@ public class SarcV02Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
         while (true)
         {
             var optionArchiveEntry = inBuffer.ReadSarcV02ArchiveEntry();
-            if (optionArchiveEntry.IsSome(out var archiveEntry))
-            {
-                archiveEntries.Add(archiveEntry);
-            }
+            if (!optionArchiveEntry.IsSome(out var archiveEntry))
+                continue;
             
+            archiveEntries.Add(archiveEntry);
             if (header.Size - (inBuffer.Position - startPosition) <= 15)
             {
                 break;
@@ -81,7 +80,6 @@ public class SarcV02Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
     {
         var outer = new XElement("archive");
         outer.SetAttributeValue("extension", "ee");
-        outer.SetAttributeValue("format", "SARC");
         outer.SetAttributeValue("version", "2");
         
         var root = new XElement("files");
@@ -146,17 +144,19 @@ public class SarcV02Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
         return WriteEntryFile(outDirectory, outEntries);
     }
     
-    public int ProcessBasic(string inFilePath)
+    public int ProcessBasic(string inFilePath, string outDirectory)
     {
         var inBuffer = new FileStream(inFilePath, FileMode.Open);
-            
+        
+        var outDirectoryPath = Path.GetDirectoryName(inFilePath);
+        if (!string.IsNullOrEmpty(outDirectory) && Directory.Exists(outDirectory))
+            outDirectoryPath = outDirectory;
+        
         var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(inFilePath);
-        var directoryPath = Path.Join(Path.GetDirectoryName(inFilePath), fileNameWithoutExtension);
+        var directoryPath = Path.Join(outDirectoryPath, fileNameWithoutExtension);
             
         if (!Directory.Exists(directoryPath))
-        {
             Directory.CreateDirectory(directoryPath);
-        }
 
         var result = Decompress(inBuffer, directoryPath);
         return result;

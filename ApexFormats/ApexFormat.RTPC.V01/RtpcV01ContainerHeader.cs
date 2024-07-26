@@ -20,7 +20,7 @@ public class RtpcV01ContainerHeader : ISizeOf
     public ushort PropertyCount = 0;
     public ushort ContainerCount = 0;
 
-    public static int SizeOf()
+    public static uint SizeOf()
     {
         return sizeof(uint) + // NameHash
                sizeof(uint) + // Offset
@@ -33,11 +33,6 @@ public static class RtpcV01ContainerHeaderExtensions
 {
     public static Option<RtpcV01ContainerHeader> ReadRtpcV01ContainerHeader(this Stream stream)
     {
-        if (stream.Length < RtpcV01ContainerHeader.SizeOf())
-        {
-            return Option<RtpcV01ContainerHeader>.None;
-        }
-        
         if (stream.Length - stream.Position < RtpcV01ContainerHeader.SizeOf())
         {
             return Option<RtpcV01ContainerHeader>.None;

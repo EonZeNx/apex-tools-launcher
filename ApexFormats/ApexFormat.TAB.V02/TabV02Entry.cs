@@ -16,18 +16,13 @@ public class TabV02Entry : ISizeOf
     public uint Offset = 0;
     public uint Size = 0;
     
-    public static int SizeOf() => sizeof(uint) + sizeof(uint) + sizeof(uint);
+    public static uint SizeOf() => sizeof(uint) + sizeof(uint) + sizeof(uint);
 }
 
 public static class TabV02EntryExtensions
 {
     public static Option<TabV02Entry> ReadTabV02Entry(this Stream stream)
     {
-        if (stream.Length < TabV02Header.SizeOf())
-        {
-            return Option<TabV02Entry>.None;
-        }
-        
         if (stream.Length - stream.Position < TabV02Header.SizeOf())
         {
             return Option<TabV02Entry>.None;

@@ -24,18 +24,13 @@ public class AafV01Chunk : ISizeOf
     public uint ChunkSize = 0;
     public uint Magic = AafV01ChunkConstants.Magic;
 
-    public static int SizeOf() => sizeof(uint) + sizeof(uint) + sizeof(uint) + sizeof(uint);
+    public static uint SizeOf() => sizeof(uint) + sizeof(uint) + sizeof(uint) + sizeof(uint);
 }
 
 public static class AafV01ChunkExtensions
 {
     public static Option<AafV01Chunk> ReadAafV01Chunk(this Stream stream)
     {
-        if (stream.Length < AafV01Chunk.SizeOf())
-        {
-            return Option<AafV01Chunk>.None;
-        }
-        
         if (stream.Length - stream.Position < AafV01Chunk.SizeOf())
         {
             return Option<AafV01Chunk>.None;

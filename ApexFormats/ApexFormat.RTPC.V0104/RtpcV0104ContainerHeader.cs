@@ -18,7 +18,7 @@ public class RtpcV0104ContainerHeader : ISizeOf
     public ushort MinorVersion = 0;
     public ushort PropertyCount = 0;
 
-    public static int SizeOf()
+    public static uint SizeOf()
     {
         return sizeof(uint) + // NameHash
                sizeof(byte) + // MajorVersion
@@ -31,11 +31,6 @@ public static class RtpcV0104ContainerHeaderExtensions
 {
     public static Option<RtpcV0104ContainerHeader> ReadRtpcV0104ContainerHeader(this Stream stream)
     {
-        if (stream.Length < RtpcV0104ContainerHeader.SizeOf())
-        {
-            return Option<RtpcV0104ContainerHeader>.None;
-        }
-        
         if (stream.Length - stream.Position < RtpcV0104ContainerHeader.SizeOf())
         {
             return Option<RtpcV0104ContainerHeader>.None;

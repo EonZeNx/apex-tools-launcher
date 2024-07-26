@@ -22,7 +22,7 @@ public class RtpcV0104Header : ISizeOf
     public ushort MinorVersion = RtpcV0104HeaderConstants.MinorVersion;
     public ushort ContainerCount = 0;
 
-    public static int SizeOf()
+    public static uint SizeOf()
     {
         return sizeof(byte) + // MajorVersion
                sizeof(ushort) + // MinorVersion
@@ -34,11 +34,6 @@ public static class RtpcV0104HeaderExtensions
 {
     public static Option<RtpcV0104Header> ReadRtpcV0104Header(this Stream stream)
     {
-        if (stream.Length < RtpcV0104Header.SizeOf())
-        {
-            return Option<RtpcV0104Header>.None;
-        }
-        
         if (stream.Length - stream.Position < RtpcV0104Header.SizeOf())
         {
             return Option<RtpcV0104Header>.None;

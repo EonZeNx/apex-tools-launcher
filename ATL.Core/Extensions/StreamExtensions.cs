@@ -1,5 +1,9 @@
 ﻿using System.Text;
 using System.Buffers;
+using System.Buffers.Binary;
+using System.Numerics;
+using System.Runtime.CompilerServices;
+using ATL.Core.Class;
 using CommunityToolkit.HighPerformance;
 
 namespace ATL.Core.Extensions;
@@ -16,10 +20,11 @@ public static class StreamExtensions
         var charList = new List<byte>();
         
         // Hardcoded sanity check
-        while (charList.Count < 2000)
+        while (charList.Count < 2048)
         {
             var newChar = stream.Read<byte>();
-            if (newChar == '\0') break;
+            if (newChar == '\0')
+                break;
             
             charList.Add(newChar);
         }
@@ -81,6 +86,42 @@ public static class StreamExtensions
                 destination.Write(buffer, 0, bytesRead);
                 count -= bytesRead;
             }
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(buffer);
+        }
+    }
+    
+    
+    // Custom endian read
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static unsafe T ReadEndian<T>(this Stream stream, EEndian endian = EEndian.Little)
+        where T : unmanaged
+    {
+        int bytesOffset = 0;
+        var buffer = ArrayPool<byte>.Shared.Rent(sizeof(T));
+
+        var reverse = BitConverter.IsLittleEndian && endian != EEndian.Little ||
+                      !BitConverter.IsLittleEndian && endian == EEndian.Little;
+        try
+        {
+            do
+            {
+                var bytesRead = stream.Read(buffer, bytesOffset, sizeof(T) - bytesOffset);
+                if (bytesRead == 0)
+                {
+                    throw new EndOfStreamException("The stream didn't contain enough data to read the requested item.");
+                }
+
+                bytesOffset += bytesRead;
+            }
+            while (bytesOffset < sizeof(T));
+
+            if (reverse)
+                Array.Reverse(buffer);
+            
+            return Unsafe.ReadUnaligned<T>(ref buffer[0]);
         }
         finally
         {

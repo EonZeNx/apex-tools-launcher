@@ -108,8 +108,8 @@ public static class RtpcV01ContainerExtensions
     {
         var xe = new XElement("object");
 
-        var hashResult = HashDatabase.Lookup(container.NameHash);
-        if (hashResult.Valid())
+        var optionHashResult = HashDatabases.Lookup(container.NameHash, EHashType.FilePath);
+        if (optionHashResult.IsSome(out var hashResult))
         {
             xe.SetAttributeValue("name", hashResult.Value);
         }

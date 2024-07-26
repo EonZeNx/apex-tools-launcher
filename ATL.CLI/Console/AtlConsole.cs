@@ -38,10 +38,10 @@ public static class AtlConsole
                 DisplayMainMenu();
                 break;
             case EMainMenuSelection.HashMenu:
-                SwitchToHashMenu();
+                AtlConsoleHash.Loop();
                 break;
             case EMainMenuSelection.DatabaseMenu:
-                SwitchToDatabaseMenu();
+                AtlConsoleDatabase.Loop();
                 break;
             case EMainMenuSelection.Exit:
                 exit = true;
@@ -60,15 +60,5 @@ public static class AtlConsole
         ConsoleLibrary.Log("[m = main menu]", LogType.Info);
         ConsoleLibrary.Log("[h = hash menu, d = database menu]", LogType.Info);
         ConsoleLibrary.Log("[empty = exit]", LogType.Info);
-    }
-
-    public static void SwitchToHashMenu()
-    {
-        AtlConsoleHash.Loop();
-    }
-
-    public static void SwitchToDatabaseMenu()
-    {
-        AtlConsoleDatabase.Loop();
     }
 }

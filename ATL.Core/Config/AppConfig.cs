@@ -4,9 +4,15 @@ using ATL.Core.Config.CLI;
 namespace ATL.Core.Config;
 
 public class AppConfig
-{
+{ // TODO: Update relative paths to absolute
+    [JsonPropertyName("log_path")]
+    public string LogPath { get; set; } = Path.Join(AppDomain.CurrentDomain.BaseDirectory, "logs");
+    
     [JsonPropertyName("game_config_path")]
     public string GameConfigPath { get; set; } = "game_config";
+    
+    [JsonPropertyName("databases_directory")]
+    public string DatabasesDirectory { get; set; } = Path.Join(AppDomain.CurrentDomain.BaseDirectory, "databases");
     
     [JsonPropertyName("profile_config_path")]
     public string ProfileConfigPath { get; set; } = "profile_config";
@@ -18,7 +24,6 @@ public class AppConfig
     public string VfsFsPath { get; set; } = "vfs_fs";
     
     [JsonPropertyName("steam_path")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public string SteamPath { get; set; } = @"C:\Program Files (x86)\Steam";
     
     [JsonPropertyName("preload_hash")]

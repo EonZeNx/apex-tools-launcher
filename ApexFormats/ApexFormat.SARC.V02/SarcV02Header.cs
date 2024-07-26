@@ -25,7 +25,7 @@ public class SarcV02Header : ISizeOf
     public uint Version = SarcV02HeaderConstants.Version;
     public uint Size;
 
-    public static int SizeOf()
+    public static uint SizeOf()
     {
         return sizeof(uint) + // MagicLength
                sizeof(uint) + // Magic
@@ -38,11 +38,6 @@ public static class SarcV02HeaderExtensions
 {
     public static Option<SarcV02Header> ReadSarcV02Header(this Stream stream)
     {
-        if (stream.Length < SarcV02Header.SizeOf())
-        {
-            return Option<SarcV02Header>.None;
-        }
-        
         if (stream.Length - stream.Position < SarcV02Header.SizeOf())
         {
             return Option<SarcV02Header>.None;
