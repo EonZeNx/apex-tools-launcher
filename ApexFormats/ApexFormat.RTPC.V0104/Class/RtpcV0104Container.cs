@@ -1,65 +1,49 @@
 ﻿using System.Xml.Linq;
-using ATL.Core.Extensions;
 using ATL.Core.Hash;
 using RustyOptions;
 
-namespace ApexFormat.RTPC.V01;
+namespace ApexFormat.RTPC.V0104.Class;
 
 /// <summary>
 /// Structure:
-/// <br/>Properties - <see cref="RtpcV01Variant"/>[]
-/// <br/>Containers - <see cref="RtpcV01Container"/>[]
+/// <br/>PropertyCount - <see cref="ushort"/>
 /// </summary>
-public class RtpcV01Container : RtpcV01ContainerHeader
+public class RtpcV0104Container : RtpcV0104ContainerHeader
 {
-    public RtpcV01Variant[] Properties = [];
-    public RtpcV01Container[] Containers = [];
+    public RtpcV0104Variant[] Properties = [];
 }
 
-public static class RtpcV01ContainerExtensions
+public static class RtpcV0104ContainerExtensions
 {
-    public static RtpcV01Container HeaderToContainer(this RtpcV01ContainerHeader header)
+    public static RtpcV0104Container HeaderToContainer(this RtpcV0104ContainerHeader header)
     {
-        var result = new RtpcV01Container
+        var result = new RtpcV0104Container
         {
             NameHash = header.NameHash,
-            Offset = header.Offset,
+            MajorVersion = header.MajorVersion,
+            MinorVersion = header.MinorVersion,
             PropertyCount = header.PropertyCount,
-            ContainerCount = header.ContainerCount,
-            Properties = new RtpcV01Variant[header.PropertyCount],
-            Containers = new RtpcV01Container[header.ContainerCount],
         };
 
         return result;
     }
     
-    public static Option<RtpcV01Container> ReadRtpcV01Container(this Stream stream)
+    public static Option<RtpcV0104Container> ReadRtpcV01Container(this Stream stream)
     {
-        var optionContainerHeader = stream.ReadRtpcV01ContainerHeader();
+        var optionContainerHeader = stream.ReadRtpcV0104ContainerHeader();
         if (!optionContainerHeader.IsSome(out var containerHeader))
-            return Option<RtpcV01Container>.None;
+            return Option<RtpcV0104Container>.None;
         
         var result = containerHeader.HeaderToContainer();
         
-        var originalPosition = stream.Position;
-        stream.Seek(result.Offset, SeekOrigin.Begin);
-        
+        result.Properties = new RtpcV0104Variant[result.PropertyCount];
         for (var i = 0; i < result.PropertyCount; i++)
         {
-            var optionVariant = stream.ReadRtpcV01Variant();
+            var optionVariant = stream.ReadRtpcV0104Variant();
             if (optionVariant.IsSome(out var variant))
                 result.Properties[i] = variant;
         }
 
-        stream.Align(4);
-        for (var i = 0; i < result.ContainerCount; i++)
-        {
-            var optionContainer = stream.ReadRtpcV01Container();
-            if (optionContainer.IsSome(out var container))
-                result.Containers[i] = container;
-        }
-
-        stream.Seek(originalPosition, SeekOrigin.Begin);
         return Option.Some(result);
     }
 
@@ -104,7 +88,7 @@ public static class RtpcV01ContainerExtensions
         return 0;
     }
     
-    public static XElement WriteXElement(this RtpcV01Container container)
+    public static XElement WriteXElement(this RtpcV0104Container container)
     {
         var xe = new XElement("object");
 
@@ -128,11 +112,6 @@ public static class RtpcV01ContainerExtensions
         foreach (var child in children)
         {
             xe.Add(child);
-        }
-        
-        foreach (var childContainer in container.Containers)
-        {
-            xe.Add(childContainer.WriteXElement());
         }
         
         return xe;

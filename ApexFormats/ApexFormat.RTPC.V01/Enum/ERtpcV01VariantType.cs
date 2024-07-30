@@ -1,4 +1,4 @@
-﻿namespace ApexFormat.RTPC.V01;
+﻿namespace ApexFormat.RTPC.V01.Enum;
 
 /// <summary>
 /// Assume 4-byte padding unless stated otherwise

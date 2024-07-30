@@ -1,11 +1,9 @@
-﻿using System.Xml.Linq;
+﻿using ApexFormat.RTPC.V0104.Enum;
 using ATL.Core.Class;
-using ATL.Core.Extensions;
-using ATL.Core.Hash;
 using CommunityToolkit.HighPerformance;
 using RustyOptions;
 
-namespace ApexFormat.RTPC.V0104;
+namespace ApexFormat.RTPC.V0104.Class;
 
 /// <summary>
 /// Structure:

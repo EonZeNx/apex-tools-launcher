@@ -1,10 +1,10 @@
-﻿using System.Xml.Linq;
+﻿using ApexFormat.RTPC.V01.Enum;
 using ATL.Core.Class;
 using ATL.Core.Extensions;
 using CommunityToolkit.HighPerformance;
 using RustyOptions;
 
-namespace ApexFormat.RTPC.V01;
+namespace ApexFormat.RTPC.V01.Class;
 
 /// <summary>
 /// Structure:

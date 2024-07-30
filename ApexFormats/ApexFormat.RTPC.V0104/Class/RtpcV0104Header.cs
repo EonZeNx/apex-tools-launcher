@@ -2,7 +2,7 @@
 using CommunityToolkit.HighPerformance;
 using RustyOptions;
 
-namespace ApexFormat.RTPC.V0104;
+namespace ApexFormat.RTPC.V0104.Class;
 
 public static class RtpcV0104HeaderConstants
 {

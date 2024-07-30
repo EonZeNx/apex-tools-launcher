@@ -1,4 +1,4 @@
-﻿namespace ApexFormat.RTPC.V0104;
+﻿namespace ApexFormat.RTPC.V0104.Enum;
 
 public enum ERtpcV0104VariantType : byte
 {
