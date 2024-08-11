@@ -2,22 +2,22 @@
 using ATL.Core.Hash;
 using RustyOptions;
 
-namespace ApexFormat.RTPC.V0104.Class;
+namespace ApexFormat.IRTPC.V14.Class;
 
 /// <summary>
 /// Structure:
 /// <br/>PropertyCount - <see cref="ushort"/>
 /// </summary>
-public class RtpcV0104Container : RtpcV0104ContainerHeader
+public class IrtpcV14Container : IrtpcV14ContainerHeader
 {
-    public RtpcV0104Variant[] Properties = [];
+    public IrtpcV14Variant[] Properties = [];
 }
 
-public static class RtpcV0104ContainerExtensions
+public static class IrtpcV14ContainerExtensions
 {
-    public static RtpcV0104Container HeaderToContainer(this RtpcV0104ContainerHeader header)
+    public static IrtpcV14Container HeaderToContainer(this IrtpcV14ContainerHeader header)
     {
-        var result = new RtpcV0104Container
+        var result = new IrtpcV14Container
         {
             NameHash = header.NameHash,
             MajorVersion = header.MajorVersion,
@@ -28,18 +28,18 @@ public static class RtpcV0104ContainerExtensions
         return result;
     }
     
-    public static Option<RtpcV0104Container> ReadRtpcV01Container(this Stream stream)
+    public static Option<IrtpcV14Container> ReadIrtpcV14Container(this Stream stream)
     {
-        var optionContainerHeader = stream.ReadRtpcV0104ContainerHeader();
+        var optionContainerHeader = stream.ReadIrtpcV14ContainerHeader();
         if (!optionContainerHeader.IsSome(out var containerHeader))
-            return Option<RtpcV0104Container>.None;
+            return Option<IrtpcV14Container>.None;
         
         var result = containerHeader.HeaderToContainer();
         
-        result.Properties = new RtpcV0104Variant[result.PropertyCount];
+        result.Properties = new IrtpcV14Variant[result.PropertyCount];
         for (var i = 0; i < result.PropertyCount; i++)
         {
-            var optionVariant = stream.ReadRtpcV0104Variant();
+            var optionVariant = stream.ReadIrtpcV14Variant();
             if (optionVariant.IsSome(out var variant))
                 result.Properties[i] = variant;
         }
@@ -88,7 +88,7 @@ public static class RtpcV0104ContainerExtensions
         return 0;
     }
     
-    public static XElement WriteXElement(this RtpcV0104Container container)
+    public static XElement WriteXElement(this IrtpcV14Container container)
     {
         var xe = new XElement("object");
 

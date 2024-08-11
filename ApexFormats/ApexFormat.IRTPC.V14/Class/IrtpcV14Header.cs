@@ -2,9 +2,9 @@
 using CommunityToolkit.HighPerformance;
 using RustyOptions;
 
-namespace ApexFormat.RTPC.V0104.Class;
+namespace ApexFormat.IRTPC.V14.Class;
 
-public static class RtpcV0104HeaderConstants
+public static class IrtpcV14HeaderConstants
 {
     public const byte MajorVersion = 0x01;
     public const ushort MinorVersion = 0x04;
@@ -16,10 +16,10 @@ public static class RtpcV0104HeaderConstants
 /// <br/>MinorVersion - <see cref="ushort"/>
 /// <br/>ContainerCount - <see cref="ushort"/>
 /// </summary>
-public class RtpcV0104Header : ISizeOf
+public class IrtpcV14Header : ISizeOf
 {
-    public byte MajorVersion = RtpcV0104HeaderConstants.MajorVersion;
-    public ushort MinorVersion = RtpcV0104HeaderConstants.MinorVersion;
+    public byte MajorVersion = IrtpcV14HeaderConstants.MajorVersion;
+    public ushort MinorVersion = IrtpcV14HeaderConstants.MinorVersion;
     public ushort ContainerCount = 0;
 
     public static uint SizeOf()
@@ -30,30 +30,30 @@ public class RtpcV0104Header : ISizeOf
     }
 }
 
-public static class RtpcV0104HeaderExtensions
+public static class IrtpcV14HeaderExtensions
 {
-    public static Option<RtpcV0104Header> ReadRtpcV0104Header(this Stream stream)
+    public static Option<IrtpcV14Header> ReadIrtpcV14Header(this Stream stream)
     {
-        if (stream.Length - stream.Position < RtpcV0104Header.SizeOf())
+        if (stream.Length - stream.Position < IrtpcV14Header.SizeOf())
         {
-            return Option<RtpcV0104Header>.None;
+            return Option<IrtpcV14Header>.None;
         }
 
-        var result = new RtpcV0104Header
+        var result = new IrtpcV14Header
         {
             MajorVersion = (byte) stream.ReadByte(),
             MinorVersion = stream.Read<ushort>(),
             ContainerCount = stream.Read<ushort>(),
         };
 
-        if (result.MajorVersion != RtpcV0104HeaderConstants.MajorVersion)
+        if (result.MajorVersion != IrtpcV14HeaderConstants.MajorVersion)
         {
-            return Option<RtpcV0104Header>.None;
+            return Option<IrtpcV14Header>.None;
         }
 
-        if (result.MinorVersion != RtpcV0104HeaderConstants.MinorVersion)
+        if (result.MinorVersion != IrtpcV14HeaderConstants.MinorVersion)
         {
-            return Option<RtpcV0104Header>.None;
+            return Option<IrtpcV14Header>.None;
         }
 
         return Option.Some(result);

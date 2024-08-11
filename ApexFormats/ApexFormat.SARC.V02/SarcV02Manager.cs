@@ -124,6 +124,8 @@ public class SarcV02Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
         for (var i = 0; i < outEntries.Length; i += 1)
         {
             var archiveEntry = outEntries[i];
+            if (archiveEntry.DataOffset == 0)
+                continue;
             
             var directoryPath = Path.Join(outDirectory, Path.GetDirectoryName(archiveEntry.FilePath));
             if (!Directory.Exists(directoryPath))
