@@ -16,6 +16,7 @@ using ATL.Core.Class;
 using ATL.Core.Config;
 using ATL.Core.Hash;
 using ATL.Core.Libraries;
+using ATL.Script;
 using CommandLine;
 using CommandLine.Text;
 
@@ -68,7 +69,8 @@ class Program
                     AvtxV01Manager.CanProcess(inputPath) ||
                     RtpcV01Manager.CanProcess(inputPath) ||
                     RtpcV03Manager.CanProcess(inputPath) ||
-                    IrtpcV14Manager.CanProcess(inputPath)
+                    IrtpcV14Manager.CanProcess(inputPath) ||
+                    Path.GetExtension(inputPath) == ".xml"
                 ) {
                     supportedPaths.Add(inputPath);
                     continue;
@@ -211,6 +213,11 @@ class Program
         { // should be last
             manager = new IrtpcV14Manager();
             message = $"{message} as RTPCv0104";
+        }
+        else if (Path.GetExtension(inPath) == ".xml")
+        {
+            manager = new ScriptManager();
+            message = $"{message} as Script";
         }
         else
         {

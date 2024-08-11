@@ -22,6 +22,9 @@ public static class StreamExtensions
         // Hardcoded sanity check
         while (charList.Count < 2048)
         {
+            if (stream.Position == stream.Length)
+                break;
+            
             var newChar = stream.Read<byte>();
             if (newChar == '\0')
                 break;
