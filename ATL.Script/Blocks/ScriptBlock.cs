@@ -54,6 +54,10 @@ public class ScriptBlock : IScriptBlock
             {
                 scriptAction = new ScriptActionReplace();
             }
+            else if (xeName == ScriptActionProcess.NodeName)
+            {
+                scriptAction = new ScriptActionProcess();
+            }
             else if (xeName == ScriptBlockFile.NodeName)
             {
                 scriptAction = new ScriptBlockFile();

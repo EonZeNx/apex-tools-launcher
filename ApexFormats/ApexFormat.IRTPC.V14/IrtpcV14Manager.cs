@@ -71,7 +71,7 @@ public class IrtpcV14Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
     
     public int ProcessBasic(string inFilePath, string outDirectory)
     {
-        var inBuffer = new FileStream(inFilePath, FileMode.Open);
+        using var inBuffer = new FileStream(inFilePath, FileMode.Open);
         
         var outDirectoryPath = Path.GetDirectoryName(inFilePath);
         if (!string.IsNullOrEmpty(outDirectory) && Directory.Exists(outDirectory))
@@ -80,7 +80,7 @@ public class IrtpcV14Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
         var fileName = Path.GetFileNameWithoutExtension(inFilePath);
         var xmlFilePath = Path.Join(outDirectoryPath, $"{fileName}.xml");
         
-        var outBuffer = new FileStream(xmlFilePath, FileMode.Create);
+        using var outBuffer = new FileStream(xmlFilePath, FileMode.Create);
         var result = Decompress(inBuffer, outBuffer);
         
         return result;

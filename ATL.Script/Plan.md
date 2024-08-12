@@ -8,5 +8,5 @@
 ## Update 01
 - [X] Open
 - [X] Replace
-- [ ] String variable manipulation
+- [X] String variable manipulation
 - [ ] Process
