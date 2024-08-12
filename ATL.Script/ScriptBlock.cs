@@ -37,6 +37,14 @@ public class ScriptBlock
             {
                 scriptAction = new ScriptActionRename();
             }
+            else if (xeName == ScriptActionMove.NodeName)
+            {
+                scriptAction = new ScriptActionMove();
+            }
+            else if (xeName == ScriptActionDelete.NodeName)
+            {
+                scriptAction = new ScriptActionDelete();
+            }
 
             scriptAction?.Process(element, Variables);
         }
