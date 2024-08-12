@@ -7,9 +7,9 @@ public class ScriptActionRename : IScriptAction
 {
     public static string NodeName { get; } = "rename";
     
-    public void Process(XElement element, Dictionary<string, ScriptVariable> variables)
+    public void Process(XElement node, Dictionary<string, ScriptVariable> parentVars)
     {
         var scriptActionMove = new ScriptActionMove();
-        scriptActionMove.Process(element, variables);
+        scriptActionMove.Process(node, parentVars);
     }
 }

@@ -1,5 +1,10 @@
 # ATL script
-## Plan
-Copy
-Delete
-Rename
+## Basic
+- [X] Copy
+- [X] Rename
+- [X] Move
+- [X] Delete
+
+## Update 01
+- [ ] Open
+- [ ] Replace

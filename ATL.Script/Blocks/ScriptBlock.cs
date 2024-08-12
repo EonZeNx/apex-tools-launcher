@@ -3,13 +3,13 @@ using ATL.Core.Libraries;
 using ATL.Script.Actions;
 using ATL.Script.Variables;
 
-namespace ATL.Script;
+namespace ATL.Script.Blocks;
 
-public class ScriptBlock
+public class ScriptBlock : IScriptBlock
 {
-    public Dictionary<string, ScriptVariable> Variables = new();
+    public Dictionary<string, ScriptVariable> Variables { get; set; } = new();
     
-    public void Process(XElement node)
+    public virtual void Process(XElement node, Dictionary<string, ScriptVariable> parentVars)
     {
         foreach (var element in node.Elements())
         {
@@ -45,8 +45,25 @@ public class ScriptBlock
             {
                 scriptAction = new ScriptActionDelete();
             }
+            else if (xeName == ScriptActionReplace.NodeName)
+            {
+                scriptAction = new ScriptActionReplace();
+            }
+            else if (xeName == ScriptBlockFile.NodeName)
+            {
+                scriptAction = new ScriptBlockFile();
+            }
 
-            scriptAction?.Process(element, Variables);
+            if (scriptAction is null)
+                continue;
+            
+            var allVariables = new Dictionary<string, ScriptVariable>();
+            Variables.ToList()
+                .ForEach(kvp => allVariables.TryAdd(kvp.Key, kvp.Value));
+            parentVars.ToList()
+                .ForEach(kvp => allVariables.TryAdd(kvp.Key, kvp.Value));
+            
+            scriptAction.Process(element, allVariables);
         }
     }
 }

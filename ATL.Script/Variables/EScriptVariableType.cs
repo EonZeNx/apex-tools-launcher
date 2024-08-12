@@ -7,7 +7,8 @@ public enum EScriptVariableType
     Unknown = -1,
     String, Path,
     Int,
-    Float
+    Float,
+    File
 }
 
 public static class ScriptVariableTypeExtensions 
@@ -19,6 +20,7 @@ public static class ScriptVariableTypeExtensions
         { EScriptVariableType.Path,    "path" },
         { EScriptVariableType.Int,     "int" },
         { EScriptVariableType.Float,   "float" },
+        { EScriptVariableType.File,    "file" },
     };
 
     public static readonly Dictionary<string, EScriptVariableType> XStringToVariable =

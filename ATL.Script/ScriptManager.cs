@@ -1,5 +1,6 @@
 ﻿using System.Xml.Linq;
 using ATL.Core.Class;
+using ATL.Script.Blocks;
 using ATL.Script.Libraries;
 using ATL.Script.Variables;
 
@@ -39,13 +40,11 @@ public class ScriptManager : IProcessBasic
         {
             return;
         }
+
+        var variables = LoadSettings(xDoc);
         
-        var scriptBlock = new ScriptBlock
-        {
-            Variables = LoadSettings(xDoc)
-        };
-        
-        scriptBlock.Process(xDoc);
+        var scriptBlock = new ScriptBlock();
+        scriptBlock.Process(xDoc, variables);
     }
 
     public int ProcessBasic(string inFilePath, string outDirectory)

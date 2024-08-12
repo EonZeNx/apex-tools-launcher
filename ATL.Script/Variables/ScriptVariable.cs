@@ -8,6 +8,7 @@ public class ScriptVariable : IScriptNode
 {
     public static string NodeName { get; } = "var";
     public static string NodeSymbol { get; } = "$";
+    public static string[] NodeNames { get; } = [NodeName, ScriptConstantsLibrary.SettingXString];
     
     public string Name { get; set; } = "UNSET";
     public EScriptVariableType VariableType { get; set; } = EScriptVariableType.Unknown;
@@ -36,6 +37,14 @@ public class ScriptVariable : IScriptNode
         
         return Option.Some((float) Data);
     }
+
+    public Option<FileStream> AsBinaryFile()
+    {
+        if (Data is null)
+            return Option<FileStream>.None;
+        
+        return Option.Some((FileStream) Data);
+    }
 }
 
 public static class ScriptVariableExtensions
@@ -43,7 +52,7 @@ public static class ScriptVariableExtensions
     public static Option<ScriptVariable> GetScriptVariable(this XElement element)
     {
         var xeName = element.Name.ToString();
-        if (xeName != ScriptVariable.NodeName && xeName != ScriptConstantsLibrary.SettingXString)
+        if (!ScriptVariable.NodeNames.Contains(xeName))
             return Option<ScriptVariable>.None;
         
         var nameAttr = element.Attribute("name");
