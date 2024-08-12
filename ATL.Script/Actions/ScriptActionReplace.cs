@@ -13,27 +13,54 @@ public class ScriptActionReplace : IScriptAction
     
     public void Process(XElement node, Dictionary<string, ScriptVariable> parentVars)
     {
+        var inFilePath = "EMPTY";
         var fileAttr = node.Attribute("file");
-        if (fileAttr is null)
-            return;
+        var fileChild = node.Element("file");
         
-        var inFilePath = ScriptLibrary.InterpolateString(fileAttr.Value, parentVars);
+        if (fileAttr is not null)
+        {
+            inFilePath = fileAttr.Value;
+        }
+        else if (fileChild is not null)
+        {
+            inFilePath = fileChild.Value;
+        }
+        inFilePath = ScriptLibrary.InterpolateString(inFilePath, parentVars);
 
         if (!File.Exists(inFilePath))
             return;
         var outFilePath = Path.Join(Path.GetDirectoryName(inFilePath), $"{Path.GetFileNameWithoutExtension(inFilePath)}_temp.txt");
 
+        // TODO: Check child elements instead (as well?) of attributes
+        // Attributes cannot have certain characters, contents have much less restrictions
+
+        var target = "EMPTY";
         var targetAttr = node.Attribute("target");
-        if (targetAttr is null)
-            return;
-
-        var target = ScriptLibrary.InterpolateString(targetAttr.Value, parentVars);
-
+        var targetChild = node.Element("target");
+        
+        if (targetAttr is not null)
+        {
+            target = targetAttr.Value;
+        }
+        else if (targetChild is not null)
+        {
+            target = targetChild.Value;
+        }
+        target = ScriptLibrary.InterpolateString(target, parentVars);
+        
+        var with = "EMPTY";
         var withAttr = node.Attribute("with");
-        if (withAttr is null)
-            return;
-
-        var with = ScriptLibrary.InterpolateString(withAttr.Value, parentVars);
+        var withChild = node.Element("with");
+        
+        if (withAttr is not null)
+        {
+            with = withAttr.Value;
+        }
+        else if (withChild is not null)
+        {
+            with = withChild.Value;
+        }
+        with = ScriptLibrary.InterpolateString(with, parentVars);
         
         try
         {
