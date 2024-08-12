@@ -1,8 +1,8 @@
 ﻿using System.Xml.Linq;
 using ATL.Core.Extensions;
 using ATL.Core.Libraries;
+using ATL.Script.Libraries;
 using ATL.Script.Variables;
-using RustyOptions;
 
 namespace ATL.Script.Actions;
 
@@ -20,56 +20,8 @@ public class ScriptActionCopy : IScriptAction
         if (toAttr is null)
             return;
 
-        var targetFrom = fromAttr.Value;
-        var targetTo = toAttr.Value;
-
-        if (targetFrom.StartsWith(ScriptVariable.NodeSymbol))
-        {
-            var fromVarName = targetFrom.Replace(ScriptVariable.NodeSymbol, "");
-            
-            var optionFromVar = parentVars.GetValueOrNone(fromVarName);
-            if (!optionFromVar.IsSome(out var targetFromVar))
-            {
-                return;
-            }
-
-            var optionFrom = targetFromVar.AsString();
-            if (!optionFrom.IsSome(out var fromVar))
-            {
-                return;
-            }
-            
-            targetFrom = fromVar;
-        }
-        
-        if (targetTo.StartsWith(ScriptVariable.NodeSymbol))
-        {
-            var toVarName = targetTo.Replace(ScriptVariable.NodeSymbol, "");
-            
-            var optionToVar = parentVars.GetValueOrNone(toVarName);
-            if (!optionToVar.IsSome(out var targetToVar))
-            {
-                return;
-            }
-
-            var optionTo = targetToVar.AsString();
-            if (!optionTo.IsSome(out var toVar))
-            {
-                return;
-            }
-            
-            targetTo = toVar;
-        }
-
-        if (parentVars.ContainsKey("working_directory"))
-        {
-            var optionWorkingDir = parentVars["working_directory"].AsString();
-            if (optionWorkingDir.IsSome(out var workingDir))
-            {
-                targetFrom = Path.Join(workingDir, targetFrom);
-                targetTo = Path.Join(workingDir, targetTo);
-            }
-        }
+        var targetFrom = ScriptLibrary.InterpolateString(fromAttr.Value, parentVars);
+        var targetTo = ScriptLibrary.InterpolateString(toAttr.Value, parentVars);
 
         try
         {

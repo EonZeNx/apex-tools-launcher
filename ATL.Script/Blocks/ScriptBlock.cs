@@ -14,10 +14,15 @@ public class ScriptBlock : IScriptBlock
         foreach (var element in node.Elements())
         {
             var xeName = element.Name.ToString();
+            var allVariables = new Dictionary<string, ScriptVariable>();
+            Variables.ToList()
+                .ForEach(kvp => allVariables.TryAdd(kvp.Key, kvp.Value));
+            parentVars.ToList()
+                .ForEach(kvp => allVariables.TryAdd(kvp.Key, kvp.Value));
             
             if (xeName == ScriptVariable.NodeName)
             {
-                var optionVar = element.GetScriptVariable();
+                var optionVar = element.GetScriptVariable(allVariables);
                 if (!optionVar.IsSome(out var scriptVariable))
                 {
                     ConsoleLibrary.Log("Failed to initialise variable", ConsoleColor.Red);
@@ -56,12 +61,6 @@ public class ScriptBlock : IScriptBlock
 
             if (scriptAction is null)
                 continue;
-            
-            var allVariables = new Dictionary<string, ScriptVariable>();
-            Variables.ToList()
-                .ForEach(kvp => allVariables.TryAdd(kvp.Key, kvp.Value));
-            parentVars.ToList()
-                .ForEach(kvp => allVariables.TryAdd(kvp.Key, kvp.Value));
             
             scriptAction.Process(element, allVariables);
         }
