@@ -1,6 +1,7 @@
 using System.Xml;
 using System.Xml.Linq;
 using ATL.Core.Class;
+using ATL.Core.Extensions;
 using ATL.Core.Libraries;
 
 namespace ApexFormat.SARC.V02;
@@ -96,7 +97,7 @@ public class SarcV02Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
         }
 
         inBuffer.Seek(archiveEntry.DataOffset, SeekOrigin.Begin);
-        inBuffer.CopyTo(outBuffer, (int) archiveEntry.Size);
+        inBuffer.CopyToLimit(outBuffer, (int) archiveEntry.Size);
 
         return 0;
     }
@@ -203,8 +204,8 @@ public class SarcV02Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
             
             var filePath = Path.Join(directoryPath, Path.GetFileName(archiveEntry.FilePath));
             using var outBuffer = new FileStream(filePath, FileMode.Create);
-            var archiveEntryResult = ReadFileEntry(inBuffer, archiveEntry, outBuffer);
 
+            var archiveEntryResult = ReadFileEntry(inBuffer, archiveEntry, outBuffer);
             if (archiveEntryResult < 0)
             {
                 return archiveEntryResult;
