@@ -17,25 +17,7 @@ public class ScriptActionReplace : IScriptAction
         if (fileAttr is null)
             return;
         
-        var inFilePath = fileAttr.Value;
-        if (inFilePath.StartsWith(ScriptConstantsLibrary.VariableSymbol))
-        {
-            var inFilePathVarName = inFilePath.Replace(ScriptConstantsLibrary.VariableSymbol, "");
-            
-            var optioninFilePathVar = parentVars.GetValueOrNone(inFilePathVarName);
-            if (!optioninFilePathVar.IsSome(out var inFilePathVar))
-            {
-                return;
-            }
-
-            var optionInFilePath = inFilePathVar.AsString();
-            if (!optionInFilePath.IsSome(out var safeInFilePath))
-            {
-                return;
-            }
-            
-            inFilePath = safeInFilePath;
-        }
+        var inFilePath = ScriptLibrary.InterpolateString(fileAttr.Value, parentVars);
 
         if (!File.Exists(inFilePath))
             return;
@@ -45,13 +27,13 @@ public class ScriptActionReplace : IScriptAction
         if (targetAttr is null)
             return;
 
-        var target = targetAttr.Value;
+        var target = ScriptLibrary.InterpolateString(targetAttr.Value, parentVars);
 
         var withAttr = node.Attribute("with");
         if (withAttr is null)
             return;
 
-        var with = withAttr.Value;
+        var with = ScriptLibrary.InterpolateString(withAttr.Value, parentVars);
         
         try
         {
