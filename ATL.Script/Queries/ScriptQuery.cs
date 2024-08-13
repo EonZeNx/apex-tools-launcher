@@ -108,7 +108,7 @@ public class ScriptQuery : IScriptVariable
             return;
 
         Name = nameAttr.Value;
-        Type = EScriptVariableType.Path;
+        Type = EScriptVariableType.String;
         MetaType = EScriptVariableMetaType.List;
         
         var variableType = node.GetScriptQueryType();

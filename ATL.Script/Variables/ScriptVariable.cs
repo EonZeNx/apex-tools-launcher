@@ -37,7 +37,7 @@ public class ScriptVariable : IScriptVariable
             return;
         
         var data = dataAttr.Value;
-        if (variableType is EScriptVariableType.String or EScriptVariableType.Path)
+        if (variableType is EScriptVariableType.String)
         {
             data = ScriptLibrary.InterpolateString(data, parentVars);
         }

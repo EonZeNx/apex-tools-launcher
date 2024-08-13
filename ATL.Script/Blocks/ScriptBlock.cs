@@ -1,5 +1,6 @@
 ﻿using System.Xml.Linq;
 using ATL.Script.Actions;
+using ATL.Script.Operations;
 using ATL.Script.Queries;
 using ATL.Script.Variables;
 
@@ -33,7 +34,7 @@ public class ScriptBlock : IScriptBlock
                 ScriptQuery.NodeName => new ScriptQuery(),
                 ScriptActionPrint.NodeName => new ScriptActionPrint(),
                 ScriptBlockFor.NodeName => new ScriptBlockFor(),
-                ScriptBlockPath.NodeName => new ScriptBlockPath(),
+                ScriptOperationsString.NodeName => new ScriptOperationsString(),
                 _ => null
             };
             

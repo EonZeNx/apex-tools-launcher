@@ -35,7 +35,7 @@ public class ScriptBlockFor : IScriptBlock
             var valueVariable = new ScriptVariable
             {
                 Name = $"{blockName}_{eachVarName}",
-                Type = EScriptVariableType.Path,
+                Type = EScriptVariableType.String,
                 Data = value
             };
 

@@ -5,23 +5,16 @@ namespace ATL.Script.Variables;
 public enum EScriptVariableType
 {
     Unknown = -1,
-    String, Path,
+    String,
     Int,
-    Float,
-    File
+    Float
 }
 
 public static class ScriptVariableTypeExtensions 
 {
-    public static readonly Dictionary<EScriptVariableType, string> VariableToXString = new()
-    {
-        { EScriptVariableType.Unknown, "unknown" },
-        { EScriptVariableType.String,  "string" },
-        { EScriptVariableType.Path,    "path" },
-        { EScriptVariableType.Int,     "int" },
-        { EScriptVariableType.Float,   "float" },
-        { EScriptVariableType.File,    "file" },
-    };
+    public static readonly Dictionary<EScriptVariableType, string> VariableToXString = Enum.GetValues(typeof(EScriptVariableType))
+        .Cast<EScriptVariableType>()
+        .ToDictionary(cc => cc, cc => cc.ToString().ToLower());
 
     public static readonly Dictionary<string, EScriptVariableType> XStringToVariable =
         VariableToXString.ToDictionary(kvp => kvp.Value, kvp => kvp.Key);
