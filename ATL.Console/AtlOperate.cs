@@ -9,6 +9,7 @@ using ApexFormat.SARC.V02;
 using ApexFormat.TAB.V02;
 using ATL.Core.Class;
 using ATL.Core.Libraries;
+using HavokFormat.Scene;
 
 namespace ATL.Console;
 
@@ -62,6 +63,11 @@ public static class AtlOperate
         {
             manager = new RtpcV03Manager();
             message = $"{message} as RTPCv03";
+        }
+        else if (HkSceneManager.CanProcess(inPath))
+        {
+            manager = new HkSceneManager();
+            message = $"{message} as HkScene";
         }
         else if (IrtpcV14Manager.CanProcess(inPath))
         { // should be last
