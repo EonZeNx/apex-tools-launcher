@@ -1,6 +1,7 @@
 using System.Xml;
 using System.Xml.Linq;
 using ATL.Core.Class;
+using ATL.Core.Extensions;
 using ATL.Core.Libraries;
 
 namespace ApexFormat.SARC.V02;
@@ -28,6 +29,32 @@ public class SarcV02Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
         return false;
     }
 
+    public static int ParseTocFileEntries(Stream tocBuffer, out SarcV02ArchiveEntry[] outEntries)
+    {
+        outEntries = [];
+        if (tocBuffer.Length == 0)
+            return -1;
+
+        var archiveEntries = new List<SarcV02ArchiveEntry>();
+
+        var startPosition = tocBuffer.Position;
+        while (true)
+        {
+            var optionArchiveEntry = tocBuffer.ReadSarcV02ArchiveEntry();
+            if (!optionArchiveEntry.IsSome(out var archiveEntry))
+                break;
+            
+            archiveEntries.Add(archiveEntry);
+            if (tocBuffer.Position == tocBuffer.Length)
+            {
+                break;
+            }
+        }
+
+        outEntries = archiveEntries.ToArray();
+        return 0;
+    }
+    
     public static int ParseFileEntries(Stream inBuffer, out SarcV02ArchiveEntry[] outEntries)
     {
         outEntries = [];
@@ -55,7 +82,6 @@ public class SarcV02Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
         }
 
         outEntries = archiveEntries.ToArray();
-
         return 0;
     }
 
@@ -71,11 +97,43 @@ public class SarcV02Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
         }
 
         inBuffer.Seek(archiveEntry.DataOffset, SeekOrigin.Begin);
-        inBuffer.CopyTo(outBuffer, (int) archiveEntry.Size);
+        inBuffer.CopyToLimit(outBuffer, (int) archiveEntry.Size);
 
         return 0;
     }
 
+    public static int WriteTocEntryFile(string outDirectory, SarcV02ArchiveEntry[] entries)
+    {
+        var outer = new XElement("archive");
+        outer.SetAttributeValue("extension", "toc");
+        outer.SetAttributeValue("version", "2");
+        
+        var root = new XElement("files");
+        foreach (var archiveEntry in entries)
+        {
+            var entry = new XElement("file");
+            entry.SetAttributeValue("size", archiveEntry.Size);
+            entry.SetAttributeValue("ref", archiveEntry.DataOffset == 0);
+            entry.SetValue(archiveEntry.FilePath);
+            
+            root.Add(entry);
+        }
+        outer.Add(root);
+
+        var xmlFilePath = Path.Join(outDirectory, "@tocFiles.xml");
+        using var xmlFile = new FileStream(xmlFilePath, FileMode.Create);
+        
+        var xd = new XDocument(XDocumentLibrary.AtlGeneratedComment(), outer);
+        using var xw = XmlWriter.Create(xmlFile, new XmlWriterSettings
+        {
+            Indent = true,
+            IndentChars = "\t"
+        });
+        xd.Save(xw);
+
+        return 0;
+    }
+    
     public static int WriteEntryFile(string outDirectory, SarcV02ArchiveEntry[] entries)
     {
         var outer = new XElement("archive");
@@ -107,7 +165,18 @@ public class SarcV02Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
 
         return 0;
     }
-    
+
+    public static int DecompressToc(Stream inBuffer, string outDirectory)
+    {
+        var parseTocFileEntriesResult = ParseTocFileEntries(inBuffer, out var outTocEntries);
+        if (parseTocFileEntriesResult < 0)
+        {
+            return parseTocFileEntriesResult;
+        }
+        
+        return WriteTocEntryFile(outDirectory, outTocEntries);
+    }
+
     public static int Decompress(Stream inBuffer, string outDirectory)
     {
         var parseFileEntriesResult = ParseFileEntries(inBuffer, out var outEntries);
@@ -124,6 +193,8 @@ public class SarcV02Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
         for (var i = 0; i < outEntries.Length; i += 1)
         {
             var archiveEntry = outEntries[i];
+            if (archiveEntry.DataOffset == 0)
+                continue;
             
             var directoryPath = Path.Join(outDirectory, Path.GetDirectoryName(archiveEntry.FilePath));
             if (!Directory.Exists(directoryPath))
@@ -132,9 +203,9 @@ public class SarcV02Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
             }
             
             var filePath = Path.Join(directoryPath, Path.GetFileName(archiveEntry.FilePath));
-            var outBuffer = new FileStream(filePath, FileMode.Create);
-            var archiveEntryResult = ReadFileEntry(inBuffer, archiveEntry, outBuffer);
+            using var outBuffer = new FileStream(filePath, FileMode.Create);
 
+            var archiveEntryResult = ReadFileEntry(inBuffer, archiveEntry, outBuffer);
             if (archiveEntryResult < 0)
             {
                 return archiveEntryResult;
@@ -146,7 +217,7 @@ public class SarcV02Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
     
     public int ProcessBasic(string inFilePath, string outDirectory)
     {
-        var inBuffer = new FileStream(inFilePath, FileMode.Open);
+        using var inBuffer = new FileStream(inFilePath, FileMode.Open);
         
         var outDirectoryPath = Path.GetDirectoryName(inFilePath);
         if (!string.IsNullOrEmpty(outDirectory) && Directory.Exists(outDirectory))
@@ -159,6 +230,14 @@ public class SarcV02Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
             Directory.CreateDirectory(directoryPath);
 
         var result = Decompress(inBuffer, directoryPath);
+        
+        var tocPath = $"{inFilePath}.toc";
+        if (File.Exists(tocPath))
+        {
+            using var tocBuffer = new FileStream(tocPath, FileMode.Open);
+            result = DecompressToc(tocBuffer, directoryPath);
+        }
+        
         return result;
     }
 }

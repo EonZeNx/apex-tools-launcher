@@ -104,22 +104,4 @@ public static class AdfV04TypeExtensions
 
         return Option.Some(result);
     }
-
-    public static uint DataSize(this AdfV04Type adfType)
-    {
-        uint memberCount = 0;
-        var memberSize = AdfV04Member.SizeOf();
-
-        if (adfType.Type is EAdfV04Type.Struct or EAdfV04Type.Enum)
-        {
-            memberCount = adfType.MemberCountOrDataAlign;
-
-            if (adfType.Type == EAdfV04Type.Enum)
-            {
-                memberSize = AdfV04Enum.SizeOf();
-            }
-        }
-
-        return AdfV04Type.SizeOf() + (memberCount * memberSize);
-    }
 }

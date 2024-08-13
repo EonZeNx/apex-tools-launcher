@@ -3,17 +3,22 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using ApexChain.AAFSARC;
 using ApexFormat.AAF.V01;
 using ApexFormat.ADF.V04;
-using ApexFormat.RTPC.V0104;
+using ApexFormat.AVTX.V01;
+using ApexFormat.IRTPC.V14;
 using ApexFormat.RTPC.V01;
+using ApexFormat.RTPC.V03;
 using ApexFormat.SARC.V02;
 using ApexFormat.TAB.V02;
 using ATL.CLI.Console;
+using ATL.Console;
 using ATL.Core.Class;
 using ATL.Core.Config;
 using ATL.Core.Hash;
 using ATL.Core.Libraries;
+using ATL.Script;
 using CommandLine;
 using CommandLine.Text;
 
@@ -62,9 +67,13 @@ class Program
                 if (TabV02Manager.CanProcess(inputPath) ||
                     SarcV02Manager.CanProcess(inputPath) ||
                     AafV01Manager.CanProcess(inputPath) ||
+                    AafV01SarcV02Manager.CanProcess(inputPath) ||
                     AdfV04Manager.CanProcess(inputPath) ||
+                    AvtxV01Manager.CanProcess(inputPath) ||
                     RtpcV01Manager.CanProcess(inputPath) ||
-                    RtpcV0104Manager.CanProcess(inputPath)
+                    RtpcV03Manager.CanProcess(inputPath) ||
+                    IrtpcV14Manager.CanProcess(inputPath) ||
+                    Path.GetExtension(inputPath) == ".xml"
                 ) {
                     supportedPaths.Add(inputPath);
                     continue;
@@ -117,6 +126,12 @@ class Program
 
         var paths = FilterUnsupportedPaths(options.InputPaths);
         
+        // if (Path.GetExtension(inPath) == ".xml")
+        // {
+        //     manager = new ScriptManager();
+        //     message = $"{message} as Script";
+        // }
+        
 #if DEBUG
         for (var i = 0; i < paths.Length; i++)
         {
@@ -128,6 +143,19 @@ class Program
             OperateFile(paths[i], options.OutputDirectory);
         });
 #endif
+    }
+
+    public static void OperateFile(string inPath, string outDirectory)
+    {
+        if (Path.GetExtension(inPath) == ".xml")
+        {
+            var manager = new ScriptManager();
+            manager.ProcessBasic(inPath, outDirectory);
+            
+            return;
+        }
+        
+        AtlOperate.OperateFile(inPath, outDirectory);
     }
 
     public static void MainWithErrors(ParserResult<AtlClOptions> result, IEnumerable<Error> errors)
@@ -143,73 +171,6 @@ class Program
         }, e => e);
         
         ConsoleLibrary.Log(helpText, ConsoleColor.White);
-    }
-
-    public static string GetAbsoluteDirectory(string inPath, string outDirectory)
-    {
-        var result = Path.GetDirectoryName(inPath) ?? inPath;
-        
-        if (!string.IsNullOrEmpty(outDirectory))
-        { // outDirectory is valid
-            result = Path.IsPathFullyQualified(outDirectory)
-                ? outDirectory
-                : Path.GetFullPath(outDirectory, AppDomain.CurrentDomain.BaseDirectory);
-        }
-
-        return result;
-    }
-    
-    public static void OperateFile(string inPath, string outDirectory)
-    {
-        var pathName = Path.GetFileName(inPath);
-        if (string.IsNullOrEmpty(pathName))
-            pathName = Path.GetDirectoryName(inPath);
-        
-        var message = $"Processing '{pathName}'";
-
-        IProcessBasic manager;
-        if (TabV02Manager.CanProcess(inPath))
-        {
-            manager = new TabV02Manager();
-            message = $"{message} as TABv02";
-        }
-        else if (SarcV02Manager.CanProcess(inPath))
-        {
-            manager = new SarcV02Manager();
-            message = $"{message} as SARCv02";
-        }
-        else if (AafV01Manager.CanProcess(inPath))
-        {
-            manager = new AafV01Manager();
-            message = $"{message} as AAFv01";
-        }
-        else if (AdfV04Manager.CanProcess(inPath))
-        {
-            manager = new AdfV04Manager();
-            message = $"{message} as ADFv04";
-        }
-        else if (RtpcV01Manager.CanProcess(inPath))
-        {
-            manager = new RtpcV01Manager();
-            message = $"{message} as RTPCv01";
-        }
-        else if (RtpcV0104Manager.CanProcess(inPath))
-        { // should be last
-            manager = new RtpcV0104Manager();
-            message = $"{message} as RTPCv0104";
-        }
-        else
-        {
-            ConsoleLibrary.Log($"File not supported '{pathName}'", LogType.Warning);
-            return;
-        }
-        
-        ConsoleLibrary.Log(message, LogType.Info);
-        
-        var absoluteOutDirectory = GetAbsoluteDirectory(inPath, outDirectory);
-        manager.ProcessBasic(inPath, absoluteOutDirectory);
-        
-        ConsoleLibrary.Log($"Finished '{pathName}'", LogType.Info);
     }
     
     public static void CurrentDomain_ProcessExit(object? sender, EventArgs e)

@@ -97,7 +97,7 @@ public class TabV02Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
     
     public int ProcessBasic(string inFilePath, string outDirectory)
     {
-        var tabBuffer = new FileStream(inFilePath, FileMode.Open);
+        using var tabBuffer = new FileStream(inFilePath, FileMode.Open);
         
         var directoryPath = Path.GetDirectoryName(inFilePath);
         if (!Directory.Exists(directoryPath))

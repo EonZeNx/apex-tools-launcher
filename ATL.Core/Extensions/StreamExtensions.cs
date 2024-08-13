@@ -22,6 +22,9 @@ public static class StreamExtensions
         // Hardcoded sanity check
         while (charList.Count < 2048)
         {
+            if (stream.Position == stream.Length)
+                break;
+            
             var newChar = stream.Read<byte>();
             if (newChar == '\0')
                 break;
@@ -74,6 +77,17 @@ public static class StreamExtensions
         return stream.ReadArray<T>(stream.Read<int>());
     }
 
+    public static string[] ReadArrayStringZ(this Stream stream, int count)
+    {
+        var values = new string[count];
+        for (var i = 0; i < count; i++)
+        {
+            values[i] = stream.ReadStringZ();
+        }
+        
+        return values;
+    }
+    
     public static void CopyToLimit(this Stream stream, Stream destination, int count) => stream.CopyToLimit(destination, count, 81920);
     public static void CopyToLimit(this Stream stream, Stream destination, int count, int bufferSize)
     {
