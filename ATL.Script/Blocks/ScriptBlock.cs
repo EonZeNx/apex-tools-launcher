@@ -33,6 +33,7 @@ public class ScriptBlock : IScriptBlock
                 ScriptQuery.NodeName => new ScriptQuery(),
                 ScriptActionPrint.NodeName => new ScriptActionPrint(),
                 ScriptBlockFor.NodeName => new ScriptBlockFor(),
+                ScriptBlockPath.NodeName => new ScriptBlockPath(),
                 _ => null
             };
             
