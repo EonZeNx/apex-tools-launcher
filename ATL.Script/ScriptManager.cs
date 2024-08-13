@@ -20,7 +20,7 @@ public class ScriptManager : IProcessBasic
             return;
         }
 
-        var variables = new Dictionary<string, ScriptVariable>();
+        var variables = new Dictionary<string, IScriptVariable>();
         
         var scriptBlock = new ScriptBlock();
         scriptBlock.Process(xDoc, variables);

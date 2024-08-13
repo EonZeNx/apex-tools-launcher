@@ -5,9 +5,9 @@ namespace ATL.Script.Actions;
 
 public class ScriptActionRename : IScriptAction
 {
-    public static string NodeName { get; } = "rename";
+    public const string NodeName = "rename";
     
-    public void Process(XElement node, Dictionary<string, ScriptVariable> parentVars)
+    public void Process(XElement node, Dictionary<string, IScriptVariable> parentVars)
     {
         var scriptActionMove = new ScriptActionMove();
         scriptActionMove.Process(node, parentVars);

@@ -1,14 +1,5 @@
 ﻿namespace ATL.Core.Libraries;
 
-public enum LogType
-{
-    Error,
-    Warning,
-    Success,
-    Info,
-    Debug
-}
-
 public static class ConsoleLibrary
 {
     public static void Log(string message, LogType logType, bool displayLogLevel = false, bool newLine = true)

@@ -9,9 +9,9 @@ namespace ATL.Script.Actions;
 
 public class ScriptActionReplace : IScriptAction
 {
-    public static string NodeName { get; } = "replace";
+    public const string NodeName = "replace";
     
-    public void Process(XElement node, Dictionary<string, ScriptVariable> parentVars)
+    public void Process(XElement node, Dictionary<string, IScriptVariable> parentVars)
     {
         var inFilePath = "EMPTY";
         var fileAttr = node.Attribute("file");
