@@ -30,16 +30,17 @@ public class ScriptBlock : IScriptBlock
             IScriptAction? scriptAction = xeName switch
             {
                 ScriptVariable.NodeName => new ScriptVariable(),
+                ScriptVariableAsk.NodeName => new ScriptVariableAsk(),
                 ScriptActionCopy.NodeName => new ScriptActionCopy(),
                 ScriptActionRename.NodeName => new ScriptActionRename(),
                 ScriptActionMove.NodeName => new ScriptActionMove(),
                 ScriptActionDelete.NodeName => new ScriptActionDelete(),
                 ScriptActionProcess.NodeName => new ScriptActionProcess(),
-                ScriptQuery.NodeName => new ScriptQuery(),
                 ScriptActionPrint.NodeName => new ScriptActionPrint(),
-                ScriptBlockFor.NodeName => new ScriptBlockFor(),
-                ScriptOperationsString.NodeName => new ScriptOperationsString(),
                 ScriptActionBreak.NodeName => new ScriptActionBreak(),
+                ScriptQuery.NodeName => new ScriptQuery(),
+                ScriptOperationsString.NodeName => new ScriptOperationsString(),
+                ScriptBlockFor.NodeName => new ScriptBlockFor(),
                 _ => null
             };
 

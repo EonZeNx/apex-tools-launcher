@@ -14,12 +14,49 @@ public static class ScriptLibrary
 
             if (keyValueVar.MetaType != EScriptVariableMetaType.Normal)
                 continue;
-            
-            var optionKeyValueVar = keyValueVar.As<string>();
-            if (!optionKeyValueVar.IsSome(out var keyVarValue))
-                continue;
 
-            interpolated = interpolated.Replace(keyVar, keyVarValue);
+            switch (keyValueVar.Type)
+            {
+            case EScriptVariableType.String:
+            {
+                var optionValue = keyValueVar.As<string>();
+                if (!optionValue.IsSome(out var value))
+                    continue;
+
+                interpolated = interpolated.Replace(keyVar, value);
+                break;
+            }
+            case EScriptVariableType.Bool:
+            {
+                var optionValue = keyValueVar.As<bool>();
+                if (!optionValue.IsSome(out var value))
+                    continue;
+
+                interpolated = interpolated.Replace(keyVar, value.ToString());
+                break;
+            }
+            case EScriptVariableType.Int:
+            {
+                var optionValue = keyValueVar.As<int>();
+                if (!optionValue.IsSome(out var value))
+                    continue;
+
+                interpolated = interpolated.Replace(keyVar, value.ToString());
+                break;
+            }
+            case EScriptVariableType.Float:
+            {
+                var optionValue = keyValueVar.As<float>();
+                if (!optionValue.IsSome(out var value))
+                    continue;
+
+                interpolated = interpolated.Replace(keyVar, value.ToString());
+                break;
+            }
+            case EScriptVariableType.Unknown:
+            default:
+                break;
+            }
         }
 
         return interpolated;
