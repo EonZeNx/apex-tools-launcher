@@ -4,16 +4,13 @@ using ATL.Script.Variables;
 
 namespace ATL.Script.Actions;
 
-public class ScriptActionRename : IScriptAction
+public class ScriptActionBreak : IScriptAction
 {
-    public const string NodeName = "rename";
+    public const string NodeName = "break";
     public string Format(string message) => $"{NodeName.ToUpper()}: {message}";
-    
+
     public ScriptProcessResult Process(XElement node, Dictionary<string, IScriptVariable> parentVars)
     {
-        var scriptActionMove = new ScriptActionMove();
-        var result = scriptActionMove.Process(node, parentVars);
-        
-        return ScriptProcessResult.Ok();
+        return ScriptProcessResult.OkBreak();
     }
 }

@@ -9,16 +9,19 @@ namespace ATL.Script.Actions;
 public class ScriptActionPrint : IScriptAction
 {
     public const string NodeName = "print";
+    public string Format(string message) => $"{NodeName.ToUpper()}: {message}";
     
-    public void Process(XElement node, Dictionary<string, IScriptVariable> parentVars)
+    public ScriptProcessResult Process(XElement node, Dictionary<string, IScriptVariable> parentVars)
     {
         var valueAttr = node.Attribute("value");
         if (valueAttr is null)
-            return;
+            return ScriptProcessResult.Error(Format("value attribute missing"));
 
         var value = ScriptLibrary.InterpolateString(valueAttr.Value, parentVars);
         
         var consoleColor = node.GetConsoleColor();
         ConsoleLibrary.Log(value, consoleColor);
+        
+        return ScriptProcessResult.Ok();
     }
 }

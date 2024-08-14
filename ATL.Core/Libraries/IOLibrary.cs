@@ -1,6 +1,6 @@
-﻿namespace ATL.Core.Extensions;
+﻿namespace ATL.Core.Libraries;
 
-public static class IOLibrary
+public static class IoLibrary
 {
     public static void CopyDirectory(string sourceDir, string destinationDir, bool recursive = true)
     {
@@ -18,10 +18,11 @@ public static class IOLibrary
         Directory.CreateDirectory(destinationDir);
 
         // Get the files in the source directory and copy to the destination directory
-        foreach (var file in dir.GetFiles())
+        var dirFiles = dir.GetFiles();
+        foreach (var file in dirFiles)
         {
             var targetFilePath = Path.Combine(destinationDir, file.Name);
-            file.CopyTo(targetFilePath);
+            file.CopyTo(targetFilePath, true);
         }
 
         // If recursive and copying subdirectories, recursively call this method

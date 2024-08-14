@@ -8,6 +8,7 @@ namespace ATL.Script.Queries;
 public class ScriptQuery : IScriptVariable
 {
     public const string NodeName = "query";
+    public string Format(string message) => $"{NodeName.ToUpper()}: {message}";
     
     public string Name { get; set; } = "UNSET";
     public EScriptVariableType Type { get; set; } = EScriptVariableType.Unknown;
@@ -21,6 +22,22 @@ public class ScriptQuery : IScriptVariable
             : Option.Some((T) Data);
     }
 
+    public void AddData(IEnumerable<string> data)
+    {
+        if (Data is null)
+        {
+            Data = data.ToList();
+        }
+        else
+        {
+            var optionData = As<List<string>>();
+            if (!optionData.IsSome(out var existingData))
+                return;
+            
+            existingData.AddRange(data);
+        }
+    }
+
     public void QueryFiles(XElement node, Dictionary<string, IScriptVariable> parentVars)
     {
         var xeTarget = node.Elements("target").ToArray();
@@ -31,32 +48,37 @@ public class ScriptQuery : IScriptVariable
             .Select(xet => ScriptLibrary.InterpolateString(xet.Value, parentVars))
             .ToArray();
 
-        var searchPattern = "*";
-        var xeSearchPattern = node.Element("search_pattern");
-        if (xeSearchPattern is not null)
-            searchPattern = xeSearchPattern.Value;
+        var searchPatterns = new List<string>{"*"};
+        var xeSearchPatterns = node.Elements("search_pattern").ToArray();
+        if (xeSearchPatterns.Length != 0)
+        {
+            searchPatterns = xeSearchPatterns.Select(xesp => xesp.Value).ToList();
+        }
         
         var recursive = SearchOption.TopDirectoryOnly;
-        var xeRecursive = node.Element("recursive");
-        if (xeRecursive is not null)
+        var recursiveAttr = node.Attribute("recursive");
+        if (recursiveAttr is not null)
         {
-            if (int.TryParse(xeRecursive.Value, out var number))
+            if (int.TryParse(recursiveAttr.Value, out var number))
             {
                 recursive = (SearchOption) Math.Clamp(number, 0, 1);
             }
         }
 
-        var files = new List<string>();
-
-        foreach (var target in targets)
+        foreach (var searchPattern in searchPatterns)
         {
-            if (!Directory.Exists(target))
-                continue;
+            var files = new List<string>();
+
+            foreach (var target in targets)
+            {
+                if (!Directory.Exists(target))
+                    continue;
             
-            files.AddRange(Directory.GetFiles(target, searchPattern, recursive));
+                files.AddRange(Directory.GetFiles(target, searchPattern, recursive));
+            }
+
+            AddData(files);
         }
-        
-        Data = files.ToList();
     }
     
     public void QueryDirectories(XElement node, Dictionary<string, IScriptVariable> parentVars)
@@ -69,10 +91,12 @@ public class ScriptQuery : IScriptVariable
             .Select(xet => ScriptLibrary.InterpolateString(xet.Value, parentVars))
             .ToArray();
 
-        var searchPattern = "*";
-        var xeSearchPattern = node.Element("search_pattern");
-        if (xeSearchPattern is not null)
-            searchPattern = xeSearchPattern.Value;
+        var searchPatterns = new List<string>{"*"};
+        var xeSearchPatterns = node.Elements("search_pattern").ToArray();
+        if (xeSearchPatterns.Length != 0)
+        {
+            searchPatterns = xeSearchPatterns.Select(xesp => xesp.Value).ToList();
+        }
         
         var recursive = SearchOption.TopDirectoryOnly;
         var xeRecursive = node.Element("recursive");
@@ -84,28 +108,27 @@ public class ScriptQuery : IScriptVariable
             }
         }
 
-        var files = new List<string>();
-
-        foreach (var target in targets)
+        foreach (var searchPattern in searchPatterns)
         {
-            if (!Directory.Exists(target))
-                continue;
+            var files = new List<string>();
+
+            foreach (var target in targets)
+            {
+                if (!Directory.Exists(target))
+                    continue;
             
-            files.AddRange(Directory.GetDirectories(target, searchPattern, recursive));
+                files.AddRange(Directory.GetDirectories(target, searchPattern, recursive));
+            }
+
+            AddData(files);
         }
-        
-        Data = files.ToList();
     }
     
-    public void Process(XElement node, Dictionary<string, IScriptVariable> parentVars)
+    public ScriptProcessResult Process(XElement node, Dictionary<string, IScriptVariable> parentVars)
     {
-        var xeName = node.Name.ToString();
-        if (!string.Equals(xeName, NodeName))
-            return ;
-        
         var nameAttr = node.Attribute("name");
         if (nameAttr is null)
-            return;
+            return ScriptProcessResult.Error(Format("name attribute missing"));
 
         Name = nameAttr.Value;
         Type = EScriptVariableType.String;
@@ -122,8 +145,14 @@ public class ScriptQuery : IScriptVariable
             case EScriptQueryType.Directories:
                 QueryDirectories(node, parentVars);
                 break;
+            case EScriptQueryType.Both:
+                QueryFiles(node, parentVars);
+                QueryDirectories(node, parentVars);
+                break;
             default:
                 throw new ArgumentOutOfRangeException();
         }
+        
+        return ScriptProcessResult.Ok();
     }
 }

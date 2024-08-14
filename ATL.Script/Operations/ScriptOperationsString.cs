@@ -9,6 +9,7 @@ namespace ATL.Script.Operations;
 public class ScriptOperationsString : IScriptBlock, IScriptVariable
 {
     public const string NodeName = "string";
+    public string Format(string message) => $"{NodeName.ToUpper()}: {message}";
     
     public Dictionary<string, IScriptVariable> Variables { get; set; } = new();
 
@@ -24,18 +25,6 @@ public class ScriptOperationsString : IScriptBlock, IScriptVariable
             : Option.Some((T) Data);
     }
 
-    public string Split(string value, int take = -1, string symbol = @"\")
-    {
-        var splitValue = value.Split(symbol);
-        if (take > splitValue.Length || take < -(splitValue.Length - 1))
-            return splitValue[0];
-        
-        var result = take > 0
-            ? splitValue[take]
-            : splitValue[^Math.Abs(take)];
-        return result;
-    }
-    
     public string OperateSplit(string data, XElement node, Dictionary<string, IScriptVariable> parentVars)
     {
         var take = 0;
@@ -55,28 +44,34 @@ public class ScriptOperationsString : IScriptBlock, IScriptVariable
             symbol = symbolAttr.Value;
         }
         
-        var result = Split(data, take, symbol);
+        var splitValue = data.Split(symbol);
+        if (take > splitValue.Length || take < -(splitValue.Length - 1))
+            return splitValue[0];
+        
+        var result = take >= 0
+            ? splitValue[take]
+            : splitValue[^Math.Abs(take)];
         return result;
     }
     
-    public void Process(XElement node, Dictionary<string, IScriptVariable> parentVars)
+    public ScriptProcessResult Process(XElement node, Dictionary<string, IScriptVariable> parentVars)
     {
         var nameAttr = node.Attribute("name");
         if (nameAttr is null)
-            return;
+            return ScriptProcessResult.Error(Format("name attribute missing"));
         Name = nameAttr.Value;
 
         var targetVarAttr = node.Attribute("target");
         if (targetVarAttr is null)
-            return;
+            return ScriptProcessResult.Error(Format("target attribute missing"));
 
         var targetVarName = ScriptLibrary.StripSymbol(targetVarAttr.Value);
         if (!parentVars.TryGetValue(targetVarName, out var targetVar))
-            return;
+            return ScriptProcessResult.Error(Format($"targetVarName '{targetVarName}' variable not found"));
         
         var optionData = targetVar.As<string>();
         if (!optionData.IsSome(out var data))
-            return;
+            return ScriptProcessResult.Error(Format("targetVar failed to cast"));
 
         foreach (var element in node.Elements())
         {
@@ -90,5 +85,6 @@ public class ScriptOperationsString : IScriptBlock, IScriptVariable
         }
         
         Data = data;
+        return ScriptProcessResult.Ok();
     }
 }
