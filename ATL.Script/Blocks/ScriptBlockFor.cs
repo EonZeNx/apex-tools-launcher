@@ -1,5 +1,4 @@
 ﻿using System.Xml.Linq;
-using ATL.Core.Libraries;
 using ATL.Script.Libraries;
 using ATL.Script.Variables;
 
@@ -67,7 +66,20 @@ public class ScriptBlockFor : IScriptBlock
                 parallel = number != 0;
             }
         }
-
+        
+        var skipFails = false;
+        if (parentVars.TryGetValue("skip_fails", out var skipFailsVar))
+        {
+            var optionSkipFails = skipFailsVar.As<string>();
+            if (optionSkipFails.IsSome(out var skipFailsValue))
+            {
+                if (bool.TryParse(skipFailsValue, out var boolean))
+                {
+                    skipFails = boolean;
+                }
+            }
+        }
+        
         var result = ScriptProcessResult.Ok();
         if (parallel)
         {
@@ -84,8 +96,9 @@ public class ScriptBlockFor : IScriptBlock
                         subResult.Copy(result);
                     }
                 }
-                
-                state.Break();
+
+                if (!skipFails)
+                    state.Break();
             });
         }
         else
@@ -99,8 +112,9 @@ public class ScriptBlockFor : IScriptBlock
                     {
                         subResult.Copy(result);
                     }
-                    
-                    break;
+
+                    if (!skipFails)
+                        break;
                 }
             }
         }

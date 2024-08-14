@@ -50,7 +50,7 @@ public class ScriptBlock : IScriptBlock
             };
             
             var subResult = scriptAction.Process(element, allVariables);
-            if (subResult.Type == EScriptProcessResultType.Break)
+            if (subResult.Type is EScriptProcessResultType.Break or EScriptProcessResultType.Error)
             {
                 result = subResult;
                 break;
