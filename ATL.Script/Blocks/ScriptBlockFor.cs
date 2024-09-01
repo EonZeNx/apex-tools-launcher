@@ -83,10 +83,10 @@ public class ScriptBlockFor : IScriptBlock
             Parallel.For(0, values.Count, (i, state) =>
             {
                 var subResult = Loop(values[i], varName, node, parentVars);
-                if (subResult.Type >= 0 && subResult.Type != EScriptProcessResultType.Break)
+                if (subResult.ResultType >= 0 && subResult.ResultType != EScriptProcessResultType.Break)
                     return;
 
-                if (subResult.Type != EScriptProcessResultType.Break)
+                if (subResult.ResultType != EScriptProcessResultType.Break)
                 {
                     lock (result)
                     {
@@ -103,9 +103,9 @@ public class ScriptBlockFor : IScriptBlock
             foreach (var value in values)
             {
                 var subResult = Loop(value, varName, node, parentVars);
-                if (subResult.Type is < 0 or EScriptProcessResultType.Break)
+                if (subResult.ResultType is < 0 or EScriptProcessResultType.Break)
                 {
-                    if (subResult.Type != EScriptProcessResultType.Break)
+                    if (subResult.ResultType != EScriptProcessResultType.Break)
                     {
                         subResult.Copy(result);
                     }
