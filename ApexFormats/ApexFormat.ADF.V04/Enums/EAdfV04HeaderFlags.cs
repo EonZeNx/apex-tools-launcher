@@ -1,4 +1,4 @@
-﻿namespace ApexFormat.ADF.V04.Enum;
+﻿namespace ApexFormat.ADF.V04.Enums;
 
 [Flags]
 public enum EAdfV04HeaderFlags : uint
