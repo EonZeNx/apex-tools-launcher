@@ -6,7 +6,7 @@
 public class PointerNameGenerator
 {
     public const int StartValue = 90;
-    public const int Add = 1;
+    public const int AddIncrement = 1;
     
     public int Position { get; set; } = 0;
     public Dictionary<long, string> PositionNameMap = new();
@@ -22,11 +22,22 @@ public class PointerNameGenerator
     public string CreateName()
     {
         var name = $"#{Position}";
-        Position += Add;
+        Position += AddIncrement;
 
         return name;
     }
 
+    public bool Add(long position)
+    {
+        if (PositionNameMap.ContainsKey(position))
+            return false;
+
+        var newName = CreateName();
+        PositionNameMap.TryAdd(position, newName);
+        
+        return true;
+    }
+    
     public string Get(long position)
     {
         if (PositionNameMap.TryGetValue(position, out var name))

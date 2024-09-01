@@ -54,4 +54,16 @@ public static class DataExternalExtensions
 
         return Option.Some(result);
     }
+    
+    public static Option<DataExternal> ReadDataExternalFromIndex(this Stream stream, HkSceneSection section, int dataExternalIndex)
+    {
+        var dataPosition = section.Data3Offset + dataExternalIndex * DataExternal.SizeOf();
+        if (dataPosition < 0 || dataPosition >= section.DataEndOffset)
+        {
+            return Option<DataExternal>.None;
+        }
+
+        stream.Seek(dataPosition, SeekOrigin.Begin);
+        return stream.ReadDataExternal();
+    }
 }
