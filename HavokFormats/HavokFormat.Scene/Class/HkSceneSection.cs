@@ -38,6 +38,11 @@ public class HkSceneSection : ISizeOf
                sizeof(uint) + // DataEndOffset
                HkSceneSectionConstants.Pad0Length; // Pad0
     }
+
+    public override string ToString()
+    {
+        return $"{Name} from {Offset} to {DataEndOffset}";
+    }
 }
 
 public static class HkSceneSectionExtensions
@@ -59,6 +64,7 @@ public static class HkSceneSectionExtensions
             Data3Offset = stream.Read<uint>(),
             Data4Offset = stream.Read<uint>(),
             Data5Offset = stream.Read<uint>(),
+            DataEndOffset = stream.Read<uint>(),
             Pad0 = stream.ReadArray<byte>(HkSceneSectionConstants.Pad0Length),
         };
 

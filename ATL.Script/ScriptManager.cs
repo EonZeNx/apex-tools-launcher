@@ -27,9 +27,9 @@ public class ScriptManager : IProcessBasic
         var scriptBlock = new ScriptBlock();
         var result = scriptBlock.Process(xDoc, variables);
         
-        if (result.Type != EScriptProcessResultType.Complete || !string.IsNullOrEmpty(result.Message))
+        if (result.ResultType != EScriptProcessResultType.Complete || !string.IsNullOrEmpty(result.Message))
         {
-            var consoleColour = result.Type switch
+            var consoleColour = result.ResultType switch
             {
                 EScriptProcessResultType.Error => ConsoleColor.Red,
                 EScriptProcessResultType.Warning => ConsoleColor.Yellow,

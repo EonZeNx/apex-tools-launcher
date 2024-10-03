@@ -70,13 +70,10 @@ public class ScriptBlockFor : IScriptBlock
         var skipFails = false;
         if (parentVars.TryGetValue("skip_fails", out var skipFailsVar))
         {
-            var optionSkipFails = skipFailsVar.As<string>();
+            var optionSkipFails = skipFailsVar.As<bool>();
             if (optionSkipFails.IsSome(out var skipFailsValue))
             {
-                if (bool.TryParse(skipFailsValue, out var boolean))
-                {
-                    skipFails = boolean;
-                }
+                skipFails = skipFailsValue;
             }
         }
         
@@ -86,10 +83,10 @@ public class ScriptBlockFor : IScriptBlock
             Parallel.For(0, values.Count, (i, state) =>
             {
                 var subResult = Loop(values[i], varName, node, parentVars);
-                if (subResult.Type >= 0 && subResult.Type != EScriptProcessResultType.Break)
+                if (subResult.ResultType >= 0 && subResult.ResultType != EScriptProcessResultType.Break)
                     return;
 
-                if (subResult.Type != EScriptProcessResultType.Break)
+                if (subResult.ResultType != EScriptProcessResultType.Break)
                 {
                     lock (result)
                     {
@@ -106,9 +103,9 @@ public class ScriptBlockFor : IScriptBlock
             foreach (var value in values)
             {
                 var subResult = Loop(value, varName, node, parentVars);
-                if (subResult.Type is < 0 or EScriptProcessResultType.Break)
+                if (subResult.ResultType is < 0 or EScriptProcessResultType.Break)
                 {
-                    if (subResult.Type != EScriptProcessResultType.Break)
+                    if (subResult.ResultType != EScriptProcessResultType.Break)
                     {
                         subResult.Copy(result);
                     }
