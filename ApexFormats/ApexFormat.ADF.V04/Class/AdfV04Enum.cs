@@ -14,6 +14,8 @@ public class AdfV04Enum : ISizeOf
     public ulong NameIndex = 0;
     public uint Value = 0;
 
+    public string Name { get; set; } = "EMPTY";
+
     public static uint SizeOf()
     {
         return sizeof(ulong) + // NameIndex

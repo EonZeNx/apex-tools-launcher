@@ -8,17 +8,18 @@ namespace ATL.Script.Actions;
 
 public class ScriptActionCopy : IScriptAction
 {
-    public static string NodeName { get; } = "copy";
+    public const string NodeName = "copy";
+    public string Format(string message) => $"{NodeName.ToUpper()}: {message}";
     
-    public void Process(XElement node, Dictionary<string, ScriptVariable> parentVars)
+    public ScriptProcessResult Process(XElement node, Dictionary<string, IScriptVariable> parentVars)
     {
         var fromAttr = node.Attribute("from");
         if (fromAttr is null)
-            return;
+            return ScriptProcessResult.Error(Format("from attribute missing"));
         
         var toAttr = node.Attribute("to");
         if (toAttr is null)
-            return;
+            return ScriptProcessResult.Error(Format("to attribute missing"));
 
         var targetFrom = ScriptLibrary.InterpolateString(fromAttr.Value, parentVars);
         var targetTo = ScriptLibrary.InterpolateString(toAttr.Value, parentVars);
@@ -37,12 +38,14 @@ public class ScriptActionCopy : IScriptAction
                 if (Directory.Exists(targetTo))
                     Directory.Delete(targetTo);
                 
-                IOLibrary.CopyDirectory(targetFrom, targetTo);
+                IoLibrary.CopyDirectory(targetFrom, targetTo);
             }
         }
         catch (Exception e)
         {
-            ConsoleLibrary.Log(e.Message, LogType.Error);
+            ConsoleLibrary.Log($"{NodeName.ToUpper()}: {e.Message}", LogType.Error);
         }
+        
+        return ScriptProcessResult.Ok();
     }
 }

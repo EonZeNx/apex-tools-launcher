@@ -8,23 +8,28 @@ namespace ATL.Script.Actions;
 
 public class ScriptActionProcess : IScriptAction
 {
-    public static string NodeName { get; } = "process";
+    public const string NodeName = "process";
+    public string Format(string message) => $"{NodeName.ToUpper()}: {message}";
     
-    public void Process(XElement node, Dictionary<string, ScriptVariable> parentVars)
+    public ScriptProcessResult Process(XElement node, Dictionary<string, IScriptVariable> parentVars)
     {
         var targetAttr = node.Attribute("target");
         if (targetAttr is null)
-            return;
+            return ScriptProcessResult.Error(Format("target attribute missing"));
+        
+        var target = ScriptLibrary.InterpolateString(targetAttr.Value, parentVars);
+        if (!File.Exists(target))
+            return ScriptProcessResult.Error(Format($"target path does not exist: '{target}'"));
+
+        var outDirectory = Path.GetDirectoryName(target);
+        if (string.IsNullOrEmpty(outDirectory))
+            return ScriptProcessResult.Error(Format("outDirectory is invalid. This shouldn't happen"));
         
         var outDirectoryAttr = node.Attribute("out_directory");
-        if (outDirectoryAttr is null)
-            return;
-
-        var target = ScriptLibrary.InterpolateString(targetAttr.Value, parentVars);
-        var outDirectory = ScriptLibrary.InterpolateString(outDirectoryAttr.Value, parentVars);
-
-        if (!File.Exists(target))
-            return;
+        if (outDirectoryAttr is not null)
+        {
+            outDirectory = ScriptLibrary.InterpolateString(outDirectoryAttr.Value, parentVars);
+        }
         
         try
         {
@@ -32,7 +37,9 @@ public class ScriptActionProcess : IScriptAction
         }
         catch (Exception e)
         {
-            ConsoleLibrary.Log(e.Message, LogType.Error);
+            return ScriptProcessResult.Error(Format($"{e.Message}"));
         }
+        
+        return ScriptProcessResult.Ok();
     }
 }

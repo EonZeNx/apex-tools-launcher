@@ -4,79 +4,46 @@ using RustyOptions;
 
 namespace ATL.Script.Variables;
 
-public class ScriptVariable : IScriptNode
+public class ScriptVariable : IScriptVariable
 {
-    public static string NodeName { get; } = "var";
-    public static string[] NodeNames { get; } = [NodeName, ScriptConstantsLibrary.SettingXString];
-    
+    public const string NodeName = "var";
+    public string Format(string message) => $"{NodeName.ToUpper()}: {message}";
+
     public string Name { get; set; } = "UNSET";
-    public EScriptVariableType VariableType { get; set; } = EScriptVariableType.Unknown;
+    public EScriptVariableType Type { get; set; } = EScriptVariableType.Unknown;
+    public EScriptVariableMetaType MetaType { get; set; } = EScriptVariableMetaType.Normal;
     public object? Data { get; set; } = null;
-
-    public Option<string> AsString()
+    
+    public Option<T> As<T>() where T : notnull
     {
-        if (Data is null)
-            return Option<string>.None;
-        
-        return Option.Some((string) Data);
+        return Data is null
+            ? Option<T>.None
+            : Option.Some((T) Data);
     }
 
-    public Option<int> AsInt()
+    public ScriptProcessResult Process(XElement node, Dictionary<string, IScriptVariable> parentVars)
     {
-        if (Data is null)
-            return Option<int>.None;
-        
-        return Option.Some((int) Data);
-    }
-
-    public Option<float> AsFloat()
-    {
-        if (Data is null)
-            return Option<float>.None;
-        
-        return Option.Some((float) Data);
-    }
-
-    public Option<FileStream> AsBinaryFile()
-    {
-        if (Data is null)
-            return Option<FileStream>.None;
-        
-        return Option.Some((FileStream) Data);
-    }
-}
-
-public static class ScriptVariableExtensions
-{
-    public static Option<ScriptVariable> GetScriptVariable(this XElement element, Dictionary<string, ScriptVariable> parentVars)
-    {
-        var xeName = element.Name.ToString();
-        if (!ScriptVariable.NodeNames.Contains(xeName))
-            return Option<ScriptVariable>.None;
-        
-        var nameAttr = element.Attribute("name");
+        var nameAttr = node.Attribute("name");
         if (nameAttr is null)
-            return Option<ScriptVariable>.None;
+            return ScriptProcessResult.Error(Format("name attribute missing"));
 
-        var variableType = element.GetScriptVariableType();
+        var variableType = node.GetScriptVariableType();
         
-        var dataAttr = element.Attribute("value");
+        var dataAttr = node.Attribute("value");
         if (dataAttr is null)
-            return Option<ScriptVariable>.None;
+            return ScriptProcessResult.Error(Format("value attribute missing"));
         
         var data = dataAttr.Value;
-        if (variableType is EScriptVariableType.String or EScriptVariableType.Path)
+        if (variableType is EScriptVariableType.String)
         {
             data = ScriptLibrary.InterpolateString(data, parentVars);
         }
-        
-        var result = new ScriptVariable
-        {
-            Name = nameAttr.Value,
-            VariableType = element.GetScriptVariableType(),
-            Data = data
-        };
 
-        return Option.Some(result);
+        Name = nameAttr.Value;
+        Type = node.GetScriptVariableType();
+        MetaType = node.GetScriptVariableMetaType();
+        Data = data;
+        
+        return ScriptProcessResult.Ok();
     }
 }

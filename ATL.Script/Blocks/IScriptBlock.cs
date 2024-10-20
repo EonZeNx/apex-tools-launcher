@@ -8,5 +8,5 @@ public interface IScriptBlock : IScriptAction
     /// <summary>
     /// Variables specific to this block only
     /// </summary>
-    Dictionary<string, ScriptVariable> Variables { get; set; }
+    Dictionary<string, IScriptVariable> Variables { get; set; }
 }

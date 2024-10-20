@@ -23,6 +23,8 @@ public class AdfV04Member : ISizeOf
     public uint Flags              = 0;
     public ulong DefaultValue      = 0;
 
+    public string Name { get; set; } = "EMPTY";
+
     public uint Offset {
         get => OffsetAndBitOffset & 0xFFFFFF; // Get the lower 24 bits
         set => OffsetAndBitOffset = (OffsetAndBitOffset & 0xFF000000) | (value & 0xFFFFFF); // Set the lower 24 bits
@@ -31,6 +33,11 @@ public class AdfV04Member : ISizeOf
     public uint BitOffset {
         get => (OffsetAndBitOffset >> 24) & 0xFF; // Get the upper 8 bits
         set => OffsetAndBitOffset = (OffsetAndBitOffset & 0xFFFFFF) | ((value & 0xFF) << 24); // Set the upper 8 bits
+    }
+
+    public override string ToString()
+    {
+        return $"'{Name}' i: {NameIndex} type: {TypeHash}";
     }
 
     public static uint SizeOf()

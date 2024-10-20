@@ -41,14 +41,14 @@ public class AdfV04Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
         
         file.ReadStringHashes(inBuffer);
         var localStringTable = file.ReadStringTable(inBuffer);
-        file.ReadTypes(inBuffer, localStringTable.ToArray());
+        file.ReadTypes(inBuffer, localStringTable);
         // TODO: Add types from other places
         
         var outer = new XElement("adf");
         outer.SetAttributeValue("extension", "adf");
         outer.SetAttributeValue("version", "4");
 
-        var rootXElement = file.WriteInstances(inBuffer, localStringTable);
+        var rootXElement = file.WriteXInstances(inBuffer, localStringTable);
         outer.Add(rootXElement);
         
         var xd = new XDocument(XDocumentLibrary.AtlGeneratedComment(), outer);
@@ -57,6 +57,8 @@ public class AdfV04Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
             Indent = true,
             IndentChars = "\t"
         });
+        
+        Console.WriteLine(xd.ToString());
         xd.Save(xw);
 
         return 0;
@@ -64,7 +66,7 @@ public class AdfV04Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
     
     public int ProcessBasic(string inFilePath, string outDirectory)
     {
-        var inBuffer = new FileStream(inFilePath, FileMode.Open);
+        using var inBuffer = new FileStream(inFilePath, FileMode.Open);
         
         var outDirectoryPath = Path.GetDirectoryName(inFilePath);
         if (!string.IsNullOrEmpty(outDirectory) && Directory.Exists(outDirectory))

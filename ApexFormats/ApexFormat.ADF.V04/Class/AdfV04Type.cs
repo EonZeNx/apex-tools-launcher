@@ -1,4 +1,4 @@
-﻿using ApexFormat.ADF.V04.Enum;
+﻿using ApexFormat.ADF.V04.Enums;
 using ATL.Core.Class;
 using CommunityToolkit.HighPerformance;
 using RustyOptions;
@@ -37,6 +37,8 @@ public class AdfV04Type : ISizeOf
     // Members and EnumFlags share the same location
     public AdfV04Member[] Members = [];
     public AdfV04Enum[] EnumFlags = [];
+
+    public string Name { get; set; } = "EMPTY";
 
     public static uint SizeOf()
     {
