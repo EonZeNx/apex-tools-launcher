@@ -32,27 +32,24 @@
   <MudNavMenu Bordered="@true" Class="d-flex flex-column" Style="height: inherit">
     <MudNavLink
       Match="NavLinkMatch.All"
-      Href="/home"
-      Icon="@Icons.Material.Filled.Home"
-    >Home</MudNavLink>
+      Href="/manage"
+      Icon="@Icons.Material.Filled.Edit"
+    >Manage</MudNavLink>
     <MudNavLink
       Match="NavLinkMatch.All"
-      Href="/quick_launch"
-      Icon="@Icons.Material.Filled.RocketLaunch"
-    >Quick launch</MudNavLink>
-    
-    @if (GameConfigs.Any())
-    {
-      <MudDivider Style="flex-grow: initial"/>
-      @foreach (var (gameId, gameConfig) in GameConfigs)
-      {
-        <MudNavLink
-          Match="NavLinkMatch.All"
-          Href="@($"/game/{gameId}")"
-          Icon="@Icons.Material.Filled.Backpack"
-        >@(gameConfig.Title)</MudNavLink>
-      }
-    }
+      Href="/create"
+      Icon="@Icons.Material.Filled.CreateNewFolder"
+    >Create Script</MudNavLink>
+    <MudNavLink
+      Match="NavLinkMatch.All"
+      Href="/io_tools"
+      Icon="@Icons.Material.Filled.JoinLeft"
+    >IO tools</MudNavLink>
+    <MudNavLink
+      Match="NavLinkMatch.All"
+      Href="/euler"
+      Icon="@Icons.Material.Filled.Rotate90DegreesCcw"
+    >Euler</MudNavLink>
     
     <MudSpacer/>
     <MudNavLink
