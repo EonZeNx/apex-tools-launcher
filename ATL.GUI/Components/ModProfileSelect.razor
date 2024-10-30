@@ -1,0 +1,26 @@
+﻿@using ATL.Core.Libraries
+
+<MudSelect
+  T="string"
+  Label="Profile"
+  Variant="Variant.Outlined"
+  @bind-Value="@SelectedProfile"
+  Margin="Margin.Dense"
+  FullWidth="@true"
+>
+  <MudSelectItem
+    Value="@(ConstantsLibrary.InvalidString)"
+    Disabled="@true"
+    Style="font-style: italic"
+  >None</MudSelectItem>
+
+  <MudSelectItem Value="@("one")">
+    First
+  </MudSelectItem>
+  <MudSelectItem Value="@("two")">
+    Second
+  </MudSelectItem>
+  <MudSelectItem Value="@("three")">
+    Third
+  </MudSelectItem>
+</MudSelect>
