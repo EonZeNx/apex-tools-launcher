@@ -1,0 +1,10 @@
+﻿@inherits ComponentBase
+
+<div style="width: 100%; overflow-x: scroll" class="pa-4">
+  <MudStack Row="true" Style="width: fit-content">
+    @foreach(var gameId in TestGameIds)
+    {
+      <GameCard GameID="@gameId" OnClick="OnGameCardClicked" Selected="@(gameId == SelectedGameId)"/>
+    }
+  </MudStack>
+</div>
