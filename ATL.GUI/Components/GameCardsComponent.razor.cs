@@ -1,21 +1,65 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿using ATL.Core.Libraries;
+using ATL.GUI.Services.App;
+using ATL.GUI.Services.Game;
+using Microsoft.AspNetCore.Components;
 
 namespace ATL.GUI.Components;
 
-public partial class GameCardsComponent : ComponentBase
+public partial class GameCardsComponent : ComponentBase, IDisposable
 {
-    [Parameter]
-    public string SelectedGameId { get; set; } = "jc3";
+    [Inject]
+    protected IAppStateService? AppStateService { get; set; }
+    
+    [Inject]
+    protected IGameConfigService? GameConfigService { get; set; }
     
     [Parameter]
-    public Action<string> SelectedGameChanged { get; set; }
+    public string SelectedGameId { get; set; } = ConstantsLibrary.InvalidString;
 
-    protected void OnGameCardClicked(string gameId)
+    [Parameter]
+    public Action<string> GameChanged { get; set; } = s => { };
+
+    protected List<string> GameIds { get; set; } = [];
+
+    protected void GameIdChanged(string gameId)
     {
         SelectedGameId = gameId;
-        SelectedGameChanged(gameId);
-        StateHasChanged();
+        GameChanged(gameId);
+        AppStateService?.SetLastGameId(gameId);
+    }
+    
+    protected void ReloadData()
+    {
+        if (GameConfigService is null)
+        {
+            return;
+        }
+
+        GameIds = GameConfigService.GetAll().Keys.ToList();
+        if (!GameIds.Contains(SelectedGameId))
+        {
+            GameIdChanged(GameIds.Count == 0 ? ConstantsLibrary.InvalidString : GameIds[0]);
+        }
+    }
+    
+    protected override async Task OnParametersSetAsync()
+    {
+        await Task.Run(ReloadData);
+    }
+    
+    protected async void OnConfigReloaded()
+    {
+        await Task.Run(ReloadData);
+        await InvokeAsync(StateHasChanged);
+    }
+    
+    protected override void OnInitialized()
+    {
+        GameConfigService?.RegisterOnReload(OnConfigReloaded);
     }
 
-    protected List<string> TestGameIds = ["jc3", "jc4", "jc5", "jc6"];
+    public void Dispose()
+    {
+        GameConfigService?.UnregisterOnReload(OnConfigReloaded);
+    }
 }

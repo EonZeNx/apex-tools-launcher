@@ -19,6 +19,6 @@ public interface IGameConfigService
     Dictionary<string, GameConfig> GetAll();
     Task<Dictionary<string, GameConfig>> GetAllAsync();
     
-    void RegisterConfigReload(Action action);
-    void UnregisterConfigReload(Action action);
+    void RegisterOnReload(Action action);
+    void UnregisterOnReload(Action action);
 }

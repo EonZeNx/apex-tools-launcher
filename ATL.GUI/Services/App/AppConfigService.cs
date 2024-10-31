@@ -6,8 +6,6 @@ namespace ATL.GUI.Services.App;
 
 public class AppConfigService
 {
-    public static string AppConfigFileName = "atl_config";
-    
     protected AppConfig AppConfig { get; set; } = new();
     protected event Action AppConfigReloaded = () => { };
     protected ILogService? LogService { get; set; }
@@ -69,7 +67,7 @@ public class AppConfigService
 
 
     public string BasePath() => AppDomain.CurrentDomain.BaseDirectory;
-    public string AppConfigPath() => Path.Join(BasePath(), $"{AppConfigFileName}.json");
+    public string AppConfigPath() => Path.Join(BasePath(), $"{ConstantsLibrary.AppConfigFileName}.json");
     public string GameConfigPath() => Path.Join(BasePath(), AppConfig.GameConfigPath);
     public string ProfileConfigPath(string gameId) => Path.Join(BasePath(), AppConfig.ProfileConfigPath, gameId);
     public string ModConfigPath(string gameId, string modId) => Path.Join(BasePath(), AppConfig.ModsPath, gameId, modId);

@@ -1,5 +1,5 @@
 ﻿using ATL.Core.Config.GUI;
-using ATL.GUI.Services;
+using ATL.Core.Libraries;
 using ATL.GUI.Services.Mod;
 using Microsoft.AspNetCore.Components;
 
@@ -12,14 +12,15 @@ public partial class ModListCard : ComponentBase, IDisposable
     
     [Parameter]
     public string GameId { get; set; } = "GameId";
+
+    [Parameter]
+    public string ModId { get; set; } = ConstantsLibrary.InvalidString;
     
     [Parameter]
     public Action<string> SelectionChanged { get; set; } = s => { };
     
     [Parameter]
     public string Height { get; set; } = "20rem";
-
-    protected string ModId { get; set; } = "ModId";
     
     protected Dictionary<string, ModConfig> ModConfigs { get; set; } = [];
 
@@ -30,17 +31,27 @@ public partial class ModListCard : ComponentBase, IDisposable
             return;
         }
         
-        if (value == ModId)
+        if (string.Equals(value, ModId))
         {
             return;
         }
-        
+
+        ModId = value;
         SelectionChanged(value);
     }
     
     protected void ReloadData()
     {
-        ModConfigs = ModConfigService?.GetAllFromGame(GameId) ?? [];
+        if (ModConfigService is null)
+        {
+            return;
+        }
+        
+        ModConfigs = ModConfigService.GetAllFromGame(GameId);
+        if (!ModConfigs.ContainsKey(GameId))
+        {
+            ModId = ModConfigs.Count != 0 ? ModConfigs.Keys.First() : ConstantsLibrary.InvalidString;
+        }
     }
     
     protected override async Task OnParametersSetAsync()
@@ -56,11 +67,11 @@ public partial class ModListCard : ComponentBase, IDisposable
     
     protected override void OnInitialized()
     {
-        ModConfigService?.RegisterConfigReload(OnConfigReloaded);
+        ModConfigService?.RegisterOnReload(OnConfigReloaded);
     }
 
     public void Dispose()
     {
-        ModConfigService?.UnregisterConfigReload(OnConfigReloaded);
+        ModConfigService?.UnregisterOnReload(OnConfigReloaded);
     }
 }

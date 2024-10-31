@@ -132,15 +132,15 @@ public partial class GameProfileComponent : MudComponentBase, IDisposable
     
     protected override void OnInitialized()
     {
-        GameConfigService?.RegisterConfigReload(OnConfigReloaded);
+        GameConfigService?.RegisterOnReload(OnConfigReloaded);
         ProfileConfigService.RegisterConfigReload(OnConfigReloaded);
-        ModConfigService.RegisterConfigReload(OnConfigReloaded);
+        ModConfigService.RegisterOnReload(OnConfigReloaded);
     }
     
     public void Dispose()
     {
-        GameConfigService?.UnregisterConfigReload(OnConfigReloaded);
+        GameConfigService?.UnregisterOnReload(OnConfigReloaded);
         ProfileConfigService.UnregisterConfigReload(OnConfigReloaded);
-        ModConfigService.UnregisterConfigReload(OnConfigReloaded);
+        ModConfigService.UnregisterOnReload(OnConfigReloaded);
     }
 }

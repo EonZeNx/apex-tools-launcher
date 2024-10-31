@@ -18,7 +18,9 @@ public interface IModConfigService
 
     Dictionary<string, ModConfig> GetAllFromGame(string gameId);
     Task<Dictionary<string, ModConfig>> GetAllFromGameAsync(string gameId);
+
+    bool Contains(string gameId, string modId);
     
-    void RegisterConfigReload(Action action);
-    void UnregisterConfigReload(Action action);
+    void RegisterOnReload(Action action);
+    void UnregisterOnReload(Action action);
 }

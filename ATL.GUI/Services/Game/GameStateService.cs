@@ -70,13 +70,13 @@ public class GameStateService : IGameStateService
     }
 
 
-    public void RegisterStateUpdated(Action action)
+    public void RegisterOnReload(Action action)
     {
         LogService?.Debug("Adding to reload event");
         StateUpdated += action;
     }
 
-    public void UnregisterStateUpdated(Action action)
+    public void UnregisterOnReload(Action action)
     {
         LogService?.Debug("Removing from reload event");
         StateUpdated -= action;

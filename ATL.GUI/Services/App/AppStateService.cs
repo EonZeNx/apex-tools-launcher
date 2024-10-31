@@ -3,30 +3,44 @@ using ATL.Core.Config;
 using ATL.Core.Libraries;
 using ATL.GUI.Services.Development;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Routing;
 
 namespace ATL.GUI.Services.App;
 
-public class AppStateService
+public class AppStateService : IAppStateService
 {
-    public static string AppStateFileName = "atl_state";
+    protected AppState AppState { get; set; } = new();
+    protected event Action StateReloaded = () => { };
     
-    protected AppState AppState { get; set; } = new()
-    {
-        LastPage = "home"
-    };
     protected ILogService? LogService { get; set; }
     protected NavigationManager? NavigationManager { get; set; }
     
     public AppStateService(ILogService? logService = null, NavigationManager? navigationManager = null)
     {
         LogService = logService;
-        
         NavigationManager = navigationManager;
 
+        if (NavigationManager is not null)
+        {
+            NavigationManager.LocationChanged += OnLocationChanged;
+        }
+
         Load();
+        GoToLastPage();
     }
 
-    public AppState Load()
+    protected void OnLocationChanged(object? sender, LocationChangedEventArgs args)
+    {
+        if (NavigationManager is null || LogService is null)
+        {
+            return;
+        }
+        
+        SetLastPage();
+    }
+
+    
+    public void Load()
     {
         var statePath = AppStatePath();
         if (!File.Exists(statePath))
@@ -54,7 +68,7 @@ public class AppStateService
         if (!optionState.IsSome(out var appState))
         {
             LogService?.Error("Failed to load");
-            return AppState;
+            return;
         }
         
         lock (AppState)
@@ -62,40 +76,27 @@ public class AppStateService
             AppState = appState;
         }
         
+        StateReloaded.Invoke();
+    }
+
+    public Task LoadAsync()
+    {
+        var result = new Task(Load);
+        return result;
+    }
+
+    
+    public AppState Get()
+    {
         return AppState;
     }
 
-    public bool GoToLatestPage()
+    public Task<AppState> GetAsync()
     {
-        if (NavigationManager is null)
-        {
-            LogService?.Error("Navigation manager is null");
-            return false;
-        }
-        
-        var relativePath = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
-        if (AppState.LastPage == relativePath)
-        {
-            return false;
-        }
-        
-        NavigationManager.NavigateTo(AppState.LastPage);
-        return true;
+        var result = Task.FromResult(Get());
+        return result;
     }
-
-    public void SetLatestPage()
-    {
-        if (NavigationManager is null)
-        {
-            LogService?.Error("Navigation manager is null");
-            return;
-        }
-        
-        var relativePath = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
-        AppState.LastPage = relativePath;
-
-        Save();
-    }
+    
 
     public void Save()
     {
@@ -113,8 +114,92 @@ public class AppStateService
         var jsonString = JsonSerializer.Serialize(AppState, jsonOptions);
         File.WriteAllText(configPath, jsonString);
     }
+    
+    public Task SaveAsync()
+    {
+        var result = new Task(Save);
+        return result;
+    }
+    
+    
+    public void RegisterOnReload(Action action)
+    {
+        LogService?.Debug("Adding to reload event");
+        StateReloaded += action;
+    }
+
+    public void UnregisterOnReload(Action action)
+    {
+        LogService?.Debug("Removing from reload event");
+        StateReloaded -= action;
+    }
+
+    
+    public void SetLastPage()
+    {
+        if (NavigationManager is null)
+        {
+            LogService?.Error("Navigation manager is null");
+            return;
+        }
+        
+        var relativePath = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        AppState.LastPage = relativePath;
+
+        Save();
+        StateReloaded.Invoke();
+    }
+    
+    public bool GoToLastPage()
+    {
+        if (NavigationManager is null)
+        {
+            LogService?.Error("Navigation manager is null");
+            return false;
+        }
+        
+        var relativePath = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        if (AppState.LastPage == relativePath)
+        {
+            return false;
+        }
+        
+        NavigationManager.NavigateTo(AppState.LastPage);
+        return true;
+    }
+
+
+    public void SetLastGameId(string gameId)
+    {
+        AppState.LastGameId = gameId;
+        Save();
+        StateReloaded.Invoke();
+    }
+
+    public string GetLastGameId()
+    {
+        return AppState.LastGameId;
+    }
+
+    
+    public void SetLastProfileId(string gameId, string profileId)
+    {
+        AppState.LastProfileId[gameId] = profileId;
+        Save();
+        StateReloaded.Invoke();
+    }
+
+    public string GetLastProfileId(string gameId)
+    {
+        if (AppState.LastProfileId.TryGetValue(gameId, out var profileId))
+        {
+            return profileId;
+        }
+
+        return ConstantsLibrary.InvalidString;
+    }
 
 
     public string BasePath() => AppDomain.CurrentDomain.BaseDirectory;
-    public string AppStatePath() => Path.Join(BasePath(), $"{AppStateFileName}.json");
+    public string AppStatePath() => Path.Join(BasePath(), $"{ConstantsLibrary.AppStateFileName}.json");
 }
