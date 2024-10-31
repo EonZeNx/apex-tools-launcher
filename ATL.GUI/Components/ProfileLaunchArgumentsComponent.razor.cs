@@ -38,12 +38,12 @@ public partial class ProfileLaunchArgumentsComponent : ComponentBase, IDisposabl
     protected override void OnInitialized()
     {
         GameConfigService.RegisterOnReload(OnConfigReloaded);
-        ProfileConfigService.RegisterConfigReload(OnConfigReloaded);
+        ProfileConfigService.RegisterOnReload(OnConfigReloaded);
     }
     
     public void Dispose()
     {
         GameConfigService.UnregisterOnReload(OnConfigReloaded);
-        ProfileConfigService.UnregisterConfigReload(OnConfigReloaded);
+        ProfileConfigService.UnregisterOnReload(OnConfigReloaded);
     }
 }

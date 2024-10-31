@@ -2,10 +2,11 @@
 using ATL.Core.Libraries;
 using ATL.GUI.Services.Mod;
 using Microsoft.AspNetCore.Components;
+using MudBlazor;
 
 namespace ATL.GUI.Components;
 
-public partial class ModProfileSelect : ComponentBase, IDisposable
+public partial class ModProfileSelect : MudComponentBase, IDisposable
 {
     [Inject]
     protected IProfileConfigService? ProfileConfigService { get; set; }
@@ -50,11 +51,11 @@ public partial class ModProfileSelect : ComponentBase, IDisposable
     
     protected override void OnInitialized()
     {
-        ProfileConfigService?.RegisterConfigReload(OnConfigReloaded);
+        ProfileConfigService?.RegisterOnReload(OnConfigReloaded);
     }
 
     public void Dispose()
     {
-        ProfileConfigService?.UnregisterConfigReload(OnConfigReloaded);
+        ProfileConfigService?.UnregisterOnReload(OnConfigReloaded);
     }
 }

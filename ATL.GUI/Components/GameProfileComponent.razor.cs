@@ -2,6 +2,7 @@ using ATL.Core.Config.GUI;
 using ATL.Core.Libraries;
 using ATL.GUI.Dialogs;
 using ATL.GUI.Services;
+using ATL.GUI.Services.App;
 using ATL.GUI.Services.Game;
 using ATL.GUI.Services.Mod;
 using Microsoft.AspNetCore.Components;
@@ -12,13 +13,16 @@ namespace ATL.GUI.Components;
 public partial class GameProfileComponent : MudComponentBase, IDisposable
 {
     [Inject]
+    protected IAppStateService? AppStateService { get; set; }
+    
+    [Inject]
     protected IGameConfigService? GameConfigService { get; set; }
     
     [Inject]
-    protected ProfileConfigService ProfileConfigService { get; set; } = new();
+    protected IProfileConfigService? ProfileConfigService { get; set; }
     
     [Inject]
-    protected IModConfigService ModConfigService { get; set; }
+    protected IModConfigService? ModConfigService { get; set; }
     
     [Inject]
     public IDialogService DialogService { get; set; } = new DialogService();
@@ -40,12 +44,19 @@ public partial class GameProfileComponent : MudComponentBase, IDisposable
 
     protected async Task CreateProfile()
     {
+        if (AppStateService is null) return;
+        if (GameConfigService is null) return;
+        if (ProfileConfigService is null) return;
+        
         var parameters = new DialogParameters { { "GameId", GameId } };
 
         var dialog = await DialogService.ShowAsync<AddEditProfileDialog>("Create profile", parameters);
         var dialogResult = await dialog.Result;
 
+        if (dialogResult is null) return;
         if (dialogResult.Canceled) return;
+        if (dialogResult.Data is null) return;
+        
         var result = (ProfileDialogResult) dialogResult.Data;
 
         var config = new ProfileConfig
@@ -54,12 +65,9 @@ public partial class GameProfileComponent : MudComponentBase, IDisposable
         };
         
         var profileId = ConstantsLibrary.CreateId(config.Title);
-        ProfileConfigService.Save(GameId, profileId, config);
-
-        // var gameConfig = GameConfigService.Get(GameId);
-        // gameConfig.SelectedProfile = profileId;
-        //
-        // GameConfigService.Save(GameId, gameConfig);
+        await ProfileConfigService.SaveAsync(GameId, profileId, config);
+        
+        AppStateService.SetLastProfileId(GameId, profileId);
     }
     
     protected async Task EditProfile()
@@ -133,14 +141,14 @@ public partial class GameProfileComponent : MudComponentBase, IDisposable
     protected override void OnInitialized()
     {
         GameConfigService?.RegisterOnReload(OnConfigReloaded);
-        ProfileConfigService.RegisterConfigReload(OnConfigReloaded);
+        ProfileConfigService.RegisterOnReload(OnConfigReloaded);
         ModConfigService.RegisterOnReload(OnConfigReloaded);
     }
     
     public void Dispose()
     {
         GameConfigService?.UnregisterOnReload(OnConfigReloaded);
-        ProfileConfigService.UnregisterConfigReload(OnConfigReloaded);
+        ProfileConfigService.UnregisterOnReload(OnConfigReloaded);
         ModConfigService.UnregisterOnReload(OnConfigReloaded);
     }
 }

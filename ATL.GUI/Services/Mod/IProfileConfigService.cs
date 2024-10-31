@@ -25,6 +25,6 @@ public interface IProfileConfigService
     void Delete(string gameId, string profileId);
     Task DeleteAsync(string gameId, string profileId);
     
-    void RegisterConfigReload(Action action);
-    void UnregisterConfigReload(Action action);
+    void RegisterOnReload(Action action);
+    void UnregisterOnReload(Action action);
 }

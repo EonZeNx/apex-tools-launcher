@@ -1,5 +1,6 @@
 ﻿using ATL.Core.Config.GUI;
 using ATL.Core.Libraries;
+using ATL.GUI.Services.App;
 using ATL.GUI.Services.Mod;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
@@ -8,6 +9,12 @@ namespace ATL.GUI.Components;
 
 public partial class ModListCard : MudComponentBase, IDisposable
 {
+    [Inject]
+    protected IAppStateService? AppStateService { get; set; }
+    
+    [Inject]
+    protected IProfileConfigService? ProfileConfigService { get; set; }
+    
     [Inject]
     protected IModConfigService? ModConfigService { get; set; }
     
@@ -20,6 +27,8 @@ public partial class ModListCard : MudComponentBase, IDisposable
     [Parameter]
     public Action<string> ModChanged { get; set; } = s => { };
     
+    protected string ProfileId { get; set; } = ConstantsLibrary.InvalidString;
+    protected ProfileConfig ProfileConfig { get; set; } = new();
     protected Dictionary<string, ModConfig> ModConfigs { get; set; } = [];
 
     protected void ListValueChanged(string? value)
@@ -34,12 +43,14 @@ public partial class ModListCard : MudComponentBase, IDisposable
     
     protected void ReloadData()
     {
-        if (ModConfigService is null)
-        {
-            return;
-        }
+        if (AppStateService is null) return;
+        if (ProfileConfigService is null) return;
+        if (ModConfigService is null) return;
         
         ModConfigs = ModConfigService.GetAllFromGame(GameId);
+
+        ProfileId = AppStateService.GetLastProfileId(GameId);
+        ProfileConfig = ProfileConfigService.Get(GameId, ProfileId);
     }
     
     protected override async Task OnParametersSetAsync()
@@ -55,11 +66,15 @@ public partial class ModListCard : MudComponentBase, IDisposable
     
     protected override void OnInitialized()
     {
+        AppStateService?.RegisterOnReload(OnConfigReloaded);
+        ProfileConfigService?.RegisterOnReload(OnConfigReloaded);
         ModConfigService?.RegisterOnReload(OnConfigReloaded);
     }
 
     public void Dispose()
     {
+        AppStateService?.UnregisterOnReload(OnConfigReloaded);
+        ProfileConfigService?.UnregisterOnReload(OnConfigReloaded);
         ModConfigService?.UnregisterOnReload(OnConfigReloaded);
     }
 }

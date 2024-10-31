@@ -27,7 +27,17 @@
       {
         foreach (var (modId, config) in ModConfigs)
         {
-          <MudListItem Text="@config.Title" Value="@modId"/>
+          var icon = Icons.Material.Filled.RadioButtonUnchecked;
+          if (ProfileConfig.ModConfigs.ContainsKey(modId))
+          {
+            icon = Icons.Material.Filled.RadioButtonChecked;
+          }
+          
+          <MudListItem
+            Text="@config.Title"
+            Value="@modId"
+            Icon="@icon"
+          />
         }
       }
     </MudList>
