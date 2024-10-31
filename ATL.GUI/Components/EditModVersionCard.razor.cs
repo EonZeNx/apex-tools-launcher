@@ -2,6 +2,7 @@
 using ATL.Core.Libraries;
 using ATL.GUI.Dialogs;
 using ATL.GUI.Services;
+using ATL.GUI.Services.Mod;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 
@@ -66,7 +67,7 @@ public partial class EditModVersionCard : ComponentBase, IDisposable
             modConfig.Versions[SelectedModContentId] = MutableModContentConfig;
         }
         
-        ModConfigService.Save(GameId, ModId, modConfig);
+        // ModConfigService.Save(GameId, ModId, modConfig);
         
         await InvokeAsync(StateHasChanged);
     }

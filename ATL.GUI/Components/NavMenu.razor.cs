@@ -1,6 +1,7 @@
 using ATL.GUI.Dialogs;
 using ATL.Core.Config.GUI;
-using ATL.GUI.Services;
+using ATL.GUI.Services.Development;
+using ATL.GUI.Services.Game;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 
@@ -9,10 +10,10 @@ namespace ATL.GUI.Components;
 public partial class NavMenu : ComponentBase
 {
     [Inject]
-    protected GameConfigService GameConfigService { get; set; } = new();
+    protected IGameConfigService? GameConfigService { get; set; }
     
     [Inject]
-    protected LogService LogService { get; set; } = new();
+    protected ILogService? LogService { get; set; }
     
     [Inject]
     public IDialogService DialogService { get; set; } = new DialogService();
@@ -22,10 +23,10 @@ public partial class NavMenu : ComponentBase
     
     [Parameter]
     public bool UsingDarkMode { get; set; } = true;
-    
+
     [Parameter]
-    public Action ToggleDarkMode { get; set; } = () => (new LogService()).Warning("SetDarkMode not set");
-    
+    public Action ToggleDarkMode { get; set; } = () => { };
+
     public Dictionary<string, GameConfig> GameConfigs = [];
     
     protected bool DrawerOpen { get; set; }
@@ -39,7 +40,7 @@ public partial class NavMenu : ComponentBase
     
     protected void ReloadData()
     {
-        GameConfigs = GameConfigService.GetAll();
+        GameConfigs = GameConfigService?.GetAll() ?? [];
     }
     
     protected override async Task OnParametersSetAsync()

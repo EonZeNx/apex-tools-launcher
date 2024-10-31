@@ -1,5 +1,7 @@
 using ATL.Core.Config.GUI;
 using ATL.GUI.Services;
+using ATL.GUI.Services.Game;
+using ATL.GUI.Services.Mod;
 using Microsoft.AspNetCore.Components;
 
 namespace ATL.GUI.Components;
@@ -28,8 +30,8 @@ public partial class GameModsComponent : ComponentBase, IDisposable
     protected void ReloadData()
     {
         GameConfig = GameConfigService.Get(GameId);
-        ProfileConfig = ProfileConfigService.Get(GameId, GameConfig.SelectedProfile);
-        ModConfigs = ModConfigService.GetGame(GameId);
+        // ProfileConfig = ProfileConfigService.Get(GameId, GameConfig.SelectedProfile);
+        ModConfigs = ModConfigService.GetAllFromGame(GameId);
     }
     
     protected override async Task OnParametersSetAsync()

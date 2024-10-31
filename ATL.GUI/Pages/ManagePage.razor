@@ -4,22 +4,18 @@
 
 <div class="mt-4">
   <GameCardsComponent SelectedGameChanged="@OnGameCardClicked"/>
-  
-  <MudGrid Class="mt-4">
-    <MudItem xs="3">
-      <ModProfileSelect/>
 
-      <MudCard Class="mt-2" Style="min-height: 20rem">
-        <MudList T="string" Clickable="@true">
-          <MudListItem Text="JC Unlimited" Value="@("jcu")"/>
-          <MudListItem Text="Nitrous & Turbojump"/>
-          <MudListItem Text="Dual miniguns"/>
-        </MudList>
-      </MudCard>
+  <MudGrid Class="mt-4" Spacing="3">
+    <MudItem xs="12" Class="pb-0">
+      <GameActionsComponent GameId="@GameId"/>
+    </MudItem>
+    
+    <MudItem xs="4">
+      <ModListCard GameId="@GameId" Height="15rem" SelectionChanged="@SelectedModChanged"/>
     </MudItem>
 
-    <MudItem xs="9">
-      
+    <MudItem xs="8">
+      <ModCard GameId="@GameId" ModId="@ModId"/>
     </MudItem>
   </MudGrid>
 </div>

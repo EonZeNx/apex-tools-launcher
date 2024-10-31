@@ -2,6 +2,8 @@ using ATL.Core.Config.GUI;
 using ATL.Core.Libraries;
 using ATL.GUI.Dialogs;
 using ATL.GUI.Services;
+using ATL.GUI.Services.Game;
+using ATL.GUI.Services.Mod;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 
@@ -10,13 +12,13 @@ namespace ATL.GUI.Components;
 public partial class GameProfileComponent : MudComponentBase, IDisposable
 {
     [Inject]
-    protected GameConfigService GameConfigService { get; set; } = new();
+    protected IGameConfigService? GameConfigService { get; set; }
     
     [Inject]
     protected ProfileConfigService ProfileConfigService { get; set; } = new();
     
     [Inject]
-    protected ModConfigService ModConfigService { get; set; } = new();
+    protected IModConfigService ModConfigService { get; set; }
     
     [Inject]
     public IDialogService DialogService { get; set; } = new DialogService();
@@ -54,10 +56,10 @@ public partial class GameProfileComponent : MudComponentBase, IDisposable
         var profileId = ConstantsLibrary.CreateId(config.Title);
         ProfileConfigService.Save(GameId, profileId, config);
 
-        var gameConfig = GameConfigService.Get(GameId);
-        gameConfig.SelectedProfile = profileId;
-        
-        GameConfigService.Save(GameId, gameConfig);
+        // var gameConfig = GameConfigService.Get(GameId);
+        // gameConfig.SelectedProfile = profileId;
+        //
+        // GameConfigService.Save(GameId, gameConfig);
     }
     
     protected async Task EditProfile()
@@ -82,39 +84,39 @@ public partial class GameProfileComponent : MudComponentBase, IDisposable
             return;
         }
         
-        var gameConfig = GameConfigService.Get(GameId);
-        var profileConfig = ProfileConfigService.Get(GameId, gameConfig.SelectedProfile);
-        profileConfig.Title = result.Title;
-
-        var profileId = ConstantsLibrary.CreateId(profileConfig.Title);
-        ProfileConfigService.Update(GameId, selectedProfileId, profileConfig);
-
-        gameConfig.SelectedProfile = profileId;
-        GameConfigService.Save(GameId, gameConfig);
+        // var gameConfig = GameConfigService.Get(GameId);
+        // var profileConfig = ProfileConfigService.Get(GameId, gameConfig.SelectedProfile);
+        // profileConfig.Title = result.Title;
+        //
+        // var profileId = ConstantsLibrary.CreateId(profileConfig.Title);
+        // ProfileConfigService.Update(GameId, selectedProfileId, profileConfig);
+        //
+        // gameConfig.SelectedProfile = profileId;
+        // GameConfigService.Save(GameId, gameConfig);
     }
 
     protected bool ProfileInvalid()
     {
         var result = false;
 
-        result |= ConstantsLibrary.IsStringInvalid(GameConfig.SelectedProfile);
-        result |= !ProfileConfigService.ProfileExists(GameId, GameConfig.SelectedProfile);
+        // result |= ConstantsLibrary.IsStringInvalid(GameConfig.SelectedProfile);
+        // result |= !ProfileConfigService.ProfileExists(GameId, GameConfig.SelectedProfile);
         
         return result;
     }
     
     protected void OnProfileChanged(string profileId)
     {
-        var gameConfig = GameConfigService.Get(GameId);
-        gameConfig.SelectedProfile = profileId;
-        
-        GameConfigService.Save(GameId, gameConfig);
+        // var gameConfig = GameConfigService.Get(GameId);
+        // gameConfig.SelectedProfile = profileId;
+        //
+        // GameConfigService.Save(GameId, gameConfig);
     }
 
     protected void ReloadData()
     {
-        GameConfig = GameConfigService.Get(GameId);
-        ProfileConfigs = ProfileConfigService.GetGame(GameId);
+        // GameConfig = GameConfigService.Get(GameId);
+        // ProfileConfigs = ProfileConfigService.GetGame(GameId);
     }
     
     protected override async Task OnParametersSetAsync()
@@ -130,14 +132,14 @@ public partial class GameProfileComponent : MudComponentBase, IDisposable
     
     protected override void OnInitialized()
     {
-        GameConfigService.RegisterConfigReload(OnConfigReloaded);
+        GameConfigService?.RegisterConfigReload(OnConfigReloaded);
         ProfileConfigService.RegisterConfigReload(OnConfigReloaded);
         ModConfigService.RegisterConfigReload(OnConfigReloaded);
     }
     
     public void Dispose()
     {
-        GameConfigService.UnregisterConfigReload(OnConfigReloaded);
+        GameConfigService?.UnregisterConfigReload(OnConfigReloaded);
         ProfileConfigService.UnregisterConfigReload(OnConfigReloaded);
         ModConfigService.UnregisterConfigReload(OnConfigReloaded);
     }

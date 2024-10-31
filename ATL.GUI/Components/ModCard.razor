@@ -3,7 +3,7 @@
 <MudCard>
   <MudCardHeader Class="pb-0">
     <CardHeaderContent>
-      <MudText Typo="Typo.body1" Style="font-weight: bold">@(ModConfig.Title)</MudText>
+      <MudText Typo="Typo.h5">@(ModConfig.Title)</MudText>
     </CardHeaderContent>
       
     <CardHeaderActions>
@@ -21,10 +21,16 @@
           Class="flex-grow-0 mt-1"
           Style="width: 15rem"
         >
-          <MudSelectItem Value="@(ConstantsLibrary.InvalidString)" Disabled="@true">None</MudSelectItem>
-          @foreach (var (versionKey, versionConfig) in ModConfig.Versions)
+          @if (ModConfig.Versions.Count == 0)
           {
-            <MudSelectItem Value="@versionKey">@(versionConfig.Title)</MudSelectItem>
+            <MudSelectItem Value="@(ConstantsLibrary.InvalidString)" Disabled="@true">None</MudSelectItem>
+          }
+          else
+          {
+            foreach (var (versionKey, versionConfig) in ModConfig.Versions)
+            {
+              <MudSelectItem Value="@versionKey">@(versionConfig.Title)</MudSelectItem>
+            }
           }
         </MudSelect>
 
@@ -39,14 +45,19 @@
   </MudCardHeader>
 
   <MudCardContent Class="pt-0" Style="@(!ProfileConfig.ModConfigs.ContainsKey(ModId) ? "opacity: 75%" : "")">
-    <MudText Typo="Typo.body2">@(ModConfig.Description)</MudText>
+    <MudStack Spacing="1">
+      <MudText Typo="Typo.body1">Description</MudText>
+      <MudText Typo="Typo.body2">@(ModConfig.Description)</MudText>
+    </MudStack>
 
     @if (ModConfig.Versions.TryGetValue(SelectedVersion, out var modContentConfig))
     {
       if (!string.IsNullOrEmpty(modContentConfig.Description))
       {
-        <MudText Typo="Typo.body1" Class="mt-4" Style="font-weight: bold">Content description</MudText>
-        <pre><MudText Typo="Typo.body2">@(modContentConfig.Description)</MudText></pre>
+        <MudStack Spacing="1">
+          <MudText Typo="Typo.body1" Class="mt-4">Version</MudText>
+          <pre><MudText Typo="Typo.body2">@(modContentConfig.Description)</MudText></pre>
+        </MudStack>
       }
     }
   </MudCardContent>

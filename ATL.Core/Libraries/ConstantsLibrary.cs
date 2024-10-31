@@ -7,8 +7,8 @@ public static class ConstantsLibrary
     public static string AppVersion => "v0.13.0";
     public static int[] AppWindowSize => [1280, 900];
     
-    public static string AppConfigFileName = "atl_config";
-    public static string ModConfigFileName = "atl_mod_config";
+    public static string AppConfigFileName = "alt_config";
+    public static string ModConfigFileName = "mod_config";
     
     public static string InvalidString => "?";
 

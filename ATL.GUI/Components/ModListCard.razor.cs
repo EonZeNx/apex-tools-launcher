@@ -1,5 +1,6 @@
 ﻿using ATL.Core.Config.GUI;
 using ATL.GUI.Services;
+using ATL.GUI.Services.Mod;
 using Microsoft.AspNetCore.Components;
 
 namespace ATL.GUI.Components;
@@ -7,37 +8,39 @@ namespace ATL.GUI.Components;
 public partial class ModListCard : ComponentBase, IDisposable
 {
     [Inject]
-    protected ModConfigService ModConfigService { get; set; } = new();
+    protected IModConfigService? ModConfigService { get; set; }
     
-    [CascadingParameter]
+    [Parameter]
     public string GameId { get; set; } = "GameId";
     
     [Parameter]
-    public string ModId { get; set; } = "ModId";
-    
-    [Parameter]
-    public Action<string> ModSelectionChanged { get; set; } = s => { };
+    public Action<string> SelectionChanged { get; set; } = s => { };
     
     [Parameter]
     public string Height { get; set; } = "20rem";
 
+    protected string ModId { get; set; } = "ModId";
+    
     protected Dictionary<string, ModConfig> ModConfigs { get; set; } = [];
 
-    protected void ListValueChanged(object value)
+    protected void ListValueChanged(string? value)
     {
-        var result = (string) value;
-
-        if (result == ModId)
+        if (value is null)
         {
             return;
         }
         
-        ModSelectionChanged(result);
+        if (value == ModId)
+        {
+            return;
+        }
+        
+        SelectionChanged(value);
     }
     
     protected void ReloadData()
     {
-        ModConfigs = ModConfigService.GetGame(GameId);
+        ModConfigs = ModConfigService?.GetAllFromGame(GameId) ?? [];
     }
     
     protected override async Task OnParametersSetAsync()
@@ -53,11 +56,11 @@ public partial class ModListCard : ComponentBase, IDisposable
     
     protected override void OnInitialized()
     {
-        ModConfigService.RegisterConfigReload(OnConfigReloaded);
+        ModConfigService?.RegisterConfigReload(OnConfigReloaded);
     }
 
     public void Dispose()
     {
-        ModConfigService.UnregisterConfigReload(OnConfigReloaded);
+        ModConfigService?.UnregisterConfigReload(OnConfigReloaded);
     }
 }

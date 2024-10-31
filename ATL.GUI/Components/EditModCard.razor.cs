@@ -2,6 +2,7 @@
 using ATL.Core.Libraries;
 using ATL.GUI.Dialogs;
 using ATL.GUI.Services;
+using ATL.GUI.Services.Mod;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 
@@ -61,14 +62,14 @@ public partial class EditModCard : ComponentBase, IDisposable
 
     protected async void SaveModConfig()
     {
-        ModConfigService.Save(GameId, SelectedModId, MutableModConfig);
+        // ModConfigService.Save(GameId, SelectedModId, MutableModConfig);
         
         await InvokeAsync(StateHasChanged);
     }
     
     protected void ReloadData()
     {
-        var modConfigs = ModConfigService.GetGame(GameId);
+        var modConfigs = ModConfigService.GetAllFromGame(GameId);
         ModConfigs = modConfigs;
     }
     

@@ -1,5 +1,6 @@
 using ATL.Core.Config.GUI;
 using ATL.GUI.Services;
+using ATL.GUI.Services.Mod;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 
@@ -30,7 +31,7 @@ public partial class CreateModDialog : ComponentBase
         var result = ModId.Length != 0;
         if (result)
         {
-            result &= !ModConfigService.Exists(GameId, ModId);
+            // result &= !ModConfigService.Exists(GameId, ModId);
         }
         
         return result;
@@ -55,7 +56,7 @@ public partial class CreateModDialog : ComponentBase
 
     protected void Confirm()
     {
-        ModConfigService.Save(GameId, ModId, ModConfig);
+        // ModConfigService.Save(GameId, ModId, ModConfig);
         MudDialog?.Close();
     }
 }

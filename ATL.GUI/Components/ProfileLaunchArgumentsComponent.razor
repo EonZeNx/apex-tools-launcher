@@ -11,7 +11,8 @@
     {
       <MudItem xs="12" md="6">
         <LaunchArgumentCard
-          ProfileId="@GameConfig.SelectedProfile"
+          @* ProfileId="@GameConfig.SelectedProfile" *@
+          ProfileId="@launchId"
           LaunchId="@launchId"
           LaunchOptionConfig="@launchConfig"
         />

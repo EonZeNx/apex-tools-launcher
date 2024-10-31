@@ -3,7 +3,8 @@
 <MudStack Spacing="3" Class="@Class" Style="@Style">
   @foreach (var (gameId, gameConfig) in GameConfigs)
   {
-    var invalidProfile = !ProfileConfigService.ProfileExists(gameId, gameConfig.SelectedProfile);
+    // var invalidProfile = !ProfileConfigService.ProfileExists(gameId, gameConfig.SelectedProfile);
+    var invalidProfile = !ProfileConfigService.ProfileExists(gameId, gameId);
     
     <CascadingValue Value="@gameId">
       <MudCard>
@@ -18,7 +19,8 @@
               }
               else
               {
-                <MudText Typo="Typo.body2">@(gameConfig.SelectedProfile)</MudText>
+                @* <MudText Typo="Typo.body2">@(gameConfig.SelectedProfile)</MudText> *@
+                <MudText Typo="Typo.body2">EMPTY</MudText>
               }
             </div>
             

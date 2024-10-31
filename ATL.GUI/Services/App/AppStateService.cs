@@ -1,9 +1,10 @@
 using System.Text.Json;
 using ATL.Core.Config;
 using ATL.Core.Libraries;
+using ATL.GUI.Services.Development;
 using Microsoft.AspNetCore.Components;
 
-namespace ATL.GUI.Services;
+namespace ATL.GUI.Services.App;
 
 public class AppStateService
 {
@@ -13,12 +14,11 @@ public class AppStateService
     {
         LastPage = "home"
     };
-    protected LogService LogService { get; set; }
+    protected ILogService? LogService { get; set; }
     protected NavigationManager? NavigationManager { get; set; }
     
-    public AppStateService(LogService? logService = null, NavigationManager? navigationManager = null)
+    public AppStateService(ILogService? logService = null, NavigationManager? navigationManager = null)
     {
-        logService ??= new LogService();
         LogService = logService;
         
         NavigationManager = navigationManager;
@@ -46,14 +46,14 @@ public class AppStateService
             }
             catch (Exception e)
             {
-                LogService.Error(e.Message);
+                LogService?.Error(e.Message);
             }
         }
         
         var optionState = ConfigLibrary.LoadConfig<AppState>(statePath);
         if (!optionState.IsSome(out var appState))
         {
-            LogService.Error("Failed to load");
+            LogService?.Error("Failed to load");
             return AppState;
         }
         
@@ -69,7 +69,7 @@ public class AppStateService
     {
         if (NavigationManager is null)
         {
-            LogService.Error("Navigation manager is null");
+            LogService?.Error("Navigation manager is null");
             return false;
         }
         
@@ -87,7 +87,7 @@ public class AppStateService
     {
         if (NavigationManager is null)
         {
-            LogService.Error("Navigation manager is null");
+            LogService?.Error("Navigation manager is null");
             return;
         }
         
