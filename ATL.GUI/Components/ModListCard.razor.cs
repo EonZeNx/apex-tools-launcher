@@ -2,10 +2,11 @@
 using ATL.Core.Libraries;
 using ATL.GUI.Services.Mod;
 using Microsoft.AspNetCore.Components;
+using MudBlazor;
 
 namespace ATL.GUI.Components;
 
-public partial class ModListCard : ComponentBase, IDisposable
+public partial class ModListCard : MudComponentBase, IDisposable
 {
     [Inject]
     protected IModConfigService? ModConfigService { get; set; }
@@ -17,10 +18,7 @@ public partial class ModListCard : ComponentBase, IDisposable
     public string ModId { get; set; } = ConstantsLibrary.InvalidString;
     
     [Parameter]
-    public Action<string> SelectionChanged { get; set; } = s => { };
-    
-    [Parameter]
-    public string Height { get; set; } = "20rem";
+    public Action<string> ModChanged { get; set; } = s => { };
     
     protected Dictionary<string, ModConfig> ModConfigs { get; set; } = [];
 
@@ -31,13 +29,7 @@ public partial class ModListCard : ComponentBase, IDisposable
             return;
         }
         
-        if (string.Equals(value, ModId))
-        {
-            return;
-        }
-
-        ModId = value;
-        SelectionChanged(value);
+        ModChanged(value);
     }
     
     protected void ReloadData()
@@ -48,10 +40,6 @@ public partial class ModListCard : ComponentBase, IDisposable
         }
         
         ModConfigs = ModConfigService.GetAllFromGame(GameId);
-        if (!ModConfigs.ContainsKey(GameId))
-        {
-            ModId = ModConfigs.Count != 0 ? ModConfigs.Keys.First() : ConstantsLibrary.InvalidString;
-        }
     }
     
     protected override async Task OnParametersSetAsync()
