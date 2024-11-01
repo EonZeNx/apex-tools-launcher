@@ -1,0 +1,56 @@
+@inherits MudComponentBase
+
+<MudCard Class="@Class" Style="@Style">
+  <MudCardHeader Class="pb-0">
+    <CardHeaderContent>
+      <MudText Typo="Typo.h5">Converter</MudText>
+    </CardHeaderContent>
+      
+    <CardHeaderActions>
+    </CardHeaderActions>
+  </MudCardHeader>
+
+  <MudCardContent>
+    <MudGrid>
+      <MudItem xs="4">
+        <MudStack>
+          <MudTextField
+            T="float"
+            Label="Pitch"
+            @bind-Value="@Pitch"
+            Margin="Margin.Dense"
+            Variant="Variant.Outlined"
+          />
+          <MudTextField
+            T="float"
+            Label="Yaw"
+            @bind-Value="@Yaw"
+            Margin="Margin.Dense"
+            Variant="Variant.Outlined"
+          />
+          <MudTextField
+            T="float"
+            Label="Roll"
+            @bind-Value="@Roll"
+            Margin="Margin.Dense"
+            Variant="Variant.Outlined"
+          />
+        </MudStack>
+      </MudItem>
+      
+      <MudItem xs="8">
+        
+      </MudItem>
+
+      <MudItem xs="12">
+        <MudTextField
+          T="string"
+          Label="Output"
+          Value="@Calculate()"
+          Margin="Margin.Dense"
+          Variant="Variant.Outlined"
+        />
+      </MudItem>
+    </MudGrid>
+  </MudCardContent>
+</MudCard>
