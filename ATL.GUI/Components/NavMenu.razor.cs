@@ -1,14 +1,21 @@
+using System.Globalization;
 using ATL.GUI.Dialogs;
 using ATL.Core.Config.GUI;
+using ATL.Core.Libraries;
+using ATL.GUI.Libraries;
 using ATL.GUI.Services.Development;
 using ATL.GUI.Services.Game;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Routing;
 using MudBlazor;
 
 namespace ATL.GUI.Components;
 
 public partial class NavMenu : ComponentBase
 {
+    [Inject]
+    protected NavigationManager? NavigationManager { get; set; }
+    
     [Inject]
     protected IGameConfigService? GameConfigService { get; set; }
     
@@ -28,6 +35,8 @@ public partial class NavMenu : ComponentBase
     public Action ToggleDarkMode { get; set; } = () => { };
 
     public Dictionary<string, GameConfig> GameConfigs = [];
+
+    protected string PageTitle { get; set; } = ConstantsLibrary.AppTitle;
     
     protected bool DrawerOpen { get; set; }
     protected void ToggleDrawer() => DrawerOpen = !DrawerOpen;
@@ -38,6 +47,27 @@ public partial class NavMenu : ComponentBase
         var dialogResult = await dialog.Result;
     }
     
+    protected void OnLocationChanged(object? sender, LocationChangedEventArgs args)
+    {
+        if (NavigationManager is null) return;
+        
+        var relativePath = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        if (relativePath.Length == 0)
+        {
+            PageTitle = ConstantsLibrary.AppTitle;
+            return;
+        }
+        
+        if (MauiConstantsLibrary.PageInfos.TryGetValue(relativePath, out var info))
+        {
+            PageTitle = info.Title;
+            return;
+        }
+
+        var textInfo = CultureInfo.CurrentCulture.TextInfo;
+        PageTitle = textInfo.ToTitleCase(relativePath.Replace("_", " "));
+    }
+    
     protected void ReloadData()
     {
         GameConfigs = GameConfigService?.GetAll() ?? [];
@@ -46,5 +76,10 @@ public partial class NavMenu : ComponentBase
     protected override async Task OnParametersSetAsync()
     {
         await Task.Run(ReloadData);
+        
+        if (NavigationManager is not null)
+        {
+            NavigationManager.LocationChanged += OnLocationChanged;
+        }
     }
 }

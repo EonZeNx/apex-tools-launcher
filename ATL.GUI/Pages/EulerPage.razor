@@ -1,8 +1,12 @@
 @page "/euler"
 @inherits MudComponentBase
 
-<div class="mt-4">
-  <MudText Typo="Typo.h2">Euler rotation</MudText>
+<MudGrid class="mt-4">
+  <MudItem xs="2"/>
   
-  <EulerConvertComponent/>
-</div>
+  <MudItem xs="8">
+    <EulerConvertComponent/>
+  </MudItem>
+  
+  <MudItem xs="2"/>
+</MudGrid>

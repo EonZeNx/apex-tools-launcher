@@ -1,4 +1,6 @@
 @using ATL.Core.Libraries
+@using ATL.GUI.Libraries
+
 <MudAppBar Elevation="1">
   <MudIconButton
     Icon="@Icons.Material.Filled.Menu"
@@ -6,7 +8,7 @@
     Edge="Edge.Start"
     OnClick="@ToggleDrawer"
   />
-  <MudText Typo="Typo.h6" Class="mx-4">@(ConstantsLibrary.AppFullTitle)</MudText>
+  <MudText Typo="Typo.h6" Class="mx-4">@(PageTitle)</MudText>
   <MudSpacer/>
 
   <MudIconButton
@@ -30,31 +32,18 @@
   <MudDivider Style="flex-grow: initial" />
 
   <MudNavMenu Bordered="@true" Class="d-flex flex-column" Style="height: inherit">
-    <MudNavLink
-      Match="NavLinkMatch.All"
-      Href="/manage"
-      Icon="@Icons.Material.Filled.Edit"
-    >Manage</MudNavLink>
-    <MudNavLink
-      Match="NavLinkMatch.All"
-      Href="/create"
-      Icon="@Icons.Material.Filled.CreateNewFolder"
-    >Create Script</MudNavLink>
-    <MudNavLink
-      Match="NavLinkMatch.All"
-      Href="/io_tools"
-      Icon="@Icons.Material.Filled.JoinLeft"
-    >IO tools</MudNavLink>
-    <MudNavLink
-      Match="NavLinkMatch.All"
-      Href="/euler"
-      Icon="@Icons.Material.Filled.Rotate90DegreesCcw"
-    >Euler</MudNavLink>
-    
+    @foreach (var (uri, info) in MauiConstantsLibrary.PageInfos)
+    {
+      <MudNavLink
+        Match="NavLinkMatch.All"
+        Href="@($"/{uri}")"
+        Icon="@info.Icon"
+      >@(info.Title)</MudNavLink>
+    }
+
     <MudSpacer/>
     <MudNavLink
       Icon="@Icons.Material.Filled.Settings"
-      OnClick="@OpenSettings"
-    >Settings</MudNavLink>
+      OnClick="@OpenSettings">Settings</MudNavLink>
   </MudNavMenu>
 </MudDrawer>

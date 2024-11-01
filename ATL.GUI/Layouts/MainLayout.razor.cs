@@ -1,5 +1,4 @@
-﻿using ATL.GUI.Services.App;
-using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Components;
 using MudBlazor;
 
 namespace ATL.GUI.Layouts;

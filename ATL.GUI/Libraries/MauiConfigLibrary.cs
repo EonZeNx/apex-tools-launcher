@@ -8,7 +8,7 @@ public static class MauiConfigLibrary
 
     private static string CreateAppTitle(string extra = "")
     {
-        var result = $"{ConstantsLibrary.AppTitle} {ConstantsLibrary.AppVersion}";
+        var result = $"{ConstantsLibrary.AppFullTitle} {ConstantsLibrary.AppVersion}";
         if (extra.Length > 0)
         {
             result += $" - {extra}";
