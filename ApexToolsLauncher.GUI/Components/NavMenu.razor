@@ -1,0 +1,49 @@
+@using ApexToolsLauncher.Core.Libraries
+@using ApexToolsLauncher.GUI.Libraries
+
+<MudAppBar Elevation="1">
+  <MudIconButton
+    Icon="@Icons.Material.Filled.Menu"
+    Color="Color.Inherit"
+    Edge="Edge.Start"
+    OnClick="@ToggleDrawer"
+  />
+  <MudText Typo="Typo.h6" Class="mx-4">@(PageTitle)</MudText>
+  <MudSpacer/>
+
+  <MudIconButton
+    Icon="@(UsingDarkMode
+      ? Icons.Material.Filled.Brightness7
+      : Icons.Material.Filled.Brightness4)"
+    OnClick="@ToggleDarkMode"
+  />
+</MudAppBar>
+
+<MudDrawer
+  Elevation="1"
+  Variant="DrawerVariant.Temporary"
+  ClipMode="@DrawerClipMode.Docked"
+  @bind-Open="@DrawerOpen"
+>
+  <MudDrawerHeader Class="justify-center flex-column" Style="@($"height: {Theme.LayoutProperties.AppbarHeight}")">
+    <MudText Typo="Typo.h6" Align="Align.Center">@(ConstantsLibrary.AppTitle)</MudText>
+    <MudText Typo="Typo.caption" Align="Align.Center">@(ConstantsLibrary.AppVersion)</MudText>
+  </MudDrawerHeader>
+  <MudDivider Style="flex-grow: initial" />
+
+  <MudNavMenu Bordered="@true" Class="d-flex flex-column" Style="height: inherit">
+    @foreach (var (uri, info) in MauiConstantsLibrary.PageInfos)
+    {
+      <MudNavLink
+        Match="NavLinkMatch.All"
+        Href="@($"/{uri}")"
+        Icon="@info.Icon"
+      >@(info.Title)</MudNavLink>
+    }
+
+    <MudSpacer/>
+    <MudNavLink
+      Icon="@Icons.Material.Filled.Settings"
+      OnClick="@OpenSettings">Settings</MudNavLink>
+  </MudNavMenu>
+</MudDrawer>

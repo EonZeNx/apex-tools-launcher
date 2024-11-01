@@ -1,5 +1,5 @@
 ﻿using System.Xml.Linq;
-using ATL.Core.Hash;
+using ApexToolsLauncher.Core.Hash;
 using RustyOptions;
 
 namespace ApexFormat.IRTPC.V14.Class;

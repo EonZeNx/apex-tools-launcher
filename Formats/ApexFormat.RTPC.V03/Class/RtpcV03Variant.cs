@@ -1,7 +1,7 @@
 ﻿using System.Xml.Linq;
 using ApexFormat.RTPC.V03.Enum;
-using ATL.Core.Extensions;
-using ATL.Core.Hash;
+using ApexToolsLauncher.Core.Extensions;
+using ApexToolsLauncher.Core.Hash;
 using CommunityToolkit.HighPerformance;
 using RustyOptions;
 
