@@ -7,7 +7,7 @@
       <MudStack Row="@true" AlignItems="AlignItems.Center">
         <MudText Typo="Typo.h6">Mods</MudText>
         <MudText Typo="Typo.subtitle1" Style="opacity: 66%">&bull;</MudText>
-        <MudText Typo="Typo.subtitle1" Style="opacity: 66%">@(ModConfigs.Count) found</MudText>
+        <MudText Typo="Typo.subtitle1" Style="opacity: 66%">@(ProfileConfig.ModConfigs.Count) / @(ModConfigs.Count) enabled</MudText>
       </MudStack>
     </CardHeaderContent>
   </MudCardHeader>
@@ -28,16 +28,20 @@
         foreach (var (modId, config) in ModConfigs)
         {
           var icon = Icons.Material.Filled.RadioButtonUnchecked;
+          var iconColour = Color.Inherit;
+          
           if (ProfileConfig.ModConfigs.ContainsKey(modId))
           {
             icon = Icons.Material.Filled.RadioButtonChecked;
+            iconColour = Color.Primary;
           }
           
-          <MudListItem
-            Text="@config.Title"
-            Value="@modId"
-            Icon="@icon"
-          />
+          <MudListItem Value="@modId">
+            <MudStack Row="@true" Class="align-center">
+              <MudIcon Icon="@icon" Color="@iconColour" Size="Size.Small"/>
+              <MudText Typo="Typo.body1">@(config.Title)</MudText>
+            </MudStack>
+          </MudListItem>
         }
       }
     </MudList>

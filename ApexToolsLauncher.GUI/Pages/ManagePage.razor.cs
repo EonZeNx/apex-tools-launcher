@@ -1,5 +1,4 @@
-﻿using ApexToolsLauncher.Core.Config.GUI;
-using ApexToolsLauncher.Core.Libraries;
+﻿using ApexToolsLauncher.Core.Libraries;
 using ApexToolsLauncher.GUI.Services.App;
 using ApexToolsLauncher.GUI.Services.Development;
 using ApexToolsLauncher.GUI.Services.Game;

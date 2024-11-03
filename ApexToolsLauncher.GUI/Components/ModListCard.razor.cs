@@ -20,6 +20,9 @@ public partial class ModListCard : MudComponentBase, IDisposable
     
     [Parameter]
     public string GameId { get; set; } = "GameId";
+    
+    [Parameter]
+    public string ProfileId { get; set; } = ConstantsLibrary.InvalidString;
 
     [Parameter]
     public string ModId { get; set; } = ConstantsLibrary.InvalidString;
@@ -27,7 +30,6 @@ public partial class ModListCard : MudComponentBase, IDisposable
     [Parameter]
     public Action<string> ModChanged { get; set; } = s => { };
     
-    protected string ProfileId { get; set; } = ConstantsLibrary.InvalidString;
     protected ProfileConfig ProfileConfig { get; set; } = new();
     protected Dictionary<string, ModConfig> ModConfigs { get; set; } = [];
 
@@ -49,8 +51,8 @@ public partial class ModListCard : MudComponentBase, IDisposable
         
         ModConfigs = ModConfigService.GetAllFromGame(GameId);
 
-        ProfileId = AppStateService.GetLastProfileId(GameId);
-        ProfileConfig = ProfileConfigService.Get(GameId, ProfileId);
+        var profileId = AppStateService.GetLastProfileId(GameId);
+        ProfileConfig = ProfileConfigService.Get(GameId, profileId);
     }
     
     protected override async Task OnParametersSetAsync()
