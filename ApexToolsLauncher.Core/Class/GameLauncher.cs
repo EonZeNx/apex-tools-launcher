@@ -1,10 +1,11 @@
 ﻿using System.Diagnostics;
 using ApexToolsLauncher.Core.Config;
 using ApexToolsLauncher.Core.Config.GUI;
+using ApexToolsLauncher.Core.Libraries;
 
-namespace ApexToolsLauncher.Core.Libraries;
+namespace ApexToolsLauncher.Core.Class;
 
-public class LaunchLibrary
+public class GameLauncher
 {
     public string GameId { get; set; } = "";
     
@@ -12,8 +13,8 @@ public class LaunchLibrary
     public GameConfig GameConfig { get; set; } = new();
     public ProfileConfig ProfileConfig { get; set; } = new();
     public Dictionary<string, ModConfig> ModConfigs { get; set; } = [];
-
-    public void LaunchGame()
+    
+    public void Start()
     {
         var modLaunchArguments = SetupMods();
         var profileLaunchArguments = ConfigLibrary.GetLaunchArguments(GameConfig, ProfileConfig);
@@ -45,9 +46,17 @@ public class LaunchLibrary
         {
             process.Start();
         }
-        catch
+        catch (InvalidOperationException e)
         {
-            return;
+            // todo: handle
+        }
+        catch (PlatformNotSupportedException e)
+        {
+            // todo: handle
+        }
+        catch (Exception e)
+        {
+            // todo: handle
         }
     }
     
