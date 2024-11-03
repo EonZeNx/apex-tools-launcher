@@ -14,6 +14,9 @@ public partial class GameActionsComponent : MudComponentBase, IDisposable
     [Inject]
     protected IGameConfigService? GameConfigService { get; set; }
     
+    [Inject]
+    protected ILaunchGameService? LaunchGameService { get; set; }
+    
     [Parameter]
     public string GameId { get; set; } = "GameId";
     
@@ -22,24 +25,25 @@ public partial class GameActionsComponent : MudComponentBase, IDisposable
     
     protected GameConfig GameConfig { get; set; } = new();
 
+    protected void OnLaunch()
+    {
+        if (LaunchGameService is null) return;
+        
+        LaunchGameService.Launch(GameId);
+    }
+    
     protected void OnProfileChanged(string profileId)
     {
         ProfileChanged(profileId);
 
-        if (AppStateService is null)
-        {
-            return;
-        }
+        if (AppStateService is null) return;
 
         AppStateService.SetLastProfileId(GameId, profileId);
     }
     
     protected void ReloadData()
     {
-        if (GameConfigService is null)
-        {
-            return;
-        }
+        if (GameConfigService is null) return;
 
         GameConfig = GameConfigService.Get(GameId);
     }

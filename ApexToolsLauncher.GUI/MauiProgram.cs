@@ -42,7 +42,7 @@ public static class MauiProgram
         builder.Services.AddScoped<IProfileConfigService, ProfileConfigService>();
         builder.Services.AddScoped<IModConfigService, ModConfigService>();
         
-        builder.Services.AddScoped<LaunchGameService>();
+        builder.Services.AddScoped<ILaunchGameService, LaunchGameService>();
         
         return builder.Build();
     }

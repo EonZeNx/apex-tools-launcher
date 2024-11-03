@@ -13,7 +13,7 @@
   <MudCardContent>
     <MudGrid>
       <MudItem xs="4">
-        <MudStack>
+        <MudStack Spacing="2">
           <MudTextField
             T="float"
             Label="Pitch"
@@ -52,6 +52,114 @@
           Margin="Margin.Dense"
           Variant="Variant.Outlined"
         />
+      </MudItem>
+
+      <MudItem xs="4">
+        <MudStack Spacing="2">
+          <MudTextField
+            T="string"
+            Label="Out.A.X"
+            Value="@(Format(Output.A.X))"
+            Margin="Margin.Dense"
+            Variant="Variant.Outlined"
+          />
+
+          <MudTextField
+            T="string"
+            Label="Out.A.Y"
+            Value="@(Format(Output.A.Y))"
+            Margin="Margin.Dense"
+            Variant="Variant.Outlined"
+          />
+
+          <MudTextField
+            T="string"
+            Label="Out.A.Z"
+            Value="@(Format(Output.A.Z))"
+            Margin="Margin.Dense"
+            Variant="Variant.Outlined"
+          />
+
+          <MudTextField
+            T="string"
+            Label="Out.A.W"
+            Value="@("0")"
+            Margin="Margin.Dense"
+            Variant="Variant.Outlined"
+          />
+        </MudStack>
+      </MudItem>
+      
+      <MudItem xs="4">
+        <MudStack Spacing="2">
+          <MudTextField
+            T="string"
+            Label="Out.B.X"
+            Value="@(Format(Output.B.X))"
+            Margin="Margin.Dense"
+            Variant="Variant.Outlined"
+          />
+
+          <MudTextField
+            T="string"
+            Label="Out.B.Y"
+            Value="@(Format(Output.B.Y))"
+            Margin="Margin.Dense"
+            Variant="Variant.Outlined"
+          />
+
+          <MudTextField
+            T="string"
+            Label="Out.B.Z"
+            Value="@(Format(Output.B.Z))"
+            Margin="Margin.Dense"
+            Variant="Variant.Outlined"
+          />
+
+          <MudTextField
+            T="string"
+            Label="Out.B.W"
+            Value="@("0")"
+            Margin="Margin.Dense"
+            Variant="Variant.Outlined"
+          />
+        </MudStack>
+      </MudItem>
+
+      <MudItem xs="4">
+        <MudStack Spacing="2">
+          <MudTextField
+            T="string"
+            Label="Out.C.X"
+            Value="@(Format(Output.C.X))"
+            Margin="Margin.Dense"
+            Variant="Variant.Outlined"
+          />
+
+          <MudTextField
+            T="string"
+            Label="Out.C.Y"
+            Value="@(Format(Output.C.Y))"
+            Margin="Margin.Dense"
+            Variant="Variant.Outlined"
+          />
+
+          <MudTextField
+            T="string"
+            Label="Out.C.Z"
+            Value="@(Format(Output.C.Z))"
+            Margin="Margin.Dense"
+            Variant="Variant.Outlined"
+          />
+
+          <MudTextField
+            T="string"
+            Label="Out.C.W"
+            Value="@("0")"
+            Margin="Margin.Dense"
+            Variant="Variant.Outlined"
+          />
+        </MudStack>
       </MudItem>
     </MudGrid>
   </MudCardContent>
