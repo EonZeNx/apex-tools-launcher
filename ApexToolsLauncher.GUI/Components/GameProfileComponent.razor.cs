@@ -50,24 +50,24 @@ public partial class GameProfileComponent : MudComponentBase, IDisposable
         
         var parameters = new DialogParameters { { "GameId", GameId } };
 
-        var dialog = await DialogService.ShowAsync<AddEditProfileDialog>("Create profile", parameters);
+        var dialog = await DialogService.ShowAsync<ManageProfileDialog>("Create profile", parameters);
         var dialogResult = await dialog.Result;
 
         if (dialogResult is null) return;
         if (dialogResult.Canceled) return;
         if (dialogResult.Data is null) return;
         
-        var result = (ProfileDialogResult) dialogResult.Data;
-
-        var config = new ProfileConfig
-        {
-            Title = result.Title
-        };
-        
-        var profileId = ConstantsLibrary.CreateId(config.Title);
-        await ProfileConfigService.SaveAsync(GameId, profileId, config);
-        
-        AppStateService.SetLastProfileId(GameId, profileId);
+        // var result = (ProfileDialogResult) dialogResult.Data;
+        //
+        // var config = new ProfileConfig
+        // {
+        //     Title = result.Title
+        // };
+        //
+        // var profileId = ConstantsLibrary.CreateId(config.Title);
+        // await ProfileConfigService.SaveAsync(GameId, profileId, config);
+        //
+        // AppStateService.SetLastProfileId(GameId, profileId);
     }
     
     protected async Task EditProfile()
@@ -82,19 +82,19 @@ public partial class GameProfileComponent : MudComponentBase, IDisposable
             { "Edit", true }
         };
 
-        var dialog = await DialogService.ShowAsync<AddEditProfileDialog>("Edit profile", parameters);
+        var dialog = await DialogService.ShowAsync<ManageProfileDialog>("Edit profile", parameters);
         var dialogResult = await dialog.Result;
 
         if (dialogResult?.Data is null) return;
 
         if (dialogResult.Canceled) return;
-        var result = (ProfileDialogResult) dialogResult.Data;
-
-        if (result.Delete)
-        {
-            await ProfileConfigService.DeleteAsync(GameId, selectedProfileId);
-            return;
-        }
+        // var result = (ProfileDialogResult) dialogResult.Data;
+        //
+        // if (result.Delete)
+        // {
+        //     await ProfileConfigService.DeleteAsync(GameId, selectedProfileId);
+        //     return;
+        // }
         
         // var gameConfig = GameConfigService.Get(GameId);
         // var profileConfig = ProfileConfigService.Get(GameId, gameConfig.SelectedProfile);

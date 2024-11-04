@@ -181,7 +181,7 @@ public class ProfileConfigService : IProfileConfigService
     
     public Task SaveAsync(string gameId, string profileId, ProfileConfig profileConfig)
     {
-        var result = new Task(() => Save(gameId, profileId, profileConfig));
+        var result = Task.Run(() => Save(gameId, profileId, profileConfig));
         return result;
     }
     
@@ -198,10 +198,7 @@ public class ProfileConfigService : IProfileConfigService
             return;
         }
 
-        if (GameProfileConfigs.TryGetValue(gameId, out var profileConfigs))
-        {
-            profileConfigs.Remove(profileId);
-        }
+        LoadAllFromGame(gameId);
     }
     
     public Task DeleteAsync(string gameId, string profileId)

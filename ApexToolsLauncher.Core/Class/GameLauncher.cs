@@ -99,7 +99,7 @@ public class GameLauncher
                 break;
             case ModType.VfsFile:
             default:
-                vfsLaunchArguments.Add(SetupVfsFileMod(modId, modVersion, GameId, vfsFsPath));
+                vfsLaunchArguments.Add(SetupVfsFileMod(modId, modVersion, modConfig, GameId, vfsFsPath));
                 break;
             }
         }
@@ -107,14 +107,16 @@ public class GameLauncher
         // Install mods
         // - VFS/Archive mods should create a symlink and add to launch arguments
         // - DLL mods should copy into the `mods` directory
+        
+        // todo: setup launch args for game files, otherwise it'll crash
 
         return vfsLaunchArguments;
     }
     
-    public string SetupVfsFileMod(string modId, string version, string gameId, string vfsFsPath)
+    public string SetupVfsFileMod(string modId, string version, ModConfig modConfig, string gameId, string vfsFsPath)
     {
         var modConfigPath = ConfigLibrary.GetModConfigPath(gameId);
-        var modVersionTarget = ConfigLibrary.GetModTargetPath(modId, version);
+        var modVersionTarget = ConfigLibrary.GetModTargetPath(modId, modConfig.Versions[version].Target);
         var modSymlinkTarget = Path.Join(modConfigPath, modVersionTarget);
 
         var modSymlinkInstallName = $"{modId}_{version}";
