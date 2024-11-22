@@ -47,20 +47,6 @@
   </MudCardHeader>
 
   <MudCardContent Class="pt-0" Style="@(!ProfileConfig.ModConfigs.ContainsKey(ModId) ? "opacity: 75%" : "")">
-    <MudStack Spacing="1">
-      <MudText Typo="Typo.body1">Description</MudText>
-      <MudText Typo="Typo.body2">@(ModConfig.Description)</MudText>
-    </MudStack>
-
-    @if (ModConfig.Versions.TryGetValue(SelectedVersion, out var modContentConfig))
-    {
-      if (!string.IsNullOrEmpty(modContentConfig.Description))
-      {
-        <MudStack Spacing="1">
-          <MudText Typo="Typo.body1" Class="mt-4">Version</MudText>
-          <pre><MudText Typo="Typo.body2">@(modContentConfig.Description)</MudText></pre>
-        </MudStack>
-      }
-    }
+    
   </MudCardContent>
 </MudCard>

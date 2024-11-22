@@ -1,0 +1,58 @@
+@using ApexToolsLauncher.Core.Libraries
+@inherits MudComponentBase
+
+<ApexTabPanel Text="Mods">
+  <MudStack Row="@true" Style="height: 100%">
+    <MudList
+      T="string"
+      SelectedValue="@ModId"
+      SelectedValueChanged="@ListValueChanged"
+      Color="@Color.Primary"
+      Style="height: 100%; overflow-y: scroll; flex-grow: 1; border-right: 1px solid #FFFFFFAA"
+    >
+      @if (ModConfigs.Count == 0)
+      {
+        <MudListItem Text="No mods found" Value="ConstantsLibrary.InvalidString"/>
+      }
+      else
+      {
+        foreach (var (modId, config) in ModConfigs)
+        {
+          var icon = Icons.Material.Filled.RadioButtonUnchecked;
+          var iconColour = Color.Inherit;
+
+          if (ProfileConfig.ModConfigs.ContainsKey(modId))
+          {
+            icon = Icons.Material.Filled.RadioButtonChecked;
+            iconColour = Color.Primary;
+          }
+
+          <MudListItem Value="@modId">
+            <MudStack Row="@true" Class="align-center">
+              <MudIcon Icon="@icon" Color="@iconColour" Size="Size.Small"/>
+              <MudText Typo="Typo.body1">@(config.Title)</MudText>
+            </MudStack>
+          </MudListItem>
+        }
+      }
+    </MudList>
+
+    <div style="height: 100%; flex-grow: 3">
+      <MudStack Spacing="1">
+        <MudText Typo="Typo.body1">Description</MudText>
+        <MudText Typo="Typo.body2">@(ModConfig.Description)</MudText>
+      </MudStack>
+
+      @if (ModConfig.Versions.TryGetValue(SelectedVersion, out var modContentConfig))
+      {
+        if (!string.IsNullOrEmpty(modContentConfig.Description))
+        {
+          <MudStack Spacing="1">
+            <MudText Typo="Typo.body1" Class="mt-4">Version</MudText>
+            <pre><MudText Typo="Typo.body2">@(modContentConfig.Description)</MudText></pre>
+          </MudStack>
+        }
+      }
+    </div>
+  </MudStack>
+</ApexTabPanel>

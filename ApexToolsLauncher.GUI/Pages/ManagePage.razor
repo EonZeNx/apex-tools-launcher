@@ -11,6 +11,10 @@
       <GameActionsComponent GameId="@GameId" ProfileChanged="@OnProfileChanged"/>
     </MudItem>
     
+    <MudItem xs="12">
+      <GameTabsView GameId="@GameId" ProfileId="@ProfileId" Style="height: 20rem"/>
+    </MudItem>
+    
     <MudItem xs="4" Style="height: 20rem">
       <ModListCard
         GameId="@GameId"
@@ -40,5 +44,19 @@
         </MudPaper>
       }
     </MudItem>
+
+    <MudGrid Class="mt-1">
+      @foreach (var (launchId, launchConfig) in GameConfig.LaunchOptions)
+      {
+        <MudItem xs="12" md="6">
+          <LaunchArgumentCard
+            GameId="@GameId"
+            ProfileId="@ProfileId"
+            LaunchId="@launchId"
+            LaunchOptionConfig="@launchConfig"
+          />
+        </MudItem>
+      }
+    </MudGrid>
   </MudGrid>
 </div>

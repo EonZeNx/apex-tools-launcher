@@ -1,4 +1,5 @@
-﻿using ApexToolsLauncher.Core.Libraries;
+﻿using ApexToolsLauncher.Core.Config.GUI;
+using ApexToolsLauncher.Core.Libraries;
 using ApexToolsLauncher.GUI.Services.App;
 using ApexToolsLauncher.GUI.Services.Development;
 using ApexToolsLauncher.GUI.Services.Game;
@@ -26,13 +27,18 @@ public partial class ManagePage : MudComponentBase, IDisposable
     protected ILogService? LogService { get; set; }
     
     protected string GameId { get; set; } = ConstantsLibrary.InvalidString;
-    protected string ProfileId { get; set; } = ConstantsLibrary.InvalidString;
+    protected string ProfileId { get; set; } = ConstantsLibrary.InvalidString; // todo: is not updated at launch
     protected string ModId { get; set; } = ConstantsLibrary.InvalidString;
+
+    protected GameConfig GameConfig { get; set; } = new();
 
 
     protected void OnGameChanged(string gameId)
     {
+        if (GameConfigService is null) return;
+        
         GameId = gameId;
+        GameConfig = GameConfigService.Get(gameId);
     }
     
     protected void OnProfileChanged(string profileId)

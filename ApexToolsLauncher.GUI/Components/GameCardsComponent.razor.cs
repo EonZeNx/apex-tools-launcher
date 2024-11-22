@@ -30,10 +30,7 @@ public partial class GameCardsComponent : ComponentBase, IDisposable
     
     protected void ReloadData()
     {
-        if (GameConfigService is null)
-        {
-            return;
-        }
+        if (GameConfigService is null) return;
 
         GameIds = GameConfigService.GetAll().Keys.ToList();
         if (GameIds.Contains(SelectedGameId)) return;
