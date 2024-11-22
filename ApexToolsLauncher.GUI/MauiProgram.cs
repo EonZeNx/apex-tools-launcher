@@ -1,5 +1,4 @@
-﻿using ApexToolsLauncher.GUI.Services;
-using ApexToolsLauncher.GUI.Services.App;
+﻿using ApexToolsLauncher.GUI.Services.App;
 using ApexToolsLauncher.GUI.Services.Development;
 using ApexToolsLauncher.GUI.Services.Game;
 using ApexToolsLauncher.GUI.Services.Mod;
