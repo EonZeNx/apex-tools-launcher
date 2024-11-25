@@ -1,4 +1,5 @@
 ﻿using System.Xml.Linq;
+using ApexFormat.RTPC.V01.Enum;
 using ApexToolsLauncher.Core.Extensions;
 using ApexToolsLauncher.Core.Hash;
 using RustyOptions;
@@ -14,6 +15,11 @@ public class RtpcV01Container : RtpcV01ContainerHeader
 {
     public RtpcV01Variant[] Properties = [];
     public RtpcV01Container[] Containers = [];
+
+    public override string ToString()
+    {
+        return $"{PropertyCount} properties, {ContainerCount} containers";
+    }
 }
 
 public static class RtpcV01ContainerExtensions
@@ -136,5 +142,55 @@ public static class RtpcV01ContainerExtensions
         }
         
         return xe;
+    }
+    
+    public static void FilterBy(this RtpcV01Container container, Dictionary<string, string[]> filters)
+    {
+        var filteredContainers = new List<RtpcV01Container>();
+        foreach (var childContainer in container.Containers)
+        {
+            var filteredProperties = new List<RtpcV01Variant>();
+            foreach (var property in childContainer.Properties)
+            {
+                var validProperty = false;
+                foreach (var (name, values) in filters)
+                {
+                    if (name.HashJenkins() != property.NameHash) 
+                        continue;
+
+                    if (values.Length == 0)
+                    {
+                        validProperty = true;
+                        break;
+                    }
+                    
+                    if (property.DeferredData is null)
+                        continue;
+                    
+                    if (property.VariantType != ERtpcV01VariantType.String)
+                        continue;
+
+                    validProperty = values.Any(v => v == (string) property.DeferredData);
+                }
+                
+                if (validProperty)
+                    filteredProperties.Add(property);
+            }
+            
+            if (filteredProperties.Count == 0)
+                continue;
+            
+            childContainer.Properties = filteredProperties.ToArray();
+            childContainer.PropertyCount = (ushort) filteredProperties.Count;
+            filteredContainers.Add(childContainer);
+        }
+        
+        container.Containers = filteredContainers.ToArray();
+        container.ContainerCount = (ushort) filteredContainers.Count;
+        
+        foreach (var childContainer in container.Containers)
+        {
+            childContainer.FilterBy(filters);
+        }
     }
 }
