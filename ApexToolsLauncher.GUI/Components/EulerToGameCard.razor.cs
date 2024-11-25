@@ -53,5 +53,5 @@ public partial class EulerToGameCard : MudComponentBase
         return OutputFormated;
     }
 
-    protected static string Format(float value) => $"{value:0.####}";
+    protected static string Format(float value) => $"{value:0.#####}";
 }
