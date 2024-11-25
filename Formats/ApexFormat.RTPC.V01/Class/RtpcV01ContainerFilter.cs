@@ -3,38 +3,54 @@ using ApexToolsLauncher.Core.Hash;
 
 namespace ApexFormat.RTPC.V01.Class;
 
-public interface IRtpcV01ContainerFilter
+public interface IRtpcV01Filter
 {
-    public bool Match(RtpcV01Container container);
+    public bool MatchContainer(RtpcV01Container container, bool useSubFilters = true);
+    public bool MatchProperty(RtpcV01Variant property, bool useSubFilters = true);
 }
 
-public class Filter : IRtpcV01ContainerFilter
+public class RtpcV01Filter : IRtpcV01Filter
 {
     public string Name { get; set; }
-    public IRtpcV01ContainerFilter[] SubFilters { get; set; }
+    public IRtpcV01Filter[] SubFilters { get; set; }
     
-    public Filter(string name, IRtpcV01ContainerFilter[]? subFilters = null)
+    public RtpcV01Filter(string name, IRtpcV01Filter[]? subFilters = null)
     {
         Name = name;
         SubFilters = subFilters ?? [];
     }
 
-    public virtual bool Match(RtpcV01Container container)
+    public virtual bool MatchContainer(RtpcV01Container container, bool useSubFilters = true)
     {
-        return container.Properties.Any(p => Name.HashJenkins() == p.NameHash);
+        return container.Properties.Any(p => MatchProperty(p, useSubFilters));
+    }
+
+    public virtual bool MatchProperty(RtpcV01Variant property, bool useSubFilters = true)
+    {
+        var result = Name.HashJenkins() == property.NameHash;
+        if (useSubFilters && SubFilters.Length > 0)
+        {
+            result |= SubFilters.Any(f => f.MatchProperty(property));
+        }
+
+        return result;
     }
 }
 
-public class FilterString : Filter
+public class RtpcV01FilterString : IRtpcV01Filter
 {
-    public string? Value { get; set; }
+    public string Name { get; set; }
+    public string Value { get; set; }
+    public IRtpcV01Filter[] SubFilters { get; set; }
     
-    public FilterString(string? value, string name, IRtpcV01ContainerFilter[]? subFilters = null) : base(name, subFilters)
+    public RtpcV01FilterString(string name, string value, IRtpcV01Filter[]? subFilters = null)
     {
+        Name = name;
         Value = value;
+        SubFilters = subFilters ?? [];
     }
 
-    public override bool Match(RtpcV01Container container)
+    public virtual bool MatchContainer(RtpcV01Container container, bool useSubFilters = true)
     {
         var result = false;
         
@@ -44,9 +60,29 @@ public class FilterString : Filter
             if (property.DeferredData is null) continue;
             if (property.VariantType != ERtpcV01VariantType.String) continue;
 
-            result = (string) property.DeferredData == Value;
+            result = ((string) property.DeferredData).Equals(Value);
         }
         
+        if (useSubFilters && SubFilters.Length > 0)
+        {
+            result |= SubFilters.Any(f => f.MatchContainer(container));
+        }
+        
+        return result;
+    }
+
+    public virtual bool MatchProperty(RtpcV01Variant property, bool useSubFilters = true)
+    {
+        if (Name.HashJenkins() != property.NameHash) return false;
+        if (property.DeferredData is null) return false;
+        if (property.VariantType != ERtpcV01VariantType.String) return false;
+
+        var result = (string) property.DeferredData == Value;
+        if (useSubFilters && SubFilters.Length > 0)
+        {
+            result |= SubFilters.Any(f => f.MatchProperty(property));
+        }
+
         return result;
     }
 }

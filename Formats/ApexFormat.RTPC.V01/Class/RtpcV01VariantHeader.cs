@@ -24,6 +24,11 @@ public class RtpcV01VariantHeader : ISizeOf
                4 + // Data
                sizeof(ERtpcV01VariantType);  // VariantType
     }
+
+    public override string ToString()
+    {
+        return $"{NameHash:X8} ({VariantType})";
+    }
 }
 
 public static class RtpcV01VariantHeaderExtensions
