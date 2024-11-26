@@ -10,6 +10,61 @@ namespace ApexFormat.RTPC.V01.Class;
 public class RtpcV01Variant : RtpcV01VariantHeader
 {
     public object? DeferredData = null;
+
+    public override string ToString()
+    {
+        if (DeferredData is null)
+            return base.ToString();
+        
+        var valueStr = "";
+        switch (VariantType)
+        {
+            case ERtpcV01VariantType.UInteger32:
+                valueStr = ((uint) DeferredData).ToString();
+                break;
+            case ERtpcV01VariantType.Float32:
+                valueStr = ((float) DeferredData).ToString();
+                break;
+            case ERtpcV01VariantType.String:
+                valueStr = (string) DeferredData;
+                break;
+            case ERtpcV01VariantType.Vector2:
+            case ERtpcV01VariantType.Vector3:
+            case ERtpcV01VariantType.Vector4:
+            case ERtpcV01VariantType.Matrix3X3:
+            case ERtpcV01VariantType.Matrix4X4:
+            case ERtpcV01VariantType.Float32Array:
+                var floats = (float[]) DeferredData;
+                valueStr = string.Join(",", floats);
+                break;
+            case ERtpcV01VariantType.UInteger32Array:
+                var uints = (uint[]) DeferredData;
+                valueStr = string.Join(",", uints);
+                break;
+            case ERtpcV01VariantType.ByteArray:
+                var bytes = (byte[]) DeferredData;
+                valueStr = string.Join(",", bytes.Select(b => $"{b:X2}"));
+                break;
+            case ERtpcV01VariantType.ObjectId:
+                var objectIdValue = (RtpcV01ObjectId) DeferredData;
+                var objectId = objectIdValue.String();
+                valueStr = objectId;
+                break;
+            case ERtpcV01VariantType.Events:
+                var eventPairs = ((uint, uint)[]) DeferredData;
+                var events = eventPairs.Select(e => $"{e.Item1:X8}={e.Item2:X8}");
+                valueStr = string.Join(", ", events);
+                break;
+            case ERtpcV01VariantType.Unassigned:
+            case ERtpcV01VariantType.Deprecated:
+            case ERtpcV01VariantType.Total:
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+        
+        return base.ToString() + $"\"{valueStr}\"";
+    }
 }
 
 public static class RtpcV01VariantExtensions
