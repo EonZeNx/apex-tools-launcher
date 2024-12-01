@@ -10,13 +10,27 @@
   Style="@Style"
   PanelStyle="height: 100%"
 >
-  <ModsTabPanel
-    GameId="@GameId"
-    ProfileId="@ProfileId"
-    Style="height: 100%"
-  />
+  <ApexTabPanel Text="Mods" Style="height: 100%">
+    <ModsTabPanel
+      GameId="@GameId"
+      ProfileId="@ProfileId"
+      Style="height: 100%"
+    />
+  </ApexTabPanel>
 
-  <LaunchArgsTabPanel/>
+  <ApexTabPanel Text="Launch args" Style="height: 100%">
+    <LaunchArgsTabPanel
+      GameId="@GameId"
+      ProfileId="@ProfileId"
+      Style="height: 100%"
+    />
+  </ApexTabPanel>
 
-  <ProfilesTabPanel/>
+  <ApexTabPanel Text="Profiles" Style="height: 100%">
+    <ProfilesTabPanel
+      GameId="@GameId"
+      ProfileId="@ProfileId"
+      Style="height: 100%"
+    />
+  </ApexTabPanel>
 </ApexTabs>
