@@ -13,18 +13,24 @@ public class RtpcV01Variant : RtpcV01VariantHeader
 
     public override string ToString()
     {
-        if (DeferredData is null)
-            return base.ToString();
-        
         var valueStr = "";
+        if (DeferredData is null)
+        {
+            switch (VariantType)
+            {
+                case ERtpcV01VariantType.UInteger32:
+                    valueStr = BitConverter.ToUInt32(Data).ToString();
+                    break;
+                case ERtpcV01VariantType.Float32:
+                    valueStr = BitConverter.ToSingle(Data).ToString();
+                    break;
+            }
+            
+            return base.ToString() + $" \"{valueStr}\"";
+        }
+        
         switch (VariantType)
         {
-            case ERtpcV01VariantType.UInteger32:
-                valueStr = ((uint) DeferredData).ToString();
-                break;
-            case ERtpcV01VariantType.Float32:
-                valueStr = ((float) DeferredData).ToString();
-                break;
             case ERtpcV01VariantType.String:
                 valueStr = (string) DeferredData;
                 break;
@@ -63,7 +69,7 @@ public class RtpcV01Variant : RtpcV01VariantHeader
                 throw new ArgumentOutOfRangeException();
         }
         
-        return base.ToString() + $"\"{valueStr}\"";
+        return base.ToString() + $" \"{valueStr}\"";
     }
 }
 

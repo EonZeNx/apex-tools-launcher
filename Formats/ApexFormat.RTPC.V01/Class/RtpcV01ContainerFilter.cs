@@ -5,90 +5,96 @@ namespace ApexFormat.RTPC.V01.Class;
 
 public interface IRtpcV01Filter
 {
-    public bool MatchContainer(RtpcV01Container container, bool useSubFilters = true);
-    public bool MatchProperty(RtpcV01Variant property, bool useSubFilters = true);
+    public bool MatchContainer(RtpcV01Container container);
+    public bool MatchProperty(RtpcV01Variant property, bool subMatch = false);
+    public bool SubMatchProperty(RtpcV01Variant property);
 }
 
 public class RtpcV01Filter : IRtpcV01Filter
 {
     public string Name { get; set; }
+    public uint NameHash { get; init; }
     public IRtpcV01Filter[] SubFilters { get; set; }
     
     public RtpcV01Filter(string name, IRtpcV01Filter[]? subFilters = null)
     {
         Name = name;
+        NameHash = name.Jenkins();
         SubFilters = subFilters ?? [];
     }
 
-    public virtual bool MatchContainer(RtpcV01Container container, bool useSubFilters = true)
+    public virtual bool MatchContainer(RtpcV01Container container)
     {
-        var result = container.Properties.Any(p => MatchProperty(p, false));
-        result |= container.Containers.Any(c => MatchContainer(c, useSubFilters));
-        
-        if (!result) return false;
-
-        if (!useSubFilters) return true;
         return container.Properties.Any(p => MatchProperty(p));
     }
 
-    public virtual bool MatchProperty(RtpcV01Variant property, bool useSubFilters = true)
+    public virtual bool MatchProperty(RtpcV01Variant property, bool subMatch = false)
     {
-        var result = Name.HashJenkins() == property.NameHash;
-        if (useSubFilters && SubFilters.Length > 0)
+        var result = NameHash == property.NameHash;
+        if (!result && subMatch)
         {
-            result |= SubFilters.Any(f => f.MatchProperty(property));
+            result |= SubMatchProperty(property);
         }
 
         return result;
+    }
+
+    public virtual bool SubMatchProperty(RtpcV01Variant property)
+    {
+        return SubFilters.Any(f => f.MatchProperty(property));
+    }
+
+    public override string ToString()
+    {
+        return $"{Name} with {SubFilters.Length} subfilters";
     }
 }
 
 public class RtpcV01FilterString : IRtpcV01Filter
 {
     public string Name { get; set; }
+    public uint NameHash { get; init; }
     public string Value { get; set; }
     public IRtpcV01Filter[] SubFilters { get; set; }
     
     public RtpcV01FilterString(string name, string value, IRtpcV01Filter[]? subFilters = null)
     {
         Name = name;
+        NameHash = name.Jenkins();
         Value = value;
         SubFilters = subFilters ?? [];
     }
 
-    public virtual bool MatchContainer(RtpcV01Container container, bool useSubFilters = true)
+    public virtual bool MatchContainer(RtpcV01Container container)
     {
-        var result = false;
-        
-        foreach (var property in container.Properties)
-        {
-            if (Name.HashJenkins() != property.NameHash) continue;
-            if (property.DeferredData is null) continue;
-            if (property.VariantType != ERtpcV01VariantType.String) continue;
-
-            result = ((string) property.DeferredData).Equals(Value);
-        }
-        
-        if (useSubFilters && SubFilters.Length > 0)
-        {
-            result |= SubFilters.Any(f => f.MatchContainer(container));
-        }
-        
-        return result;
+        return container.Properties.Any(property => MatchProperty(property));
     }
 
-    public virtual bool MatchProperty(RtpcV01Variant property, bool useSubFilters = true)
+    public virtual bool MatchProperty(RtpcV01Variant property, bool subMatch = false)
     {
-        if (Name.HashJenkins() != property.NameHash) return false;
-        if (property.DeferredData is null) return false;
-        if (property.VariantType != ERtpcV01VariantType.String) return false;
-
-        var result = (string) property.DeferredData == Value;
-        if (useSubFilters && SubFilters.Length > 0)
+        if (NameHash == property.NameHash &&
+            property.DeferredData is not null &&
+            property.VariantType == ERtpcV01VariantType.String)
         {
-            result |= SubFilters.Any(f => f.MatchProperty(property));
+            var deferredData = ((string) property.DeferredData).Trim();
+            if (deferredData.Equals(Value)) return true;
         }
 
-        return result;
+        if (subMatch)
+        {
+            return SubFilters.Any(f => f.MatchProperty(property));
+        }
+
+        return false;
+    }
+
+    public virtual bool SubMatchProperty(RtpcV01Variant property)
+    {
+        return SubFilters.Any(f => f.MatchProperty(property));
+    }
+
+    public override string ToString()
+    {
+        return $"{Name}: \"{Value}\" with {SubFilters.Length} subfilters";
     }
 }
