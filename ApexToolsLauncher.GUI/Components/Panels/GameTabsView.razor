@@ -1,16 +1,15 @@
 @inherits MudComponentBase
 
 <ApexTabs
-  Elevation="2"
+  Elevation="0"
   Rounded="true"
   Centered="true"
-  Color="Color.Primary"
-  ApplyEffectsToContainer="true"
-  Class="@Class"
+  Outlined="true"
+  Class="@($"mud-elevation-2 {Class}")"
   Style="@Style"
   PanelStyle="height: 100%"
 >
-  <ApexTabPanel Text="Mods" Style="height: 100%">
+  <ApexTabPanel Text="Mods" BadgeData='"0"' BadgeColor="BadgeColour" Style="height: 100%">
     <ModsTabPanel
       GameId="@GameId"
       ProfileId="@ProfileId"
@@ -18,7 +17,7 @@
     />
   </ApexTabPanel>
 
-  <ApexTabPanel Text="Launch args" Style="height: 100%">
+  <ApexTabPanel Text="Launch args" BadgeData='"0"' BadgeColor="BadgeColour" Style="height: 100%">
     <LaunchArgsTabPanel
       GameId="@GameId"
       ProfileId="@ProfileId"
