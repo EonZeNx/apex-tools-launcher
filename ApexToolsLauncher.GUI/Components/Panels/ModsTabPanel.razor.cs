@@ -42,6 +42,7 @@ public partial class ModsTabPanel : MudComponentBase, IDisposable
 
         ModId = value;
         ModChanged(value);
+        ReloadData();
         StateHasChanged();
     }
     
@@ -51,6 +52,24 @@ public partial class ModsTabPanel : MudComponentBase, IDisposable
         
         var version = ModConfig.Versions.Keys.First();
         SelectedVersion = version;
+    }
+
+    protected void OnVersionChanged(string version)
+    {
+        if (ProfileConfigService is null) return;
+
+        SelectedVersion = version;
+
+        if (!ConstantsLibrary.IsStringInvalid(version))
+        {
+            ProfileConfig.ModConfigs[ModId] = version;
+        }
+        else
+        {
+            ProfileConfig.ModConfigs.Remove(ModId);
+        }
+        
+        ProfileConfigService.Save(GameId, ProfileId, ProfileConfig);
     }
     
     protected void ReloadData()
@@ -65,14 +84,8 @@ public partial class ModsTabPanel : MudComponentBase, IDisposable
         var profileId = AppStateService.GetLastProfileId(GameId);
         ProfileConfig = ProfileConfigService.Get(GameId, profileId);
         
-        if (ProfileConfig.ModConfigs.TryGetValue(ModId, out var version))
-        {
-            SelectedVersion = version;
-        }
-        else
-        {
-            TrySelectFirstVersion();
-        }
+        SelectedVersion = ProfileConfig.ModConfigs.TryGetValue(ModId, out var version)
+            ? version : ConstantsLibrary.InvalidString;
     }
     
     protected override async Task OnParametersSetAsync()
