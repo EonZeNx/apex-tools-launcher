@@ -25,7 +25,7 @@ public partial class GameTabsView : MudComponentBase, IDisposable
     public string PanelStyle { get; set; } = "";
     
     protected ProfileConfig ProfileConfig { get; set; } = new();
-    protected Color BadgeColour => !ConstantsLibrary.IsStringInvalid(ProfileId) ? Color.Primary : Color.Info;
+    protected Color BadgeColour => !ConstantsLibrary.IsStringInvalid(ProfileId) ? Color.Secondary : Color.Primary;
     protected int EnabledModCount => ProfileConfig.ModConfigs.Count;
     protected int EnabledLaunchArgumentCount => ProfileConfig.LaunchArguments.Count;
     

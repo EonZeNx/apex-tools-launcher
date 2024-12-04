@@ -45,14 +45,6 @@ public partial class ModsTabPanel : MudComponentBase, IDisposable
         ReloadData();
         StateHasChanged();
     }
-    
-    protected void TrySelectFirstVersion()
-    {
-        if (ModConfig.Versions.Count == 0) return;
-        
-        var version = ModConfig.Versions.Keys.First();
-        SelectedVersion = version;
-    }
 
     protected void OnVersionChanged(string version)
     {
@@ -79,6 +71,12 @@ public partial class ModsTabPanel : MudComponentBase, IDisposable
         if (ModConfigService is null) return;
         
         ModConfigs = ModConfigService.GetAllFromGame(GameId);
+        if (!ModConfigs.ContainsKey(ModId) && !ConstantsLibrary.IsStringInvalid(ModId))
+        {
+            ModId = ConstantsLibrary.InvalidString;
+            ModChanged(ModId);
+        }
+        
         ModConfig = ModConfigService.Get(GameId, ModId);
 
         var profileId = AppStateService.GetLastProfileId(GameId);

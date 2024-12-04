@@ -20,6 +20,9 @@ public partial class ModVersionSelect : MudComponentBase
     public string GameId { get; set; } = ConstantsLibrary.InvalidString;
     
     [Parameter]
+    public string ProfileId { get; set; } = ConstantsLibrary.InvalidString;
+    
+    [Parameter]
     public string ModId { get; set; } = ConstantsLibrary.InvalidString;
     
     [Parameter]
@@ -39,7 +42,11 @@ public partial class ModVersionSelect : MudComponentBase
     {
         if (GameConfigService is null) return;
         if (ModConfigService is null) return;
-        
+
+        if (ConstantsLibrary.IsStringInvalid(ProfileId))
+        {
+            Version = ConstantsLibrary.InvalidString;
+        }
         ModConfig = ModConfigService.Get(GameId, ModId);
     }
     

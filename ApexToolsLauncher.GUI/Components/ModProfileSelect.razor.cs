@@ -65,6 +65,11 @@ public partial class ModProfileSelect : MudComponentBase, IDisposable
         }
         
         ProfileConfigs = ProfileConfigService.GetAllFromGame(GameId);
+        if (!ProfileConfigs.ContainsKey(SelectedProfile) && !ConstantsLibrary.IsStringInvalid(SelectedProfile))
+        {
+            SelectedProfile = ConstantsLibrary.InvalidString;
+            ProfileChanged(SelectedProfile);
+        }
     }
     
     protected override async Task OnParametersSetAsync()
