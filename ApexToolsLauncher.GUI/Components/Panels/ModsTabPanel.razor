@@ -1,14 +1,14 @@
 @using ApexToolsLauncher.Core.Libraries
 @inherits MudComponentBase
 
-<div class="@Class" style="@Style">
-  <MudStack Row="@true" Spacing="0" Style="height: 100%">
+<MudGrid Class="@Class" Style="@Style" Spacing="0">
+  <MudItem xs="4" Class="d-flex justify-center align-center">
     <MudList
       T="string"
       SelectedValue="@ModId"
       SelectedValueChanged="@ListValueChanged"
       Color="@Color.Primary"
-      Style="height: 100%; overflow-y: scroll; flex-grow: 1"
+      Style="width: 100%; height: 100%; overflow-y: scroll"
     >
       @if (ModConfigs.Count == 0)
       {
@@ -37,24 +37,24 @@
       }
     </MudList>
     
-    <MudDivider Vertical="true" FlexItem="true"/>
+    <MudDivider Vertical="true" FlexItem="true" />
+  </MudItem>
 
-    <div class="pa-2" style="height: 100%; flex-grow: 3">
-      <MudStack Spacing="1">
-        <MudText Typo="Typo.body1">Description</MudText>
-        <MudText Typo="Typo.body2">@(ModConfig.Description)</MudText>
-      </MudStack>
+  <MudItem xs="8" Class="pa-4">
+    <MudStack Spacing="1">
+      <MudText Typo="Typo.body1">Description</MudText>
+      <MudText Typo="Typo.body2">@(ModConfig.Description)</MudText>
+    </MudStack>
 
-      @if (ModConfig.Versions.TryGetValue(SelectedVersion, out var modContentConfig))
+    @if (ModConfig.Versions.TryGetValue(SelectedVersion, out var modContentConfig))
+    {
+      if (!string.IsNullOrEmpty(modContentConfig.Description))
       {
-        if (!string.IsNullOrEmpty(modContentConfig.Description))
-        {
-          <MudStack Spacing="1">
-            <MudText Typo="Typo.body1" Class="mt-4">Version</MudText>
-            <pre><MudText Typo="Typo.body2">@(modContentConfig.Description)</MudText></pre>
-          </MudStack>
-        }
+        <MudStack Spacing="1">
+          <MudText Typo="Typo.body1" Class="mt-4">Version</MudText>
+          <pre><MudText Typo="Typo.body2">@(modContentConfig.Description)</MudText></pre>
+        </MudStack>
       }
-    </div>
-  </MudStack>
-</div>
+    }
+  </MudItem>
+</MudGrid>
