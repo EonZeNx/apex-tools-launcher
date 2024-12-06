@@ -23,8 +23,6 @@ public class ProfileConfigService : IProfileConfigService
         var optionConfig = ConfigLibrary.LoadProfileConfig(gameId, profileId);
         if (!optionConfig.IsSome(out var profileConfig))
         {
-            LogService?.Warning($"Failed to load '{profileId}' for '{gameId}'");
-            
             if (GameProfileConfigs.TryGetValue(gameId, out var existingProfileConfigs))
             {
                 if (existingProfileConfigs.ContainsKey(profileId))
@@ -125,6 +123,12 @@ public class ProfileConfigService : IProfileConfigService
     public ProfileConfig Get(string gameId, string profileId)
     {
         var result = new ProfileConfig();
+        if (ConstantsLibrary.IsStringInvalid(gameId) || ConstantsLibrary.IsStringInvalid(profileId))
+        {
+            LogService?.Debug($"'{gameId}' or '{profileId}' is invalid");
+            return result;
+        }
+        
         if (GameProfileConfigs.TryGetValue(gameId, out var profileConfigs))
         {
             if (profileConfigs.TryGetValue(profileId, out var profileConfig))
@@ -133,12 +137,12 @@ public class ProfileConfigService : IProfileConfigService
             }
             else
             {
-                LogService?.Warning($"'{gameId}' for '{profileId}' not loaded");
+                LogService?.Warning($"'{profileId}' for '{gameId}' not loaded");
             }
         }
         else
         {
-            LogService?.Warning($"'{gameId}' for '{profileId}' not loaded");
+            LogService?.Warning($"'{profileId}' for '{gameId}' not loaded");
         }
         
         return result;
