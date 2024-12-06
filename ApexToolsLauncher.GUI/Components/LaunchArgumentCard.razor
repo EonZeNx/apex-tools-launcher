@@ -63,7 +63,7 @@
               <MudItem xs="@(xsSize)">
                 @switch (argumentConfig.Type)
                 {
-                case ArgumentType.Select:
+                case GameArgumentType.Select:
                   <MudSelect
                     T="@string"
                     Label="@argumentConfig.Title"
@@ -80,7 +80,7 @@
                     }
                   </MudSelect>
                   break;
-                case ArgumentType.String:
+                case GameArgumentType.String:
                 default:
                   <MudTextField
                     T="@string"
