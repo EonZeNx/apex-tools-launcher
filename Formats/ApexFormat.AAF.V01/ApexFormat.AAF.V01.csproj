@@ -6,6 +6,7 @@
         <Nullable>enable</Nullable>
         <AssemblyName>ApexFormat.AAF.V01</AssemblyName>
         <RootNamespace>ApexFormat.AAF.V01</RootNamespace>
+        <LangVersion>13</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>
