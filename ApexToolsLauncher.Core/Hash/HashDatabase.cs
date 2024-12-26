@@ -11,8 +11,9 @@ public enum EHashType
     FilePath = 0b_0000_0001,
     Property = 0b_0000_0010,
     Class    = 0b_0000_0100,
-    Various  = 0b_0000_1000,
+    Event    = 0b_0000_1000,
     
+    Various  = 0b_0100_0000,
     Unknown  = 0b_1000_0000
 }
 
@@ -45,9 +46,10 @@ public class HashDatabase
     
     public static Dictionary<EHashType, string> HashTypeToTable = new()
     {
-        { EHashType.FilePath, "filepaths" },
-        { EHashType.Property, "properties" },
-        { EHashType.Class,    "classes" },
+        { EHashType.FilePath, "filepath" },
+        { EHashType.Property, "property" },
+        { EHashType.Class,    "class" },
+        { EHashType.Event,    "event" },
         { EHashType.Various,  "various" },
     };
     public static Dictionary<string, EHashType> TableToHashType = HashTypeToTable

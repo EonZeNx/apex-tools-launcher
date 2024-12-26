@@ -235,4 +235,54 @@ public static class RtpcV01VariantExtensions
 
         return xe;
     }
+
+    public static string AsString(this RtpcV01Variant header)
+    {
+        if (header.DeferredData is null) return string.Empty;
+        if (header.VariantType != ERtpcV01VariantType.String)
+        {
+            return string.Empty;
+        }
+
+        return (string) header.DeferredData;
+    }
+
+    public static float[] AsFloatArray(this RtpcV01Variant header)
+    {
+        if (header.DeferredData is null) return [];
+
+        return header.VariantType switch
+        {
+            ERtpcV01VariantType.Vector2 or
+                ERtpcV01VariantType.Vector3 or
+                ERtpcV01VariantType.Vector4 or
+                ERtpcV01VariantType.Matrix3X3 or
+                ERtpcV01VariantType.Matrix4X4 or
+                ERtpcV01VariantType.Float32Array
+                => (float[])header.DeferredData,
+            _ => []
+        };
+    }
+
+    public static uint[] AsUIntArray(this RtpcV01Variant header)
+    {
+        if (header.DeferredData is null) return [];
+        if (header.VariantType != ERtpcV01VariantType.UInteger32Array)
+        {
+            return [];
+        }
+
+        return (uint[]) header.DeferredData;
+    }
+
+    public static int[] AsIntArray(this RtpcV01Variant header)
+    {
+        if (header.DeferredData is null) return [];
+        if (header.VariantType != ERtpcV01VariantType.UInteger32Array)
+        {
+            return [];
+        }
+
+        return (int[]) header.DeferredData;
+    }
 }

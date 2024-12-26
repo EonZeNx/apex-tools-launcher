@@ -49,4 +49,34 @@ public static class RtpcV01VariantHeaderExtensions
 
         return Option.Some(result);
     }
+
+    public static uint AsUInt(this RtpcV01VariantHeader header)
+    {
+        if (header.VariantType != ERtpcV01VariantType.UInteger32)
+        {
+            return 0;
+        }
+
+        return BitConverter.ToUInt32(header.Data);
+    }
+
+    public static int AsInt(this RtpcV01VariantHeader header)
+    {
+        if (header.VariantType != ERtpcV01VariantType.UInteger32)
+        {
+            return 0;
+        }
+
+        return BitConverter.ToInt32(header.Data);
+    }
+
+    public static float AsFloat(this RtpcV01VariantHeader header)
+    {
+        if (header.VariantType != ERtpcV01VariantType.Float32)
+        {
+            return 0;
+        }
+
+        return BitConverter.ToSingle(header.Data);
+    }
 }

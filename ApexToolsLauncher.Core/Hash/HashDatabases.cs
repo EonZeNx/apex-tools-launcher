@@ -63,6 +63,12 @@ public class HashDatabases
 
     public static IEnumerable<string> AddToDatabase(string[] values, string databaseName, EHashType hashType)
     {
+        if (Databases.All(d => d.DatabaseName != databaseName))
+        {
+            var databasePath = Path.Join(CoreConfig.AppConfig.DatabasesDirectory, $"{databaseName}.db");
+            OpenConnection(databasePath);
+        }
+        
         lock (Databases)
         {
             var optionDatabase = Databases
