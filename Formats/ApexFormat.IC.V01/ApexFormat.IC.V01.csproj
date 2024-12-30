@@ -4,8 +4,8 @@
         <TargetFramework>net9.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <AssemblyName>ApexFormat.IRTPC.V14</AssemblyName>
-        <RootNamespace>ApexFormat.IRTPC.V14</RootNamespace>
+        <AssemblyName>ApexFormat.IC.V01</AssemblyName>
+        <RootNamespace>ApexFormat.IC.V01</RootNamespace>
         <LangVersion>13</LangVersion>
     </PropertyGroup>
 
@@ -14,7 +14,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="CommunityToolkit.HighPerformance" Version="8.3.2" />
+      <PackageReference Include="CommunityToolkit.HighPerformance" Version="8.4.0" />
     </ItemGroup>
 
 </Project>

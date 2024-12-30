@@ -15,7 +15,7 @@
       <ProjectReference Include="..\Formats\ApexFormat.AAF.V01\ApexFormat.AAF.V01.csproj" />
       <ProjectReference Include="..\Formats\ApexFormat.ADF.V04\ApexFormat.ADF.V04.csproj" />
       <ProjectReference Include="..\Formats\ApexFormat.AVTX.V01\ApexFormat.AVTX.V01.csproj" />
-      <ProjectReference Include="..\Formats\ApexFormat.IRTPC.V14\ApexFormat.IRTPC.V14.csproj" />
+      <ProjectReference Include="..\Formats\ApexFormat.IC.V01\ApexFormat.IC.V01.csproj" />
       <ProjectReference Include="..\Formats\ApexFormat.RTPC.V01\ApexFormat.RTPC.V01.csproj" />
       <ProjectReference Include="..\Formats\ApexFormat.RTPC.V03\ApexFormat.RTPC.V03.csproj" />
       <ProjectReference Include="..\Formats\ApexFormat.SARC.V02\ApexFormat.SARC.V02.csproj" />
