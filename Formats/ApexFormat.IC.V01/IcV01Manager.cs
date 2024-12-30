@@ -1,5 +1,8 @@
-﻿using ApexFormat.IC.V01.Class;
+﻿using System.Xml;
+using System.Xml.Linq;
+using ApexFormat.IC.V01.Class;
 using ApexToolsLauncher.Core.Class;
+using ApexToolsLauncher.Core.Libraries;
 
 namespace ApexFormat.IC.V01;
 
@@ -28,7 +31,7 @@ public class IcV01Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
     
     public static int Decompress(Stream inBuffer, Stream outBuffer)
     {
-        List<IcV01Instance> Instances = [];
+        List<IcV01Instance> instances = [];
         while (inBuffer.Position < inBuffer.Length)
         {
             var optionInstance = inBuffer.ReadIcV01Instance();
@@ -37,10 +40,24 @@ public class IcV01Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
                 break;
             }
             
-            Instances.Add(instance);
+            instances.Add(instance);
         }
         
-        // todo: extract to xml
+        var outer = new XElement("instances");
+        outer.SetAttributeValue("extension", "bin");
+
+        foreach (var instance in instances)
+        {
+            outer.Add(instance.ToXElement());
+        }
+        
+        var xd = new XDocument(XDocumentLibrary.AtlGeneratedComment(), outer);
+        using var xw = XmlWriter.Create(outBuffer, new XmlWriterSettings
+        {
+            Indent = true,
+            IndentChars = "\t"
+        });
+        xd.Save(xw);
 
         return 0;
     }

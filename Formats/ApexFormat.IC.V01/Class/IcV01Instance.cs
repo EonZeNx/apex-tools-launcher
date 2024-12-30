@@ -1,4 +1,5 @@
-﻿using ApexFormat.IC.V01.Enum;
+﻿using System.Xml.Linq;
+using ApexFormat.IC.V01.Enum;
 using ApexToolsLauncher.Core.Class;
 using ApexToolsLauncher.Core.Extensions;
 using CommunityToolkit.HighPerformance;
@@ -52,9 +53,28 @@ public static class IcV01InstanceExtensions
         {
             result.PropertyCount = stream.Read<byte>();
             result.PropertyType = stream.Read<EIcV01ContainerType>();
-            result.Name = stream.ReadStringLengthPrefix();
+            
+            var stringLength = stream.Read<ushort>();
+            result.Name = stream.ReadStringOfLength(stringLength);
         }
 
         return Option.Some(result);
+    }
+
+    public static XElement ToXElement(this IcV01Instance instance)
+    {
+        var xe = new XElement("instance");
+        
+        if (!string.IsNullOrEmpty(instance.Name))
+        {
+            xe.SetAttributeValue("name", instance.Name);
+        }
+
+        foreach (var container in instance.Containers)
+        {
+            xe.Add(container.ToXElement());
+        }
+
+        return xe;
     }
 }
