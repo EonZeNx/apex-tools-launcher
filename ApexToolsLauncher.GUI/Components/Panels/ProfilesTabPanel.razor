@@ -58,7 +58,7 @@
       <MudButton
         Variant="Variant.Filled"
         OnClick="@ConfirmName"
-        Color="@(InvalidTitle ? Color.Error :Color.Primary)"
+        Color="@(InvalidTitle ? Color.Error : Color.Primary)"
         Disabled="InvalidTitle"
       >
         Confirm
@@ -66,24 +66,24 @@
     </MudStack>
     
     <MudGrid Spacing="2" Class="mt-1">
-      <MudItem xs="4">
+      <MudItem xs="6">
         <MudText Typo="Typo.body1">Game</MudText>
       </MudItem>
-      <MudItem xs="8">
+      <MudItem xs="6">
         <MudText Typo="Typo.body2">@(GameConfig.Title) (@(GameId))</MudText>
       </MudItem>
 
-      <MudItem xs="4">
+      <MudItem xs="6">
         <MudText Typo="Typo.body1">Mods</MudText>
       </MudItem>
-      <MudItem xs="8">
+      <MudItem xs="6">
         <MudText Typo="Typo.body2">@(ProfileConfig.ModConfigs.Count) / @(ModCount) enabled</MudText>
       </MudItem>
 
-      <MudItem xs="4">
+      <MudItem xs="6">
         <MudText Typo="Typo.body1">Launch arguments</MudText>
       </MudItem>
-      <MudItem xs="8">
+      <MudItem xs="6">
         <MudText Typo="Typo.body2">@(ProfileConfig.LaunchArguments.Count) / @(GameConfig.LaunchOptions.Count) enabled</MudText>
       </MudItem>
     </MudGrid>
