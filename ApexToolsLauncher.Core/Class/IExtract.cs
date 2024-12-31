@@ -1,6 +1,21 @@
 ﻿namespace ApexToolsLauncher.Core.Class;
 
-public interface IProcessBasic
+public interface IExtractPathToStream
 {
-    int ProcessBasic(string inFilePath, string outDirectory);
+    int ExtractPathToStream(string inPath, Stream outStream);
+}
+
+public interface IExtractStreamToStream
+{
+    int ExtractStreamToStream(Stream inStream, Stream outStream);
+}
+
+public interface IExtractStreamToPath
+{
+    int ExtractStreamToPath(Stream inStream, string outPath);
+}
+
+public interface IExtractPathToPath
+{
+    int ExtractPathToPath(string inPath, string outPath);
 }

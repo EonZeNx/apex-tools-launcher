@@ -46,7 +46,7 @@ public class RtpcV03Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
         var rootXElement = container.WriteXElement();
         outer.Add(rootXElement);
         
-        var xd = new XDocument(XDocumentLibrary.AtlGeneratedComment(), outer);
+        var xd = new XDocument(XDocumentLibrary.ProjectComment(), outer);
         using var xw = XmlWriter.Create(outBuffer, new XmlWriterSettings
         {
             Indent = true,

@@ -9,6 +9,14 @@
         <LangVersion>13</LangVersion>
     </PropertyGroup>
 
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <DocumentationFile>bin\Debug\ApexFormat.IC.V01.xml</DocumentationFile>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <DocumentationFile>bin\Release\ApexFormat.IC.V01.xml</DocumentationFile>
+    </PropertyGroup>
+
     <ItemGroup>
       <ProjectReference Include="..\..\ApexToolsLauncher.Core\ApexToolsLauncher.Core.csproj" />
     </ItemGroup>

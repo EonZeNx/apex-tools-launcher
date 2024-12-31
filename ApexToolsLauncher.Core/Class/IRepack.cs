@@ -1,11 +1,21 @@
 ﻿namespace ApexToolsLauncher.Core.Class;
 
-public interface IExtractFile
+public interface IRepackPathToStream
 {
-    int ExtractFile(Stream inStream, Stream outStream);
+    int RepackPathToStream(string inPath, Stream outStream);
 }
 
-public interface IExtractDirectory
+public interface IRepackStreamToStream
 {
-    int ExtractFile(Stream inStream, string outFilePath);
+    int RepackStreamToStream(Stream inStream, Stream outStream);
+}
+
+public interface IRepackStreamToPath
+{
+    int RepackStreamToPath(Stream inStream, string outPath);
+}
+
+public interface IRepackPathToPath
+{
+    int RepackPathToPath(string inPath, string outPath);
 }

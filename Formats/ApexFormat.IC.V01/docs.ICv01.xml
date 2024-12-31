@@ -1,0 +1,76 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<doc>
+  <members name="IcV01Container">
+    <IcV01Container>
+      <remarks>
+        <list type="table">
+          <listheader>
+            <term>Property</term>
+            <description>Type</description>
+          </listheader>
+          <item>
+            <term><c>NameHash</c></term>
+            <description><see cref="uint"/></description>
+          </item>
+          <item>
+            <term><c>Count</c></term>
+            <description><see cref="byte"/></description>
+          </item>
+          <item>
+            <term><c>Collections</c></term>
+            <description><see cref="IcV01Collection"/>[]</description>
+          </item>
+        </list>
+      </remarks>
+    </IcV01Container>
+
+    <NameHash>
+      <summary>
+        The name hash for this container
+      </summary>
+    </NameHash>
+
+    <Count>
+      <summary>
+        Number of <see cref="IcV01Collection"/>s within this class
+      </summary>
+    </Count>
+
+    <Collections>
+      <summary>
+        <see cref="IcV01Collection"/>s within this class
+      </summary>
+    </Collections>
+  </members>
+
+  <members name="IcV01ContainerLibrary">
+    <IcV01ContainerLibrary>
+      <summary>
+        Functions for <see cref="IcV01Container"/>s. Separated for data/logic structure
+      </summary>
+    </IcV01ContainerLibrary>
+    
+    <SizeOf>
+      <summary>
+        Constant minimum size of a <see cref="IcV01Container"/>
+      </summary>
+    </SizeOf>
+
+    <Read>
+      <summary>
+        Reads a <see cref="IcV01Container"/> from a stream
+      </summary>
+      <param name="stream">Stream to read from</param>
+      <typeparam name="T">A constrained generic to enable Read&lt;T&gt; function calls</typeparam>
+      <returns>Option(<see cref="IcV01Container"/>)</returns>
+    </Read>
+
+    <ToXElement>
+      <summary>
+        Converts a <see cref="IcV01Container"/> to XElement
+      </summary>
+      <param name="container"><see cref="IcV01Container"/> to convert</param>
+      <returns>XElement form of <see cref="IcV01Container"/></returns>
+    </ToXElement>
+  </members>
+</doc>

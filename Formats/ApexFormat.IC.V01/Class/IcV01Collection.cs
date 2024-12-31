@@ -1,6 +1,5 @@
 ﻿using System.Xml.Linq;
 using ApexFormat.IC.V01.Enum;
-using ApexToolsLauncher.Core.Class;
 using ApexToolsLauncher.Core.Libraries;
 using CommunityToolkit.HighPerformance;
 using RustyOptions;
@@ -11,9 +10,9 @@ namespace ApexFormat.IC.V01.Class;
 /// Structure:
 /// <br/>Type - <see cref="EIcV01CollectionType"/>
 /// <br/>Count - <see cref="ushort"/>
-/// <br/>Collections OR Properties - <see cref="ushort"/>
+/// <br/>Containers OR Properties - <see cref="IcV01Container"/> OR <see cref="IcV01Property"/>
 /// </summary>
-public class IcV01Collection : ISizeOf
+public class IcV01Collection
 {
     public EIcV01CollectionType Type = EIcV01CollectionType.Unk0;
     public ushort Count = 0;
@@ -21,20 +20,23 @@ public class IcV01Collection : ISizeOf
     public IcV01Container[] Containers = [];
     public IcV01Property[] Properties = [];
 
-    public static uint SizeOf()
+    public override string ToString()
     {
-        return sizeof(EIcV01CollectionType) + // Type
-               sizeof(ushort); // Count
+        return $"{Count} {Type}";
     }
 }
 
-public static class IcV01CollectionExtensions
+public static class IcV01CollectionLibrary
 {
-    public static Option<IcV01Collection> ReadIcV01Collection(this Stream stream)
+    public const int SizeOf = sizeof(EIcV01CollectionType) // Type
+                              + sizeof(ushort); // Count
+    
+    public static Option<T> Read<T>(this Stream stream)
+        where T : IcV01Collection
     {
-        if (stream.Length - stream.Position < IcV01Collection.SizeOf())
+        if (stream.Length - stream.Position < SizeOf)
         {
-            return Option<IcV01Collection>.None;
+            return Option<T>.None;
         }
         
         var result = new IcV01Collection
@@ -51,7 +53,7 @@ public static class IcV01CollectionExtensions
                 result.Containers = new IcV01Container[result.Count];
                 for (var i = 0; i < result.Count; i++)
                 {
-                    var optionCollection = stream.ReadIcV01Container();
+                    var optionCollection = stream.Read<IcV01Container>();
                     if (optionCollection.IsSome(out var collection))
                         result.Containers[i] = collection;
                 }
@@ -71,10 +73,10 @@ public static class IcV01CollectionExtensions
             default:
                 throw new ArgumentOutOfRangeException();
         }
-        
-        return Option.Some(result);
+
+        return Option.Some((T) result);
     }
-    
+
     public static XElement ToXElement(this IcV01Collection collection)
     {
         var xe = new XElement("collection");

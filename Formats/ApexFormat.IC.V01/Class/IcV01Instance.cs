@@ -44,7 +44,7 @@ public static class IcV01InstanceExtensions
         result.Collections = new IcV01Collection[result.Count];
         for (var i = 0; i < result.Count; i++)
         {
-            var optionContainer = IcV01CollectionExtensions.ReadIcV01Collection(stream);
+            var optionContainer = stream.Read<IcV01Collection>();
             if (optionContainer.IsSome(out var container))
                 result.Collections[i] = container;
         }
