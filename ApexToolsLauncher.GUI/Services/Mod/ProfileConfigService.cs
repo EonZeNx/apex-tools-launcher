@@ -210,8 +210,45 @@ public class ProfileConfigService : IProfileConfigService
         var result = new Task(() => Delete(gameId, profileId));
         return result;
     }
+
     
+    public bool Create(string gameId, string profileId, ProfileConfig? config = null)
+    {
+        if (IdExists(gameId, profileId))
+        {
+            return false;
+        }
+
+        Save(gameId, profileId, config ?? new ProfileConfig());
+
+        return true;
+    }
+
+    public Task<bool> CreateAsync(string gameId, string profileId, ProfileConfig? config = null)
+    {
+        return Task.FromResult(Create(gameId, profileId, config));
+    }
+
+    public string ToId(string value)
+    {
+        var result = value.ToLowerInvariant().Replace(" ", "_");
+        result = string.Join("_", result.Split(Path.GetInvalidFileNameChars()));
+        
+        return result;
+    }
     
+    public bool IdExists(string gameId, string profileId)
+    {
+        var result = false;
+        if (GameProfileConfigs.TryGetValue(gameId, out var profileConfigs))
+        {
+            result = profileConfigs.ContainsKey(profileId);
+        }
+
+        return result;
+    }
+
+
     public void RegisterOnReload(Action action)
     {
         LogService?.Debug("Adding to reload event");
@@ -222,33 +259,5 @@ public class ProfileConfigService : IProfileConfigService
     {
         LogService?.Debug("Removing from reload event");
         ConfigReloaded -= action;
-    }
-    
-    
-    public void Update(string gameId, string oldProfileId, ProfileConfig profileConfig)
-    {
-        try
-        {
-            Delete(gameId, oldProfileId);
-        }
-        catch
-        {
-            LogService?.Error($"Failed to update '{oldProfileId}' from '{gameId}'");
-            return;
-        }
-
-        var profileId = ConstantsLibrary.CreateId(profileConfig.Title);
-        Save(gameId, profileId, profileConfig);
-    }
-
-    public bool ProfileExists(string gameId, string profileId)
-    {
-        var result = false;
-        if (GameProfileConfigs.TryGetValue(gameId, out var profileConfigs))
-        {
-            result = profileConfigs.ContainsKey(profileId);
-        }
-
-        return result;
     }
 }

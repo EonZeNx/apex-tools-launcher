@@ -10,56 +10,60 @@
       Color="@Color.Primary"
       Style="width: 100%; height: 100%; overflow-y: scroll"
     >
-      @if (ProfileConfigs.Count == 0)
+      @foreach (var (profileId, config) in ProfileConfigs)
       {
-        <MudListItem Text="No profiles found" Value="ConstantsLibrary.InvalidString"/>
-      }
-      else
-      {
-        foreach (var (profileId, config) in ProfileConfigs)
+        var icon = Icons.Material.Filled.RadioButtonUnchecked;
+        var iconColour = Color.Inherit;
+
+        if (ProfileConfig.ModConfigs.ContainsKey(profileId))
         {
-          var icon = Icons.Material.Filled.RadioButtonUnchecked;
-          var iconColour = Color.Inherit;
-
-          if (ProfileConfig.ModConfigs.ContainsKey(profileId))
-          {
-            icon = Icons.Material.Filled.RadioButtonChecked;
-            iconColour = Color.Primary;
-          }
-
-          <MudListItem Value="@profileId">
-            <MudStack Row="@true" Class="align-center">
-              <MudIcon Icon="@icon" Color="@iconColour" Size="Size.Small"/>
-              <MudText Typo="Typo.body1">@(config.Title)</MudText>
-            </MudStack>
-          </MudListItem>
+          icon = Icons.Material.Filled.RadioButtonChecked;
+          iconColour = Color.Primary;
         }
+
+        <MudListItem Value="@profileId">
+          <MudStack Row="@true" Class="align-center">
+            <MudIcon Icon="@icon" Color="@iconColour" Size="Size.Small"/>
+            <MudText Typo="Typo.body1">@(config.Title)</MudText>
+          </MudStack>
+        </MudListItem>
       }
+
+      <MudListItem Value="@ConstantsLibrary.InvalidString">
+        <MudStack Row="@true" Class="align-center">
+          <MudIcon Icon="@Icons.Material.Filled.Add" Size="Size.Small"/>
+          <MudText Typo="Typo.body1">Create</MudText>
+        </MudStack>
+      </MudListItem>
     </MudList>
     
     <MudDivider Vertical="true" FlexItem="true" />
   </MudItem>
 
   <MudItem xs="8" Class="pa-4 d-flex flex-column justify-space-between">
-    <MudGrid>
-      <MudItem xs="6">
-        <MudTextField
-          Label="Rename"
-          Value="@ProfileConfig.Title"
-          Variant="Variant.Outlined"
-          Margin="Margin.Dense"
-        />
-      </MudItem>
-
-      <MudItem xs="3">
-        <MudIconButton
-          Icon="@Icons.Material.Filled.Refresh"
-        />
-      </MudItem>
-
-      <MudItem xs="3">
-        <MudButton>Confirm</MudButton>
-      </MudItem>
-    </MudGrid>
+    <MudStack Row="@true" AlignItems="AlignItems.Center">
+      <MudTextField
+        Label="Title"
+        @bind-Value="@EditedTitle"
+        Variant="Variant.Outlined"
+        Margin="Margin.Dense"
+        Immediate="@true"
+        AdornmentIcon="@Icons.Material.Filled.Refresh"
+        IconSize="Size.Small"
+        Adornment="Adornment.End"
+        AdornmentColor="Color.Info"
+        OnAdornmentClick="@RefreshEditedTitle"
+      />
+      
+      <MudButton
+        Variant="Variant.Filled"
+        OnClick="@ConfirmName"
+        Color="@(InvalidTitle ? Color.Error :Color.Primary)"
+        Disabled="InvalidTitle"
+      >
+        Confirm
+      </MudButton>
+      
+    </MudStack>
   </MudItem>
 </MudGrid>

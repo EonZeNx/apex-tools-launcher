@@ -4,7 +4,7 @@
   @foreach (var (gameId, gameConfig) in GameConfigs)
   {
     // var invalidProfile = !ProfileConfigService.ProfileExists(gameId, gameConfig.SelectedProfile);
-    var invalidProfile = !ProfileConfigService.ProfileExists(gameId, gameId);
+    var invalidProfile = !ProfileConfigService.IdExists(gameId, gameId);
     
     <CascadingValue Value="@gameId">
       <MudCard>
