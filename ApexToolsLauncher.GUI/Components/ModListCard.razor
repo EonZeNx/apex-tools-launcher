@@ -1,0 +1,49 @@
+﻿@inherits MudComponentBase
+@using ApexToolsLauncher.Core.Libraries
+
+<MudCard Class="@Class" Style="@Style">
+  <MudCardHeader Class="pb-0">
+    <CardHeaderContent>
+      <MudStack Row="@true" AlignItems="AlignItems.Center">
+        <MudText Typo="Typo.h6">Mods</MudText>
+        <MudText Typo="Typo.subtitle1" Style="opacity: 66%">&bull;</MudText>
+        <MudText Typo="Typo.subtitle1" Style="opacity: 66%">@(ProfileConfig.ModConfigs.Count) / @(ModConfigs.Count) enabled</MudText>
+      </MudStack>
+    </CardHeaderContent>
+  </MudCardHeader>
+  
+  <MudCardContent Style="overflow-y: scroll">
+    <MudList
+      T="string"
+      SelectedValue="@ModId"
+      SelectedValueChanged="@ListValueChanged"
+      Color="@Color.Primary"
+    >
+      @if (ModConfigs.Count == 0)
+      {
+        <MudListItem Text="No mods found" Value="ConstantsLibrary.InvalidString"/>
+      }
+      else
+      {
+        foreach (var (modId, config) in ModConfigs)
+        {
+          var icon = Icons.Material.Filled.RadioButtonUnchecked;
+          var iconColour = Color.Inherit;
+          
+          if (ProfileConfig.ModConfigs.ContainsKey(modId))
+          {
+            icon = Icons.Material.Filled.RadioButtonChecked;
+            iconColour = Color.Primary;
+          }
+          
+          <MudListItem Value="@modId">
+            <MudStack Row="@true" Class="align-center">
+              <MudIcon Icon="@icon" Color="@iconColour" Size="Size.Small"/>
+              <MudText Typo="Typo.body1">@(config.Title)</MudText>
+            </MudStack>
+          </MudListItem>
+        }
+      }
+    </MudList>
+  </MudCardContent>
+</MudCard>

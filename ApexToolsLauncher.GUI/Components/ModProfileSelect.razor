@@ -1,0 +1,40 @@
+﻿@inherits MudComponentBase
+@using ApexToolsLauncher.Core.Libraries
+
+<MudStack
+  Row="@true"
+  Spacing="1"
+  AlignItems="AlignItems.Center"
+  Class="@Class"
+  Style="@Style"
+>
+  @if (!HideManage)
+  {
+    <MudIconButton
+      Icon="@Icons.Material.Filled.Edit"
+      OnClick="@ManageProfiles"
+      Size="Size.Medium"
+    />
+  }
+  
+  <MudSelect
+    T="string"
+    Label="Profile"
+    Variant="Variant.Outlined"
+    Value="@SelectedProfile"
+    ValueChanged="@OnProfileChanged"
+    Margin="Margin.Dense"
+    FullWidth="@true"
+  >
+    <MudSelectItem Value="ConstantsLibrary.InvalidString">
+      Vanilla
+    </MudSelectItem>
+
+    @foreach (var (profileId, profileConfig) in ProfileConfigs)
+    {
+      <MudSelectItem Value="@profileId">
+        @(profileConfig.Title)
+      </MudSelectItem>
+    }
+  </MudSelect>
+</MudStack>

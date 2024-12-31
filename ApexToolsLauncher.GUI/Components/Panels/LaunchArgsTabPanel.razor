@@ -1,0 +1,133 @@
+@using ApexToolsLauncher.Core.Config.GUI
+@using ApexToolsLauncher.Core.Libraries
+@inherits MudComponentBase
+
+<MudGrid Class="@Class" Style="@Style" Spacing="0">
+  <MudItem xs="4" Class="d-flex justify-center align-center">
+    <MudList
+      T="string"
+      SelectedValue="@LaunchId"
+      SelectedValueChanged="@ListValueChanged"
+      Color="@Color.Primary"
+      Style="width: 100%; height: 100%; overflow-y: scroll"
+    >
+      @if (GameConfig.LaunchOptions.Count == 0)
+      {
+        <MudListItem Text="No launch arguments found" Value="ConstantsLibrary.InvalidString"/>
+      }
+      else
+      {
+        foreach (var (launchId, launchConfig) in GameConfig.LaunchOptions)
+        {
+          var icon = Icons.Material.Filled.RadioButtonUnchecked;
+          var iconColour = Color.Inherit;
+
+          if (ProfileConfig.LaunchArguments.ContainsKey(launchId))
+          {
+            icon = Icons.Material.Filled.RadioButtonChecked;
+            iconColour = Color.Primary;
+          }
+
+          <MudListItem Value="@launchId">
+            <MudStack Row="@true" Class="align-center">
+              <MudIcon Icon="@icon" Color="@iconColour" Size="Size.Small"/>
+              <MudText Typo="Typo.body1">@(launchConfig.Title)</MudText>
+            </MudStack>
+          </MudListItem>
+        }
+      }
+    </MudList>
+
+    <MudDivider Vertical="true" FlexItem="true" />
+  </MudItem>
+
+  <MudItem xs="8" Class="pa-4 d-flex flex-column justify-space-between">
+    <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Start">
+      <MudStack Spacing="1">
+        <MudText Typo="Typo.h6">Description</MudText>
+        <MudText Typo="Typo.body1">@(LaunchOptionConfig.Description)</MudText>
+      </MudStack>
+      
+      <ApexSwitch
+        T="@bool"
+        Color="Color.Primary"
+        Value="@(ProfileConfig.LaunchArguments.ContainsKey(LaunchId))"
+        ValueChanged="@OnLaunchOptionToggle"
+        Disabled="@(ConstantsLibrary.IsStringInvalid(ProfileId))"
+      />
+    </MudStack>
+
+    <MudStack Spacing="1">
+      @if (LaunchOptionConfig.ArgumentConfig.Any())
+      {
+        var argumentConfigs = LaunchOptionConfig.ArgumentConfig;
+
+        <MudGrid>
+          @{
+            var argumentKeys = argumentConfigs.Keys.ToArray();
+            for (var i = 0; i < argumentKeys.Length; i += 1)
+            {
+              var argumentKey = argumentKeys[i];
+              var argumentConfig = argumentConfigs[argumentKey];
+
+              var value = argumentConfig.Value;
+              if (ProfileConfig.LaunchArguments.TryGetValue(LaunchId, out var launchConfig))
+              {
+                if (launchConfig.TryGetValue(argumentKey, out var profileValue))
+                {
+                  value = profileValue;
+                }
+              }
+
+              var xsSize = 6;
+              if (i == argumentKeys.Length - 1 && i % 2 == 0)
+              {
+                xsSize = 12;
+              }
+
+              <MudItem xs="@(xsSize)">
+                @switch (argumentConfig.Type)
+                {
+                  case GameArgumentType.Select:
+                    <MudSelect
+                      T="@string"
+                      Label="@argumentConfig.Title"
+                      Value="@value"
+                      ValueChanged="@(v => LaunchArgumentChanged(argumentKey, v))"
+                      Variant="Variant.Outlined"
+                      Margin="Margin.Dense"
+                      Disabled="@(!ProfileConfig.LaunchArguments.ContainsKey(LaunchId))">
+                      <MudSelectItem Value="@(ConstantsLibrary.InvalidString)" Disabled="@true">None</MudSelectItem>
+                      @foreach (var configOption in argumentConfig.Options)
+                      {
+                        <MudSelectItem Value="@configOption">@configOption</MudSelectItem>
+                      }
+                    </MudSelect>
+                    break;
+                  case GameArgumentType.String:
+                  default:
+                    <MudTextField
+                      T="@string"
+                      Label="@argumentConfig.Title"
+                      Value="@value"
+                      ValueChanged="@(v => LaunchArgumentChanged(argumentKey, v))"
+                      Variant="Variant.Outlined"
+                      Margin="Margin.Dense"
+                      Disabled="@(!ProfileConfig.LaunchArguments.ContainsKey(LaunchId))"/>
+                    break;
+                }
+              </MudItem>
+            }
+          }
+        </MudGrid>
+      }
+
+      <MudText
+        Typo="Typo.body2"
+        Align="Align.Center"
+        Style="min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: justify; opacity: 75%">
+        @(ConfigLibrary.CreateLaunchArgument(LaunchOptionConfig, ProfileConfig, LaunchId))
+      </MudText>
+    </MudStack>
+  </MudItem>
+</MudGrid>

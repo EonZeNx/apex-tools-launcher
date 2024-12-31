@@ -1,0 +1,46 @@
+@inherits MudComponentBase
+
+<ApexTabs
+  Elevation="0"
+  Rounded="true"
+  Centered="true"
+  Outlined="true"
+  Class="@($"mud-elevation-2 {Class}")"
+  Style="@Style"
+>
+  <ApexTabPanel
+    Text="Mods"
+    BadgeData="@($"{EnabledModCount}")"
+    BadgeColor="ProfileBadgeColour"
+  >
+    <ModsTabPanel
+      GameId="@GameId"
+      ProfileId="@ProfileId"
+      Style="@PanelStyle"
+    />
+  </ApexTabPanel>
+
+  <ApexTabPanel
+    Text="Launch args"
+    BadgeData="@($"{EnabledLaunchArgumentCount}")"
+    BadgeColor="ProfileBadgeColour"
+  >
+    <LaunchArgsTabPanel
+      GameId="@GameId"
+      ProfileId="@ProfileId"
+      Style="@PanelStyle"
+    />
+  </ApexTabPanel>
+
+  <ApexTabPanel
+    Text="Profiles"
+    BadgeData="@($"{EnabledProfileCount}")"
+    BadgeColor="VanillaBadgeColour"
+  >
+    <ProfilesTabPanel
+      GameId="@GameId"
+      ProfileId="@ProfileId"
+      Style="@PanelStyle"
+    />
+  </ApexTabPanel>
+</ApexTabs>

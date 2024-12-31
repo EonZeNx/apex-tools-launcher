@@ -1,0 +1,23 @@
+﻿@inherits LayoutComponentBase
+
+<MudThemeProvider Theme="Theme" IsDarkMode="UsingDarkMode"/>
+<MudDialogProvider
+  MaxWidth="MaxWidth.ExtraSmall"
+  CloseButton="@true"
+  CloseOnEscapeKey="@true"
+/>
+<MudSnackbarProvider />
+<MudPopoverProvider />
+
+<MudLayout>
+  <NavMenu
+    UsingDarkMode="UsingDarkMode"
+    ToggleDarkMode="@ToggleDarkMode"
+  />
+
+  <MudMainContent>
+    <MudContainer MaxWidth="MaxWidth.Large">
+      @Body
+    </MudContainer>
+  </MudMainContent>
+</MudLayout>

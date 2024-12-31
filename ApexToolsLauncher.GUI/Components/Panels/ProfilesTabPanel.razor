@@ -1,0 +1,91 @@
+@using ApexToolsLauncher.Core.Libraries
+@inherits MudComponentBase
+
+<MudGrid Class="@Class" Style="@Style" Spacing="0">
+  <MudItem xs="4" Class="d-flex justify-center align-center">
+    <MudList
+      T="string"
+      SelectedValue="@ProfileId"
+      SelectedValueChanged="@ListValueChanged"
+      Color="@Color.Primary"
+      Style="width: 100%; height: 100%; overflow-y: scroll"
+    >
+      @foreach (var (profileId, config) in ProfileConfigs)
+      {
+        var icon = Icons.Material.Filled.RadioButtonUnchecked;
+        var iconColour = Color.Inherit;
+
+        if (ProfileConfig.ModConfigs.ContainsKey(profileId))
+        {
+          icon = Icons.Material.Filled.RadioButtonChecked;
+          iconColour = Color.Primary;
+        }
+
+        <MudListItem Value="@profileId">
+          <MudStack Row="@true" Class="align-center">
+            <MudIcon Icon="@icon" Color="@iconColour" Size="Size.Small"/>
+            <MudText Typo="Typo.body1">@(config.Title)</MudText>
+          </MudStack>
+        </MudListItem>
+      }
+
+      <MudListItem Value="@ConstantsLibrary.InvalidString">
+        <MudStack Row="@true" Class="align-center">
+          <MudIcon Icon="@Icons.Material.Filled.Add" Size="Size.Small"/>
+          <MudText Typo="Typo.body1">Create</MudText>
+        </MudStack>
+      </MudListItem>
+    </MudList>
+    
+    <MudDivider Vertical="true" FlexItem="true" />
+  </MudItem>
+
+  <MudItem xs="8" Class="pa-4 d-flex flex-column">
+    <MudStack Row="@true" AlignItems="AlignItems.Center">
+      <MudTextField
+        Label="Title"
+        @bind-Value="@EditedTitle"
+        Variant="Variant.Outlined"
+        Margin="Margin.Dense"
+        Immediate="@true"
+        AdornmentIcon="@Icons.Material.Filled.Refresh"
+        IconSize="Size.Small"
+        Adornment="Adornment.End"
+        AdornmentColor="Color.Info"
+        OnAdornmentClick="@RefreshEditedTitle"
+      />
+      
+      <MudButton
+        Variant="Variant.Filled"
+        OnClick="@ConfirmName"
+        Color="@(InvalidTitle ? Color.Error : Color.Primary)"
+        Disabled="InvalidTitle"
+      >
+        Confirm
+      </MudButton>
+    </MudStack>
+    
+    <MudGrid Spacing="2" Class="mt-1">
+      <MudItem xs="6">
+        <MudText Typo="Typo.body1">Game</MudText>
+      </MudItem>
+      <MudItem xs="6">
+        <MudText Typo="Typo.body2">@(GameConfig.Title) (@(GameId))</MudText>
+      </MudItem>
+
+      <MudItem xs="6">
+        <MudText Typo="Typo.body1">Mods</MudText>
+      </MudItem>
+      <MudItem xs="6">
+        <MudText Typo="Typo.body2">@(ProfileConfig.ModConfigs.Count) / @(ModCount) enabled</MudText>
+      </MudItem>
+
+      <MudItem xs="6">
+        <MudText Typo="Typo.body1">Launch arguments</MudText>
+      </MudItem>
+      <MudItem xs="6">
+        <MudText Typo="Typo.body2">@(ProfileConfig.LaunchArguments.Count) / @(GameConfig.LaunchOptions.Count) enabled</MudText>
+      </MudItem>
+    </MudGrid>
+  </MudItem>
+</MudGrid>

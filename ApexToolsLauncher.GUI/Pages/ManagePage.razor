@@ -1,0 +1,24 @@
+@page "/"
+@page "/manage"
+@inherits MudComponentBase
+
+<div class="mt-1">
+  <GameCardsComponent GameChanged="@OnGameChanged"/>
+
+  <MudGrid Class="mt-4" Spacing="3">
+    <MudItem xs="12" Class="pb-0">
+      <GameActionsComponent
+        GameId="@GameId"
+        ProfileChanged="@OnProfileChanged"
+      />
+    </MudItem>
+    
+    <MudItem xs="12">
+      <GameTabsView
+        GameId="@GameId"
+        ProfileId="@ProfileId"
+        PanelStyle="height: 20rem"
+      />
+    </MudItem>
+  </MudGrid>
+</div>

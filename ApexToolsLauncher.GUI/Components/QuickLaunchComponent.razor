@@ -1,0 +1,41 @@
+@inherits MudComponentBase
+
+<MudStack Spacing="3" Class="@Class" Style="@Style">
+  @foreach (var (gameId, gameConfig) in GameConfigs)
+  {
+    // var invalidProfile = !ProfileConfigService.ProfileExists(gameId, gameConfig.SelectedProfile);
+    var invalidProfile = !ProfileConfigService.IdExists(gameId, gameId);
+    
+    <CascadingValue Value="@gameId">
+      <MudCard>
+        <MudCardContent>
+          <MudStack Row="@true" AlignItems="AlignItems.Center">
+            <MudText Typo="Typo.h5" Style="flex-basis: 65%; font-weight: normal">@(gameConfig.Title)</MudText>
+            
+            <div style="flex-basis: 20%">
+              @if (GameProfileConfigs.ContainsKey(gameId))
+              {
+                <GameProfileComponent AllowCreate="@false" AllowEdit="@false"/>
+              }
+              else
+              {
+                @* <MudText Typo="Typo.body2">@(gameConfig.SelectedProfile)</MudText> *@
+                <MudText Typo="Typo.body2">EMPTY</MudText>
+              }
+            </div>
+            
+            <MudButton
+              Variant="Variant.Filled"
+              Color="Color.Primary"
+              Style="flex-basis: 15%"
+              OnClick="@(() => TryLaunchGame(gameId))"
+              Disabled="@(invalidProfile)"
+            >
+              <MudIcon Icon="@Icons.Material.Filled.RocketLaunch"/>
+            </MudButton>
+          </MudStack>
+        </MudCardContent>
+      </MudCard>
+    </CascadingValue>
+  }
+</MudStack>

@@ -1,0 +1,94 @@
+﻿@using ApexToolsLauncher.Core.Libraries
+
+<MudCard>
+  <MudCardHeader>
+    <CardHeaderContent>
+      <MudStack Row="@true" Spacing="2" Class="align-center">
+        <MudSelect
+          T="string"
+          Label="Content version"
+          Variant="Variant.Outlined"
+          Value="@SelectedModContentId"
+          ValueChanged="@SelectedModContentIdChanged"
+          Margin="Margin.Dense"
+          FullWidth="@true"
+          Style="@(SelectedModContentId == ConstantsLibrary.InvalidString ? "font-style: italic" : "")"
+        >
+          <MudSelectItem
+            Value="@(ConstantsLibrary.InvalidString)"
+            Disabled="@true"
+            Style="font-style: italic"
+          >None</MudSelectItem>
+          @foreach (var (modContentId, modContentConfig) in ModContentConfigs)
+          {
+            <MudSelectItem Value="@(modContentId)">@(modContentConfig.Title)</MudSelectItem>
+          }
+        </MudSelect>
+
+        <MudIconButton
+          Icon="@Icons.Material.Filled.Add"
+          Color="Color.Primary"
+          Variant="Variant.Filled"
+          OnClick="@CreateModContentConfig"
+        />
+      </MudStack>
+    </CardHeaderContent>
+  </MudCardHeader>
+  
+  @{
+    var disabled = !ModContentConfigs.ContainsKey(SelectedModContentId);
+    var edited = false;
+    if (ModContentConfigs.TryGetValue(SelectedModContentId, out var modContentVersionConfig))
+    {
+      edited = !MutableModContentConfig.Equals(modContentVersionConfig);
+    }
+
+    <MudCardContent Class="d-flex flex-column gap-2 pt-0">
+      <MudTextField
+        T="string"
+        Label="Title"
+        @bind-Value="@MutableModContentConfig.Title"
+        Immediate="@true"
+        Variant="@Variant.Outlined"
+        Margin="Margin.Dense"
+        Disabled="@disabled"
+      />
+      <MudTextField
+        T="string"
+        Label="Description"
+        @bind-Value="@MutableModContentConfig.Description"
+        Immediate="@true"
+        Variant="@Variant.Outlined"
+        Margin="Margin.Dense"
+        Lines="3"
+        AutoGrow="@true"
+        Disabled="@disabled"
+      />
+
+      <MudTextField
+        T="string"
+        Label="Target"
+        @bind-Value="@MutableModContentConfig.Target"
+        Immediate="@true"
+        Variant="@Variant.Outlined"
+        Margin="Margin.Dense"
+        Disabled="@disabled"
+      />
+    </MudCardContent>
+    
+    <MudCardActions Class="justify-end gap-2">
+      <MudButton
+        Variant="Variant.Outlined"
+        Disabled="@(disabled || !edited)"
+        OnClick="@ResetModContentConfig"
+      >Reset</MudButton>
+
+      <MudButton
+        Variant="Variant.Filled"
+        Color="Color.Primary"
+        Disabled="@(disabled || !edited)"
+        OnClick="@SaveModContentConfig"
+      >Confirm</MudButton>
+    </MudCardActions>
+  }
+</MudCard>

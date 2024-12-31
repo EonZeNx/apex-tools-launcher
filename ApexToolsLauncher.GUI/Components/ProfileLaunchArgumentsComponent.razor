@@ -1,0 +1,22 @@
+
+<section>
+  <MudStack Row="@true" Spacing="2" AlignItems="AlignItems.Center">
+    <MudText Typo="Typo.h5">Launch arguments</MudText>
+    <MudText Typo="Typo.body1" Style="opacity: 75%">&bull;</MudText>
+    <MudText Typo="Typo.body1" Style="opacity: 75%">Game</MudText>
+  </MudStack>
+
+  <MudGrid Class="mt-1">
+    @foreach (var (launchId, launchConfig) in GameConfig.LaunchOptions)
+    {
+      <MudItem xs="12" md="6">
+        <LaunchArgumentCard
+          @* ProfileId="@GameConfig.SelectedProfile" *@
+          ProfileId="@launchId"
+          LaunchId="@launchId"
+          LaunchOptionConfig="@launchConfig"
+        />
+      </MudItem>
+    }
+  </MudGrid>
+</section>

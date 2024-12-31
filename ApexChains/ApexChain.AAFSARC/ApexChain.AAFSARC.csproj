@@ -1,14 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
+        <TargetFramework>net9.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <LangVersion>13</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\ApexFormats\ApexFormat.AAF.V01\ApexFormat.AAF.V01.csproj" />
-      <ProjectReference Include="..\..\ApexFormats\ApexFormat.SARC.V02\ApexFormat.SARC.V02.csproj" />
+      <ProjectReference Include="..\..\Formats\ApexFormat.AAF.V01\ApexFormat.AAF.V01.csproj" />
+      <ProjectReference Include="..\..\Formats\ApexFormat.SARC.V02\ApexFormat.SARC.V02.csproj" />
     </ItemGroup>
 
 </Project>

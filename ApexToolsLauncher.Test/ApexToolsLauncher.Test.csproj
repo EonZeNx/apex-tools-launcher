@@ -1,0 +1,47 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+
+        <IsPackable>false</IsPackable>
+        <IsTestProject>true</IsTestProject>
+        <LangVersion>13</LangVersion>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="coverlet.collector" Version="6.0.2">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+        <PackageReference Include="NUnit" Version="4.2.2" />
+        <PackageReference Include="NUnit.Analyzers" Version="4.4.0">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="NUnit3TestAdapter" Version="4.6.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Using Include="NUnit.Framework"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\ApexToolsLauncher.Core\ApexToolsLauncher.Core.csproj" />
+      <ProjectReference Include="..\Formats\ApexFormat.AAF.V01\ApexFormat.AAF.V01.csproj" />
+      <ProjectReference Include="..\Formats\ApexFormat.ADF.V04\ApexFormat.ADF.V04.csproj" />
+      <ProjectReference Include="..\Formats\ApexFormat.IC.V01\ApexFormat.IC.V01.csproj" />
+      <ProjectReference Include="..\Formats\ApexFormat.RTPC.V01\ApexFormat.RTPC.V01.csproj" />
+      <ProjectReference Include="..\Formats\ApexFormat.SARC.V02\ApexFormat.SARC.V02.csproj" />
+      <ProjectReference Include="..\Formats\ApexFormat.TAB.V02\ApexFormat.TAB.V02.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update=".env">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
+</Project>

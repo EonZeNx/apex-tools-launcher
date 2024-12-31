@@ -1,0 +1,71 @@
+@using ApexToolsLauncher.Core.Libraries
+
+<MudDialog Class="flex-grow-1" DefaultFocus="DefaultFocus.FirstChild">
+  <DialogContent>
+    <MudSelect
+      T="string"
+      Label="Profile"
+      Variant="Variant.Outlined"
+      @bind-Value="@SelectedProfile"
+      Margin="Margin.Dense"
+    >
+      @if (ProfileConfigs.Count == 0)
+      {
+        <MudSelectItem Value="@ConstantsLibrary.InvalidString" Style="font-style: italic">
+          No profiles
+        </MudSelectItem>
+      }
+      @foreach (var (profileId, profileConfig) in ProfileConfigs)
+      {
+        <MudSelectItem Value="@profileId">
+          @(profileConfig.Title)
+        </MudSelectItem>
+      }
+    </MudSelect>
+    
+    <MudDivider Class="my-1"/>
+    
+    <MudStack Row="@true" AlignItems="AlignItems.Center">
+      <MudTextField
+        T="string"
+        Label="Title"
+        @bind-Value="@ProfileTitle"
+        Immediate="@true"
+        Variant="@Variant.Outlined"
+        Margin="Margin.Dense"/>
+
+      <MudIconButton
+        Icon="@Icons.Material.Filled.Refresh"
+        OnClick="@Refresh"
+        Size="Size.Medium"/>
+    </MudStack>
+  </DialogContent>
+
+  <DialogActions>
+    <MudButton
+      OnClick="@Create"
+      Variant="Variant.Filled"
+      Color="Color.Success"
+      Disabled="@(!ProfileTitleValid())"
+    >
+      Create
+    </MudButton>
+    
+    <MudButton
+      OnClick="@Delete"
+      Variant="Variant.Text"
+      Color="Color.Error"
+    >
+      Delete
+    </MudButton>
+
+    <MudSpacer/>
+
+    <MudButton
+      OnClick="@Close"
+      Variant="Variant.Text"
+    >
+      Close
+    </MudButton>
+  </DialogActions>
+</MudDialog>

@@ -1,0 +1,15 @@
+﻿@using ApexToolsLauncher.Core.Libraries
+@inherits ComponentBase
+
+<div style="width: 100%; overflow-x: scroll" class="pa-5">
+  <MudStack Row="true" Spacing="5" Style="width: fit-content">
+    @if (GameIds.Count == 0)
+    {
+      <GameCard GameId="@ConstantsLibrary.InvalidString"/>
+    }
+    @foreach (var gameId in GameIds)
+    {
+      <GameCard GameId="@gameId" OnClick="GameIdChanged" Selected="@(gameId == SelectedGameId)"/>
+    }
+  </MudStack>
+</div>

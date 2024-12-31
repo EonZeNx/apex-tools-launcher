@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <AssemblyName>ApexFormat.AAF.V01</AssemblyName>
+        <RootNamespace>ApexFormat.AAF.V01</RootNamespace>
+        <LangVersion>13</LangVersion>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\ApexToolsLauncher.Core\ApexToolsLauncher.Core.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="CommunityToolkit.HighPerformance" Version="8.4.0" />
+      <PackageReference Include="DotNetZip" Version="1.16.0" />
+    </ItemGroup>
+
+</Project>

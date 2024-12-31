@@ -1,0 +1,170 @@
+@inherits MudComponentBase
+
+<MudCard Class="@Class" Style="@Style">
+  <MudCardHeader Class="pb-0">
+    <CardHeaderContent>
+      <MudText Typo="Typo.h5">Euler to Game</MudText>
+    </CardHeaderContent>
+      
+    <CardHeaderActions>
+    </CardHeaderActions>
+  </MudCardHeader>
+
+  <MudCardContent>
+    <MudGrid>
+      <MudItem xs="4">
+        <MudStack Spacing="2">
+          <MudTextField
+            T="float"
+            Label="Pitch"
+            @bind-Value="@Pitch"
+            Margin="Margin.Dense"
+            Variant="Variant.Outlined"
+          />
+          <MudTextField
+            T="float"
+            Label="Yaw"
+            @bind-Value="@Yaw"
+            Margin="Margin.Dense"
+            Variant="Variant.Outlined"
+          />
+          <MudTextField
+            T="float"
+            Label="Roll"
+            @bind-Value="@Roll"
+            Margin="Margin.Dense"
+            Variant="Variant.Outlined"
+          />
+        </MudStack>
+      </MudItem>
+      
+      <MudItem xs="8">
+        <MudPaper Outlined="@true" Class="rounded-xl">
+          <MudImage Src="images/pyr_example.png" Style="width: 100%"/>
+        </MudPaper>
+      </MudItem>
+
+      <MudItem xs="12">
+        <MudDivider/>
+      </MudItem>
+
+      <MudItem xs="12">
+        <MudTextField
+          T="string"
+          Label="RTPC"
+          Value="@Calculate()"
+          Margin="Margin.Dense"
+          Variant="Variant.Outlined"
+        />
+      </MudItem>
+
+      <MudItem xs="4">
+        <MudStack Spacing="2">
+          <MudTextField
+            T="string"
+            Label="ADF X1"
+            Value="@(Format(Output.A.X))"
+            Margin="Margin.Dense"
+            Variant="Variant.Outlined"
+          />
+
+          <MudTextField
+            T="string"
+            Label="ADF Y1"
+            Value="@(Format(Output.B.X))"
+            Margin="Margin.Dense"
+            Variant="Variant.Outlined"
+          />
+
+          <MudTextField
+            T="string"
+            Label="ADF Z1"
+            Value="@(Format(Output.C.X))"
+            Margin="Margin.Dense"
+            Variant="Variant.Outlined"
+          />
+
+          <MudTextField
+            T="string"
+            Label="ADF W1"
+            Value="@("0")"
+            Margin="Margin.Dense"
+            Variant="Variant.Outlined"
+          />
+        </MudStack>
+      </MudItem>
+      
+      <MudItem xs="4">
+        <MudStack Spacing="2">
+          <MudTextField
+            T="string"
+            Label="ADF X2"
+            Value="@(Format(Output.A.Y))"
+            Margin="Margin.Dense"
+            Variant="Variant.Outlined"
+          />
+
+          <MudTextField
+            T="string"
+            Label="ADF Y2"
+            Value="@(Format(Output.B.Y))"
+            Margin="Margin.Dense"
+            Variant="Variant.Outlined"
+          />
+
+          <MudTextField
+            T="string"
+            Label="ADF Z2"
+            Value="@(Format(Output.C.Y))"
+            Margin="Margin.Dense"
+            Variant="Variant.Outlined"
+          />
+
+          <MudTextField
+            T="string"
+            Label="ADF W2"
+            Value="@("0")"
+            Margin="Margin.Dense"
+            Variant="Variant.Outlined"
+          />
+        </MudStack>
+      </MudItem>
+
+      <MudItem xs="4">
+        <MudStack Spacing="2">
+          <MudTextField
+            T="string"
+            Label="ADF X3"
+            Value="@(Format(Output.A.Z))"
+            Margin="Margin.Dense"
+            Variant="Variant.Outlined"
+          />
+
+          <MudTextField
+            T="string"
+            Label="ADF Y3"
+            Value="@(Format(Output.B.Z))"
+            Margin="Margin.Dense"
+            Variant="Variant.Outlined"
+          />
+
+          <MudTextField
+            T="string"
+            Label="ADF Z3"
+            Value="@(Format(Output.C.Z))"
+            Margin="Margin.Dense"
+            Variant="Variant.Outlined"
+          />
+
+          <MudTextField
+            T="string"
+            Label="ADF W3"
+            Value="@("0")"
+            Margin="Margin.Dense"
+            Variant="Variant.Outlined"
+          />
+        </MudStack>
+      </MudItem>
+    </MudGrid>
+  </MudCardContent>
+</MudCard>

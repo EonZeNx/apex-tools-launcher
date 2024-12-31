@@ -1,0 +1,114 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+    <PropertyGroup>
+        <TargetFrameworks/>
+        <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net9.0-windows10.0.19041.0</TargetFrameworks>
+
+        <OutputType>Exe</OutputType>
+        <RootNamespace>ApexToolsLauncher.GUI</RootNamespace>
+        <UseMaui>true</UseMaui>
+        <SingleProject>true</SingleProject>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <EnableDefaultCssItems>false</EnableDefaultCssItems>
+        <Nullable>enable</Nullable>
+
+        <!-- Display name -->
+        <ApplicationTitle>ApexToolsLauncher</ApplicationTitle>
+
+        <!-- App Identifier -->
+        <ApplicationId>com.companyname.apextoolslauncher</ApplicationId>
+
+        <!-- Versions -->
+        <ApplicationDisplayVersion>0.1.0</ApplicationDisplayVersion>
+        <ApplicationVersion>1</ApplicationVersion>
+
+        <WindowsPackageType>None</WindowsPackageType>
+
+        <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
+        <TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
+        <PackageId>ApexToolsLauncher.GUI</PackageId>
+        <LangVersion>13</LangVersion>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows' and '$(RuntimeIdentifierOverride)' != ''">
+        <RuntimeIdentifier>$(RuntimeIdentifierOverride)</RuntimeIdentifier>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <!-- App Icon -->
+        <MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#512BD4"/>
+
+        <!-- Splash Screen -->
+        <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#512BD4" BaseSize="128,128"/>
+
+        <!-- Images -->
+        <MauiImage Include="Resources\Images\*"/>
+        <MauiImage Update="Resources\Images\dotnet_bot.svg" BaseSize="168,208"/>
+
+        <!-- Custom Fonts -->
+        <MauiFont Include="Resources\Fonts\*"/>
+
+        <!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
+        <MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.10" />
+        <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="9.0.10" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Maui" Version="9.0.10" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.0" />
+        <PackageReference Include="MudBlazor" Version="7.15.0" />
+        <PackageReference Include="nulastudio.NetBeauty" Version="2.1.4.6" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\ApexToolsLauncher.Core\ApexToolsLauncher.Core.csproj" />
+    </ItemGroup>
+
+    <Target Name="Test" AfterTargets="AfterBuild">
+        <Message Text="Test: _IsPublishing == 'True'" Importance="High" Condition="$(_IsPublishing) == 'True'"/>
+        <Message Text="Test: _IsPublishing != 'True'" Importance="High" Condition="$(_IsPublishing) != 'True'"/>
+    </Target>
+
+
+    <PropertyGroup>
+<!--        <DisableBeauty Condition="$(_IsPublishing) == 'True'">False</DisableBeauty>-->
+<!--        <DisableBeauty Condition="$(_IsPublishing) != 'True'">True</DisableBeauty>-->
+        
+        <!-- set to True if you want to disable -->
+        <DisableBeauty>False</DisableBeauty>
+        <!-- set to False if you want to beauty on build -->
+        <BeautyOnPublishOnly>True</BeautyOnPublishOnly>
+        
+        <BeautySharedRuntimeMode>False</BeautySharedRuntimeMode>
+        <!-- beauty into sub-directory, default is libs, quote with "" if contains space  -->
+        <BeautyLibsDir Condition="$(BeautySharedRuntimeMode) == 'True'">../bin</BeautyLibsDir>
+        <BeautyLibsDir Condition="$(BeautySharedRuntimeMode) != 'True'">./bin</BeautyLibsDir>
+        <!-- dlls that you don't want to be moved or can not be moved -->
+        <!-- <BeautyExcludes>dll1.dll;lib*;...</BeautyExcludes> -->
+        <!-- dlls that end users never needed, so hide them -->
+        <BeautyHiddens>hostfxr;hostpolicy;*.deps.json;*.runtimeconfig*.json</BeautyHiddens>
+        <!-- DO NOT TOUCH THIS OPTION -->
+        <BeautyNoRuntimeInfo>False</BeautyNoRuntimeInfo>
+        <!-- set to True if you want to allow 3rd debuggers(like dnSpy) debugs the app -->
+        <BeautyEnableDebugging>False</BeautyEnableDebugging>
+        <!-- the patch can reduce the file count -->
+        <!-- set to False if you want to disable -->
+        <!-- SCD Mode Feature Only -->
+        <BeautyUsePatch>False</BeautyUsePatch>
+        <!-- App Entry Dll = BeautyDir + BeautyAppHostDir + BeautyAppHostEntry -->
+        <!-- see https://github.com/nulastudio/NetBeauty2#customize-apphost for more details -->
+        <!-- relative path based on AppHostDir -->
+        <!-- .NET Core Non Single-File Only -->
+        <!-- <BeautyAppHostEntry>bin/ATL.CLI.dll</BeautyAppHostEntry> -->
+        <!-- relative path based on BeautyDir -->
+        <!-- .NET Core Non Single-File Only -->
+        <!-- <BeautyAppHostDir>..</BeautyAppHostDir> -->
+        <!-- <BeautyAfterTasks></BeautyAfterTasks> -->
+        <!-- valid values: Error|Detail|Info -->
+        <BeautyLogLevel>Info</BeautyLogLevel>
+        <!-- set to a repo mirror if you have troble in connecting github -->
+        <!-- <BeautyGitCDN>https://gitee.com/liesauer/HostFXRPatcher</BeautyGitCDN> -->
+        <!-- <BeautyGitTree>master</BeautyGitTree> -->
+    </PropertyGroup>
+</Project>

@@ -1,0 +1,24 @@
+﻿@using ApexToolsLauncher.Core.Libraries
+@inherits ComponentBase
+
+<MudCard
+  Elevation="@(Selected ? 10 : 1)"
+  Outlined="@Selected"
+  @onclick="CardClicked"
+  Style="width: 30rem; aspect-ratio: 16 / 9"
+  Class="rounded-xl cursor-pointer"
+>
+  @if (ConstantsLibrary.IsStringInvalid(GameId))
+  {
+    <MudCardContent Class="d-flex justify-center align-center">
+      <MudText Typo="Typo.body1" Style="font-style: italic">No games found</MudText>
+    </MudCardContent>
+  }
+  else
+  {
+    <MudCardMedia
+      Image="@($"images/{GameId}_art.jpg")"
+      Style="border-radius: inherit; height: 100%"
+    />
+  }
+</MudCard>

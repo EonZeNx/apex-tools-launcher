@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <PublishSingleFile>true</PublishSingleFile>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <LangVersion>13</LangVersion>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="CommunityToolkit.HighPerformance" Version="8.4.0" />
+      <PackageReference Include="Oodle.NET" Version="2.1.0" />
+      <PackageReference Include="RustyOptions" Version="0.10.1" />
+      <PackageReference Include="System.Data.SQLite" Version="1.0.119" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="databases\atl.core.db">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="databases\atl.jc3.db">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="databases\atl.jc4.db">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
+</Project>
