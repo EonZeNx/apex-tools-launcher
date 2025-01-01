@@ -16,8 +16,15 @@ public static class EIcV01CollectionTypeExtensions
         { EIcV01CollectionType.Property,   "property" },
     };
 
+    public static Dictionary<string, EIcV01CollectionType> XmlStringToType = TypeToXmlString.ToDictionary(kvp => kvp.Value, kvp => kvp.Key);
+
     public static string ToXmlString(this EIcV01CollectionType collectionType)
     {
         return TypeToXmlString.GetValueOrDefault(collectionType, "failed");
+    }
+    
+    public static EIcV01CollectionType ToEIcV01CollectionType(this string xmlString)
+    {
+        return XmlStringToType.GetValueOrDefault(xmlString, EIcV01CollectionType.Unk0);
     }
 }

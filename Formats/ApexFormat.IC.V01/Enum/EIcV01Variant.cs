@@ -41,7 +41,8 @@ public static class EIcV01VariantExtensions
         { EIcVariantV01.Events,           "events" },
         { EIcVariantV01.Total,            "total" },
     };
-    
+
+    public static Dictionary<string, EIcVariantV01> XmlStringToVariant = VariantToXmlString.ToDictionary(kvp => kvp.Value, kvp => kvp.Key);
     
     public static readonly Dictionary<EIcVariantV01, bool> VariantPrimitive = new()
     {
@@ -63,9 +64,14 @@ public static class EIcV01VariantExtensions
         { EIcVariantV01.Total,            true },
     };
 
-    public static string XmlString(this EIcVariantV01 variantV01)
+    public static string ToXmlString(this EIcVariantV01 variantV01)
     {
         return VariantToXmlString.GetValueOrDefault(variantV01, "failed");
+    }
+    
+    public static EIcVariantV01 ToEIcVariantV01(this string xmlString)
+    {
+        return XmlStringToVariant.GetValueOrDefault(xmlString, EIcVariantV01.Unassigned);
     }
     
     public static bool IsPrimitive(this EIcVariantV01 variantType)

@@ -10,7 +10,7 @@ public class IcV01Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
 {
     public static bool CanProcess(Stream stream)
     {
-        return !stream.ReadIcV01Instance().IsNone;
+        return !stream.Read<IcV01Instance>().IsNone;
     }
     
     public static bool CanProcess(string path)
@@ -34,7 +34,7 @@ public class IcV01Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
         List<IcV01Instance> instances = [];
         while (inBuffer.Position < inBuffer.Length)
         {
-            var optionInstance = inBuffer.ReadIcV01Instance();
+            var optionInstance = inBuffer.Read<IcV01Instance>();
             if (!optionInstance.IsSome(out var instance))
             {
                 break;
