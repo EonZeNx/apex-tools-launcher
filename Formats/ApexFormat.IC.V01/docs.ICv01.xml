@@ -5,20 +5,16 @@
       <remarks>
         <list type="table">
           <listheader>
-            <term>Property</term>
-            <description>Type</description>
+            <term>Property</term><description>Type</description>
           </listheader>
           <item>
-            <term><c>NameHash</c></term>
-            <description><see cref="uint"/></description>
+            <term><c>NameHash</c></term><description><see cref="uint"/></description>
           </item>
           <item>
-            <term><c>Count</c></term>
-            <description><see cref="byte"/></description>
+            <term><c>Count</c></term><description><see cref="byte"/></description>
           </item>
           <item>
-            <term><c>Collections</c></term>
-            <description><see cref="IcV01Collection"/>[]</description>
+            <term><c>Collections</c></term><description><see cref="IcV01Collection"/>[]</description>
           </item>
         </list>
       </remarks>
