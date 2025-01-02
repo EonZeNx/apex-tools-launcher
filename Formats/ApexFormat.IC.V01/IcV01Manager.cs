@@ -1,4 +1,4 @@
-﻿using System.Xml;
+using System.Xml;
 using System.Xml.Linq;
 using ApexFormat.IC.V01.Class;
 using ApexToolsLauncher.Core.Class;
@@ -15,18 +15,9 @@ public class IcV01Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
     
     public static bool CanProcess(string path)
     {
-        if (Directory.Exists(path))
-        { // don't support repacking directories just yet
-            return false;
-        }
-        
-        if (File.Exists(path))
-        {
-            using var fileStream = new FileStream(path, FileMode.Open);
-            return CanProcess(fileStream);
-        }
-
-        return false;
+        var file = new IcV01File();
+        // return file.CanExtractPath(path);
+        return file.CanRepackPath(path);
     }
     
     public static int Decompress(Stream inBuffer, Stream outBuffer)
@@ -64,18 +55,10 @@ public class IcV01Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
     
     public int ProcessBasic(string inFilePath, string outDirectory)
     {
-        using var inBuffer = new FileStream(inFilePath, FileMode.Open);
+        var file = new IcV01File();
+        // var result = file.ExtractPathToPath(inFilePath, outDirectory);
+        var result = file.RepackPathToPath(inFilePath, outDirectory);
         
-        var outDirectoryPath = Path.GetDirectoryName(inFilePath);
-        if (!string.IsNullOrEmpty(outDirectory) && Directory.Exists(outDirectory))
-            outDirectoryPath = outDirectory;
-        
-        var fileName = Path.GetFileNameWithoutExtension(inFilePath);
-        var xmlFilePath = Path.Join(outDirectoryPath, $"{fileName}.xml");
-        
-        using var outBuffer = new FileStream(xmlFilePath, FileMode.Create);
-        var result = Decompress(inBuffer, outBuffer);
-        
-        return result;
+        return 0;
     }
 }

@@ -56,9 +56,9 @@ public static class IcV01CollectionLibrary
                 result.Containers = new IcV01Container[result.Count];
                 for (var i = 0; i < result.Count; i++)
                 {
-                    var optionCollection = stream.Read<IcV01Container>();
-                    if (optionCollection.IsSome(out var collection))
-                        result.Containers[i] = collection;
+                    var optionContainer = stream.Read<IcV01Container>();
+                    if (optionContainer.IsSome(out var container))
+                        result.Containers[i] = container;
                 }
                 break;
             }
