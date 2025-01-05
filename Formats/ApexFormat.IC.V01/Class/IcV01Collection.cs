@@ -80,6 +80,41 @@ public static class IcV01CollectionLibrary
         return Option.Some((T) result);
     }
 
+    public static Option<Exception> Write(this Stream stream, IcV01Collection collection)
+    {
+        stream.Write(collection.Type);
+        stream.Write(collection.Count);
+        
+        switch (collection.Type)
+        {
+            case EIcV01CollectionType.Unk0:
+            case EIcV01CollectionType.Container:
+            {
+                foreach (var container in collection.Containers)
+                {
+                    var writeOption = stream.Write(container);
+                    if (!writeOption.IsNone)
+                        return writeOption;
+                }
+                break;
+            }
+            case EIcV01CollectionType.Property:
+            {
+                foreach (var property in collection.Properties)
+                {
+                    var writeOption = stream.Write(property);
+                    if (!writeOption.IsNone)
+                        return writeOption;
+                }
+                break;
+            }
+            default:
+                return Option.Some<Exception>(new ArgumentOutOfRangeException($"collection type was invalid state {collection.Type}"));
+        }
+
+        return Option.None<Exception>();
+    }
+
     public static XElement ToXElement(this IcV01Collection collection)
     {
         var xe = new XElement(XName);

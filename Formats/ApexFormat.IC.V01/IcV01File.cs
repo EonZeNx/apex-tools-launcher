@@ -71,8 +71,17 @@ public class IcV01File : ICanExtractPath, IExtractPathToPath, IExtractStreamToSt
     {
         if (!File.Exists(path))
             return false;
+
+        XElement xe;
+        try
+        {
+            xe = XElement.Load(path);
+        }
+        catch (Exception e)
+        {
+            return false;
+        }
         
-        var xe = XElement.Load(path);
         var xInstances = xe.Descendants(IcV01InstanceLibrary.XName).ToArray();
         
         if (xInstances.Length == 0) return false;
@@ -83,12 +92,56 @@ public class IcV01File : ICanExtractPath, IExtractPathToPath, IExtractStreamToSt
 
     public int RepackStreamToStream(Stream inStream, Stream outStream)
     {
-        throw new NotImplementedException();
+        var xe = XElement.Load(inStream);
+        
+        if (!string.Equals(xe.Name.LocalName, IcV01FileLibrary.XName))
+        {
+            return -1;
+        }
+
+        var optionExtension = xe.GetAttributeOrNone("extension");
+        if (optionExtension.IsSome(out var extension))
+        {
+            ExtractExtension = extension;
+        }
+
+        var xInstanceArray = xe.Elements(IcV01InstanceLibrary.XName).ToArray();
+        foreach (var xi in xInstanceArray)
+        {
+            var instanceResult = xi.Read<IcV01Instance>();
+            if (instanceResult.IsErr(out var exception))
+            {
+                return -2;
+            }
+
+            outStream.Write(instanceResult.Unwrap());
+        }
+
+        return 0;
     }
 
     public int RepackPathToPath(string inPath, string outPath)
     {
-        throw new NotImplementedException();
+        var xe = XElement.Load(inPath);
+        
+        if (!string.Equals(xe.Name.LocalName, IcV01FileLibrary.XName))
+        {
+            return -1;
+        }
+
+        var optionExtension = xe.GetAttributeOrNone("extension");
+        if (optionExtension.IsSome(out var extension))
+        {
+            ExtractExtension = extension;
+        }
+        
+        var fileName = Path.GetFileNameWithoutExtension(inPath);
+        var repackFilePath = Path.Join(outPath, $"{fileName}.{ExtractExtension}");
+        
+        using var inStream = new FileStream(inPath, FileMode.Open);
+        using var outStream = new FileStream(repackFilePath, FileMode.Create);
+        
+        return RepackStreamToStream(inStream, outStream);
     }
 }
 

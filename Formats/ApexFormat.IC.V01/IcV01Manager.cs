@@ -16,8 +16,7 @@ public class IcV01Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
     public static bool CanProcess(string path)
     {
         var file = new IcV01File();
-        // return file.CanExtractPath(path);
-        return file.CanRepackPath(path);
+        return file.CanExtractPath(path) || file.CanRepackPath(path);
     }
     
     public static int Decompress(Stream inBuffer, Stream outBuffer)
@@ -56,9 +55,23 @@ public class IcV01Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
     public int ProcessBasic(string inFilePath, string outDirectory)
     {
         var file = new IcV01File();
-        // var result = file.ExtractPathToPath(inFilePath, outDirectory);
-        var result = file.RepackPathToPath(inFilePath, outDirectory);
+
+        var result = -1;
+        if (file.CanExtractPath(inFilePath))
+        {
+            var extractResult = file.ExtractPathToPath(inFilePath, outDirectory);
+            extractResult.IsOk(out result);
+        }
+        else if (file.CanRepackPath(inFilePath))
+        {
+            result = file.RepackPathToPath(inFilePath, outDirectory);
+        }
         
-        return 0;
+        return result;
+    }
+
+    public string GetProcessorName()
+    {
+        return "IC v01";
     }
 }

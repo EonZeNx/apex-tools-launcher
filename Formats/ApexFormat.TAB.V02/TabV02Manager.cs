@@ -113,4 +113,9 @@ public class TabV02Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
         var result = Decompress(tabBuffer, arcBuffer, outDirectory);
         return result;
     }
+
+    public string GetProcessorName()
+    {
+        return "TAB v02";
+    }
 }

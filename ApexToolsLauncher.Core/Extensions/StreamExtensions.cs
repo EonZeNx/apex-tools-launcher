@@ -1,8 +1,10 @@
 ﻿using System.Text;
 using System.Buffers;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using ApexToolsLauncher.Core.Class;
 using CommunityToolkit.HighPerformance;
+using RustyOptions;
 
 namespace ApexToolsLauncher.Core.Extensions;
 
@@ -103,9 +105,29 @@ public static class StreamExtensions
             ArrayPool<byte>.Shared.Return(buffer);
         }
     }
+
     
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static unsafe bool CouldRead<T>(this Stream stream)
+        where T : unmanaged
+    {
+        return stream.Position + sizeof(T) <= stream.Length;
+    }
     
-    // Custom endian read
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool CouldRead(this Stream stream, int size)
+    {
+        return stream.Position + size <= stream.Length;
+    }
+    
+    public static Result<T, Exception> ReadResult<T>(this Stream stream, EEndian endian = EEndian.Little)
+        where T : unmanaged
+    {
+        return stream.CouldRead<T>()
+            ? Result.OkExn(stream.ReadEndian<T>(endian))
+            : Result.Err<T>(new EndOfStreamException($"sizeof {nameof(T)} would exceed stream length"));
+    }
+    
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static unsafe T ReadEndian<T>(this Stream stream, EEndian endian = EEndian.Little)
         where T : unmanaged
@@ -115,8 +137,7 @@ public static class StreamExtensions
         var span = new Span<byte>(&result, sizeof(T));
         stream.ReadExactly(span);
 
-        if (BitConverter.IsLittleEndian && endian != EEndian.Little ||
-            !BitConverter.IsLittleEndian && endian != EEndian.Big)
+        if (endian == EEndian.Big)
         {
             span.Reverse();
         }

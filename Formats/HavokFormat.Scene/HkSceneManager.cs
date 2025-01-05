@@ -51,4 +51,9 @@ public class HkSceneManager : ICanProcessStream, ICanProcessPath, IProcessBasic
         var result = Decompress(inBuffer, directoryPath);
         return result;
     }
+
+    public string GetProcessorName()
+    {
+        return "HkScene";
+    }
 }

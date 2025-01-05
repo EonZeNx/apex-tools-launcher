@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using ApexChain.AAFSARC;
 using ApexFormat.AAF.V01;
@@ -12,11 +13,81 @@ using ApexFormat.TAB.V02;
 using ApexToolsLauncher.Core.Class;
 using ApexToolsLauncher.Core.Libraries;
 using HavokFormat.Scene;
+using RustyOptions;
 
 namespace ApexToolsLauncher.CLI;
 
 public static class AtlOperate
 {
+    public static Option<IProcessBasic> GetOperator(string path)
+    {
+        if (!Path.Exists(path))
+            return Option<IProcessBasic>.None;
+
+        IProcessBasic? manager = null;
+        if (TabV02Manager.CanProcess(path))
+        {
+            manager = new TabV02Manager();
+        }
+        if (AafV01SarcV02Manager.CanProcess(path))
+        {
+            manager = new AafV01SarcV02Manager();
+        }
+        if (SarcV02Manager.CanProcess(path))
+        {
+            manager = new SarcV02Manager();
+        }
+        if (AafV01Manager.CanProcess(path))
+        {
+            manager = new AafV01Manager();
+        }
+        if (AdfV04Manager.CanProcess(path))
+        {
+            manager = new AdfV04Manager();
+        }
+        if (AvtxV01Manager.CanProcess(path))
+        {
+            manager = new AvtxV01Manager();
+        }
+        if (RtpcV01Manager.CanProcess(path))
+        {
+            manager = new RtpcV01Manager();
+        }
+        if (RtpcV03Manager.CanProcess(path))
+        {
+            manager = new RtpcV03Manager();
+        }
+        if (HkSceneManager.CanProcess(path))
+        {
+            manager = new HkSceneManager();
+        }
+        if (IcV01Manager.CanProcess(path))
+        {
+            manager = new IcV01Manager();
+        }
+        // if (Path.GetExtension(path) == ".xml")
+
+        return Option.Create(manager);
+    }
+    
+    public static Dictionary<string, Option<IProcessBasic>> GetOperatorForPaths(IEnumerable<string> inPaths)
+    {
+        var mapped = new Dictionary<string, Option<IProcessBasic>>();
+
+        foreach (var path in inPaths)
+        {
+            mapped[path] = AtlOperate.GetOperator(path);
+        }
+
+        return mapped;
+    }
+
+    public static void RunOperator(string path, IProcessBasic manager, string outDirectory)
+    {
+        var absoluteOutDirectory = GetAbsoluteDirectory(path, outDirectory);
+        manager.ProcessBasic(path, absoluteOutDirectory);
+    }
+    
     public static void OperateFile(string inPath, string outDirectory)
     {
         var pathName = Path.GetFileName(inPath);

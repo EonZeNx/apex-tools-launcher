@@ -73,4 +73,9 @@ public class RtpcV01Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
         
         return result;
     }
+
+    public string GetProcessorName()
+    {
+        return "RTPC v01";
+    }
 }
