@@ -1,6 +1,8 @@
 ﻿using ApexFormat.AAF.V01;
 using ApexFormat.SARC.V02;
+using ApexFormat.SARC.V02.Class;
 using ApexToolsLauncher.Core.Class;
+using RustyOptions;
 
 namespace ApexChain.AAFSARC;
 
@@ -33,14 +35,17 @@ public class AafV01SarcV02Manager : ICanProcessStream, ICanProcessPath, IProcess
             
         if (!Directory.Exists(directoryPath))
             Directory.CreateDirectory(directoryPath);
-        
-        SarcV02Manager.Decompress(sarcBuffer, directoryPath);
+
+        var sarcV02File = new SarcV02File();
+        sarcV02File.ExtractStreamToPath(sarcBuffer, directoryPath);
         
         var tocPath = $"{inFilePath}.toc";
         if (File.Exists(tocPath))
         {
-            using var tocBuffer = new FileStream(tocPath, FileMode.Open);
-            result = SarcV02Manager.DecompressToc(tocBuffer, directoryPath);
+            using var tocStream = new FileStream(tocPath, FileMode.Open);
+            tocStream.ReadSarcV02Toc()
+                .OkOr<SarcV02Toc, Exception>(new InvalidOperationException())
+                .Map(_ => 0);
         }
         
         return result;
