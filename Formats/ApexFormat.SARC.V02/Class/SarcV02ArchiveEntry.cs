@@ -1,5 +1,4 @@
-﻿using ApexToolsLauncher.Core.Class;
-using ApexToolsLauncher.Core.Extensions;
+﻿using ApexToolsLauncher.Core.Extensions;
 using CommunityToolkit.HighPerformance;
 using RustyOptions;
 
@@ -29,7 +28,7 @@ public static class SarcV02ArchiveEntryExtensions
     
     public static Option<SarcV02ArchiveEntry> ReadSarcV02ArchiveEntry(this Stream stream)
     {
-        if (stream.Length - stream.Position < SizeOf)
+        if (stream.CouldRead(SizeOf))
         {
             return Option<SarcV02ArchiveEntry>.None;
         }

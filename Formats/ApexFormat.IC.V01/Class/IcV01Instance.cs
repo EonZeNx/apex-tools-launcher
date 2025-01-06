@@ -32,7 +32,7 @@ public static class IcV01InstanceLibrary
     public static Option<T> Read<T>(this Stream stream)
         where T : IcV01Instance
     {
-        if (stream.Length - stream.Position < SizeOf)
+        if (stream.CouldRead(SizeOf))
         {
             return Option<T>.None;
         }

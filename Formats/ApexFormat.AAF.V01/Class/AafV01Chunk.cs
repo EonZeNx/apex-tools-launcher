@@ -1,14 +1,8 @@
-using ApexToolsLauncher.Core.Class;
+using ApexToolsLauncher.Core.Extensions;
 using CommunityToolkit.HighPerformance;
 using RustyOptions;
 
-namespace ApexFormat.AAF.V01;
-
-public static class AafV01ChunkConstants
-{
-    public const uint Magic = 0x4D415745; // "EWAM"
-    public const uint Size = 4 + 4 + 4 + 4;
-}
+namespace ApexFormat.AAF.V01.Class;
 
 /// <summary>
 /// Structure:
@@ -17,21 +11,26 @@ public static class AafV01ChunkConstants
 /// <br/>ChunkSize - <see cref="uint"/>
 /// <br/>Magic - <see cref="uint"/>
 /// </summary>
-public class AafV01Chunk : ISizeOf
+public class AafV01Chunk
 {
     public uint CompressedSize = 0;
     public uint DecompressedSize = 0;
     public uint ChunkSize = 0;
-    public uint Magic = AafV01ChunkConstants.Magic;
-
-    public static uint SizeOf() => sizeof(uint) + sizeof(uint) + sizeof(uint) + sizeof(uint);
+    public uint Magic = AafV01ChunkLibrary.Magic;
 }
 
-public static class AafV01ChunkExtensions
+public static class AafV01ChunkLibrary
 {
+    public const int SizeOf = sizeof(uint) // CompressedSize
+                              + sizeof(uint) // DecompressedSize
+                              + sizeof(uint) // ChunkSize
+                              + sizeof(uint); // Magic
+    
+    public const uint Magic = 0x4D415745; // "EWAM"
+    
     public static Option<AafV01Chunk> ReadAafV01Chunk(this Stream stream)
     {
-        if (stream.Length - stream.Position < AafV01Chunk.SizeOf())
+        if (stream.CouldRead(SizeOf))
         {
             return Option<AafV01Chunk>.None;
         }
@@ -43,6 +42,11 @@ public static class AafV01ChunkExtensions
             ChunkSize = stream.Read<uint>(),
             Magic = stream.Read<uint>(),
         };
+        
+        if (result.Magic != Magic)
+        {
+            return Option<AafV01Chunk>.None;
+        }
 
         return Option.Some(result);
     }
