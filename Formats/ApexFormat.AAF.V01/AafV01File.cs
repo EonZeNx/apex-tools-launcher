@@ -105,3 +105,8 @@ public class AafV01File : ICanExtractPath, IExtractPathToPath, IExtractStreamToS
         return Result.Err<int>(new NotImplementedException());
     }
 }
+
+public static class AafV01FileLibrary
+{
+    public const int Version = 1;
+}

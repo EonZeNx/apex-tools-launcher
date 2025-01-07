@@ -61,6 +61,6 @@ public class AafV01SarcV02Manager : ICanProcessStream, ICanProcessPath, IProcess
 
     public string GetProcessorName()
     {
-        return "AAF v01 - SARC v02 chain";
+        return $"AAF v{AafV01FileLibrary.Version:D2} - SARC v{SarcV02FileLibrary.Version:D2} chain";
     }
 }
