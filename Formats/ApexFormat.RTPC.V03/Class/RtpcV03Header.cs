@@ -1,14 +1,8 @@
-﻿using ApexToolsLauncher.Core.Class;
+﻿using ApexToolsLauncher.Core.Extensions;
 using CommunityToolkit.HighPerformance;
 using RustyOptions;
 
 namespace ApexFormat.RTPC.V03.Class;
-
-public static class RtpcV03HeaderConstants
-{
-    public const uint Magic = 0x43505452; // RTPC
-    public const ushort Version = 0x03;
-}
 
 /// <summary>
 /// Structure:
@@ -16,23 +10,23 @@ public static class RtpcV03HeaderConstants
 /// <br/>MajorVersion - <see cref="ushort"/>
 /// <br/>MinorVersion - <see cref="ushort"/>
 /// </summary>
-public class RtpcV03Header : ISizeOf
+public class RtpcV03Header
 {
-    public uint Magic = RtpcV03HeaderConstants.Magic;
-    public uint Version = RtpcV03HeaderConstants.Version;
-
-    public static uint SizeOf()
-    {
-        return sizeof(uint) + // Magic
-               sizeof(uint); // Version
-    }
+    public uint Magic = RtpcV03HeaderLibrary.Magic;
+    public uint Version = RtpcV03HeaderLibrary.Version;
 }
 
-public static class RtpcV03HeaderExtensions
+public static class RtpcV03HeaderLibrary
 {
+    public const int SizeOf = sizeof(uint) // Magic
+                              + sizeof(uint); // Version
+    
+    public const uint Magic = 0x43505452; // RTPC
+    public const ushort Version = 0x03;
+    
     public static Option<RtpcV03Header> ReadRtpcV03Header(this Stream stream)
     {
-        if (stream.Length - stream.Position < RtpcV03Header.SizeOf())
+        if (!stream.CouldRead(SizeOf))
         {
             return Option<RtpcV03Header>.None;
         }
@@ -43,12 +37,12 @@ public static class RtpcV03HeaderExtensions
             Version = stream.Read<uint>(),
         };
 
-        if (result.Magic != RtpcV03HeaderConstants.Magic)
+        if (result.Magic != Magic)
         {
             return Option<RtpcV03Header>.None;
         }
 
-        if (result.Version != RtpcV03HeaderConstants.Version)
+        if (result.Version != Version)
         {
             return Option<RtpcV03Header>.None;
         }

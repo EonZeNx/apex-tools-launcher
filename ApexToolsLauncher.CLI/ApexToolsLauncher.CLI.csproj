@@ -20,7 +20,6 @@
       <ProjectReference Include="..\Formats\ApexFormat.RTPC.V03\ApexFormat.RTPC.V03.csproj" />
       <ProjectReference Include="..\Formats\ApexFormat.SARC.V02\ApexFormat.SARC.V02.csproj" />
       <ProjectReference Include="..\Formats\ApexFormat.TAB.V02\ApexFormat.TAB.V02.csproj" />
-      <ProjectReference Include="..\Formats\HavokFormat.Scene\HavokFormat.Scene.csproj" />
     </ItemGroup>
 
     <ItemGroup>

@@ -10,86 +10,63 @@ using ApexFormat.RTPC.V03;
 using ApexFormat.SARC.V02;
 using ApexFormat.TAB.V02;
 using ApexToolsLauncher.Core.Class;
-using ApexToolsLauncher.Core.Libraries;
-using HavokFormat.Scene;
+using RustyOptions;
 
 namespace ApexToolsLauncher.CLI;
 
 public static class AtlOperate
 {
-    public static void OperateFile(string inPath, string outDirectory)
+    public static Option<IProcessBasic> GetOperator(string path)
     {
-        var pathName = Path.GetFileName(inPath);
-        if (string.IsNullOrEmpty(pathName))
-            pathName = Path.GetDirectoryName(inPath);
-        
-        var message = $"Processing '{pathName}'";
+        if (!Path.Exists(path))
+            return Option<IProcessBasic>.None;
 
-        IProcessBasic manager;
-        if (TabV02Manager.CanProcess(inPath))
+        IProcessBasic? manager = null;
+        if (TabV02Manager.CanProcess(path))
         {
             manager = new TabV02Manager();
-            message = $"{message} as TABv02";
         }
-        else if (AafV01SarcV02Manager.CanProcess(inPath))
+        if (AafV01SarcV02Manager.CanProcess(path))
         {
             manager = new AafV01SarcV02Manager();
-            message = $"{message} as AAFv01-SARCv02 chain";
         }
-        else if (SarcV02Manager.CanProcess(inPath))
+        if (SarcV02Manager.CanProcess(path))
         {
             manager = new SarcV02Manager();
-            message = $"{message} as SARCv02";
         }
-        else if (AafV01Manager.CanProcess(inPath))
+        if (AafV01Manager.CanProcess(path))
         {
             manager = new AafV01Manager();
-            message = $"{message} as AAFv01";
         }
-        else if (AdfV04Manager.CanProcess(inPath))
+        if (AdfV04Manager.CanProcess(path))
         {
             manager = new AdfV04Manager();
-            message = $"{message} as ADFv04";
         }
-        else if (AvtxV01Manager.CanProcess(inPath))
+        if (AvtxV01Manager.CanProcess(path))
         {
             manager = new AvtxV01Manager();
-            message = $"{message} as AVTXv01";
         }
-        else if (RtpcV01Manager.CanProcess(inPath))
+        if (RtpcV01Manager.CanProcess(path))
         {
             manager = new RtpcV01Manager();
-            message = $"{message} as RTPCv01";
         }
-        else if (RtpcV03Manager.CanProcess(inPath))
+        if (RtpcV03Manager.CanProcess(path))
         {
             manager = new RtpcV03Manager();
-            message = $"{message} as RTPCv03";
         }
-        else if (HkSceneManager.CanProcess(inPath))
+        if (IcV01Manager.CanProcess(path))
         {
-            manager = new HkSceneManager();
-            message = $"{message} as HkScene";
-        }
-        else if (IcV01Manager.CanProcess(inPath))
-        { // should be last
             manager = new IcV01Manager();
-            message = $"{message} as ICv01";
         }
-        // Scripts should not be run from here
-        // else if (Path.GetExtension(inPath) == ".xml")
-        else
-        {
-            ConsoleLibrary.Log($"File not supported '{pathName}'", LogType.Warning);
-            return;
-        }
-        
-        ConsoleLibrary.Log(message, LogType.Info);
-        
-        var absoluteOutDirectory = GetAbsoluteDirectory(inPath, outDirectory);
-        manager.ProcessBasic(inPath, absoluteOutDirectory);
-        
-        ConsoleLibrary.Log($"Finished '{pathName}'", LogType.Info);
+        // if (Path.GetExtension(path) == ".xml")
+
+        return Option.Create(manager);
+    }
+    
+    public static void RunOperator(string path, IProcessBasic manager, string outDirectory)
+    {
+        var absoluteOutDirectory = GetAbsoluteDirectory(path, outDirectory);
+        manager.ProcessBasic(path, absoluteOutDirectory);
     }
     
     public static string GetAbsoluteDirectory(string inPath, string outDirectory)

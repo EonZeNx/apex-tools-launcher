@@ -53,7 +53,7 @@ public class RtpcV01Variant : RtpcV01VariantHeader
                 break;
             case ERtpcV01VariantType.ObjectId:
                 var objectIdValue = (RtpcV01ObjectId) DeferredData;
-                var objectId = objectIdValue.String();
+                var objectId = RtpcV01ObjectIdLibrary.ToString(objectIdValue);
                 valueStr = objectId;
                 break;
             case ERtpcV01VariantType.Events:
@@ -220,7 +220,7 @@ public static class RtpcV01VariantExtensions
             break;
         case ERtpcV01VariantType.ObjectId:
             var objectIdValue = (RtpcV01ObjectId) variant.DeferredData;
-            var objectId = objectIdValue.String();
+            var objectId = RtpcV01ObjectIdLibrary.ToString(objectIdValue);
             xe.SetValue(objectId);
             break;
         case ERtpcV01VariantType.Events:

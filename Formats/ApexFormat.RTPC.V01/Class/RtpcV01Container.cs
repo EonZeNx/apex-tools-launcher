@@ -1,20 +1,27 @@
 ﻿using System.Xml.Linq;
-using ApexFormat.RTPC.V01.Enum;
 using ApexToolsLauncher.Core.Extensions;
 using ApexToolsLauncher.Core.Hash;
 using ApexToolsLauncher.Core.Libraries;
-using Microsoft.VisualBasic;
+using CommunityToolkit.HighPerformance;
 using RustyOptions;
 
 namespace ApexFormat.RTPC.V01.Class;
 
 /// <summary>
 /// Structure:
+/// <br/>NameHash - <see cref="uint"/>
+/// <br/>Offset - <see cref="uint"/>
+/// <br/>PropertyCount - <see cref="ushort"/>
+/// <br/>ContainerCount - <see cref="ushort"/>
 /// <br/>Properties - <see cref="RtpcV01Variant"/>[]
 /// <br/>Containers - <see cref="RtpcV01Container"/>[]
 /// </summary>
-public class RtpcV01Container : RtpcV01ContainerHeader
+public class RtpcV01Container
 {
+    public uint NameHash = 0;
+    public uint Offset = 0;
+    public ushort PropertyCount = 0;
+    public ushort ContainerCount = 0;
     public RtpcV01Variant[] Properties = [];
     public RtpcV01Container[] Containers = [];
 
@@ -24,30 +31,30 @@ public class RtpcV01Container : RtpcV01ContainerHeader
     }
 }
 
-public static class RtpcV01ContainerExtensions
+public static class RtpcV01ContainerLibrary
 {
-    public static RtpcV01Container HeaderToContainer(this RtpcV01ContainerHeader header)
-    {
-        var result = new RtpcV01Container
-        {
-            NameHash = header.NameHash,
-            Offset = header.Offset,
-            PropertyCount = header.PropertyCount,
-            ContainerCount = header.ContainerCount,
-            Properties = new RtpcV01Variant[header.PropertyCount],
-            Containers = new RtpcV01Container[header.ContainerCount],
-        };
-
-        return result;
-    }
+    public const int SizeOf = sizeof(uint) // NameHash
+                              + sizeof(uint) // Offset
+                              + sizeof(ushort) // PropertyCount
+                              + sizeof(ushort); // ContainerCount
     
     public static Option<RtpcV01Container> ReadRtpcV01Container(this Stream stream)
     {
-        var optionContainerHeader = stream.ReadRtpcV01ContainerHeader();
-        if (!optionContainerHeader.IsSome(out var containerHeader))
+        if (!stream.CouldRead(SizeOf))
+        {
             return Option<RtpcV01Container>.None;
+        }
         
-        var result = containerHeader.HeaderToContainer();
+        var result = new RtpcV01Container
+        {
+            NameHash = stream.Read<uint>(),
+            Offset = stream.Read<uint>(),
+            PropertyCount = stream.Read<ushort>(),
+            ContainerCount = stream.Read<ushort>(),
+        };
+        
+        result.Properties = new RtpcV01Variant[result.PropertyCount];
+        result.Containers = new RtpcV01Container[result.ContainerCount];
         
         var originalPosition = stream.Position;
         stream.Seek(result.Offset, SeekOrigin.Begin);
@@ -71,7 +78,7 @@ public static class RtpcV01ContainerExtensions
         return Option.Some(result);
     }
     
-    public static XElement WriteXElement(this RtpcV01Container container)
+    public static XElement ToXElement(this RtpcV01Container container)
     {
         var xe = new XElement("object");
 
@@ -99,7 +106,7 @@ public static class RtpcV01ContainerExtensions
         
         foreach (var childContainer in container.Containers)
         {
-            xe.Add(childContainer.WriteXElement());
+            xe.Add(childContainer.ToXElement());
         }
         
         return xe;
@@ -141,11 +148,13 @@ public static class RtpcV01ContainerExtensions
         
     }
 
+    // ReSharper disable once UnusedMember.Global
     public static int CountContainers(this RtpcV01Container container)
     {
         return container.ContainerCount + container.Containers.Sum(c => c.CountContainers());
     }
 
+    // ReSharper disable once UnusedMember.Global
     public static string PropertyString(this RtpcV01Container container, string propertyString, int depth = 0)
     {
         const char indentChar = '\t';

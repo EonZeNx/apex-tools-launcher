@@ -51,7 +51,7 @@ public class AdfV04Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
         var rootXElement = file.WriteXInstances(inBuffer, localStringTable);
         outer.Add(rootXElement);
         
-        var xd = new XDocument(XDocumentLibrary.AtlGeneratedComment(), outer);
+        var xd = new XDocument(XDocumentLibrary.ProjectComment(), outer);
         using var xw = XmlWriter.Create(outBuffer, new XmlWriterSettings
         {
             Indent = true,
@@ -79,5 +79,10 @@ public class AdfV04Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
         var result = Decompress(inBuffer, outBuffer);
         
         return result;
+    }
+
+    public string GetProcessorName()
+    {
+        return "ADF v04";
     }
 }

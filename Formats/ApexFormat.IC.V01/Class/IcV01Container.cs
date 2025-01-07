@@ -1,38 +1,41 @@
-﻿using System.Xml.Linq;
+using System.Globalization;
+using System.Xml.Linq;
 using ApexFormat.IC.V01.Enum;
-using ApexToolsLauncher.Core.Class;
+using ApexToolsLauncher.Core.Extensions;
 using ApexToolsLauncher.Core.Hash;
+using ApexToolsLauncher.Core.Libraries;
 using CommunityToolkit.HighPerformance;
 using RustyOptions;
 
 namespace ApexFormat.IC.V01.Class;
 
-/// <summary>
-/// Structure:
-/// <br/>NameHash - <see cref="uint"/>
-/// <br/>Count - <see cref="byte"/>
-/// <br/>Collections - <see cref="IcV01Collection"/>[]
-/// </summary>
-public class IcV01Container : ISizeOf
+/// <include file='..\docs.ICv01.xml' path='doc/members[@name="IcV01Container"]/IcV01Container/*'/>
+public class IcV01Container
 {
+    /// <include file='..\docs.ICv01.xml' path='doc/members[@name="IcV01Container"]/NameHash/*'/>
     public uint NameHash = 0;
+    /// <include file='..\docs.ICv01.xml' path='doc/members[@name="IcV01Container"]/Count/*'/>
     public byte Count = 0;
+    /// <include file='..\docs.ICv01.xml' path='doc/members[@name="IcV01Container"]/Collections/*'/>
     public IcV01Collection[] Collections = [];
-
-    public static uint SizeOf()
-    {
-        return sizeof(uint) + // NameHash
-               sizeof(byte); // Count
-    }
 }
 
-public static class IcV01ContainerExtensions
+/// <include file='..\docs.ICv01.xml' path='doc/members[@name="IcV01ContainerLibrary"]/IcV01ContainerLibrary/*'/>
+public static class IcV01ContainerLibrary
 {
-    public static Option<IcV01Container> ReadIcV01Container(this Stream stream)
+    public const string XName = "object";
+    
+    /// <include file='..\docs.ICv01.xml' path='doc/members[@name="IcV01ContainerLibrary"]/SizeOf/*'/>
+    public const int SizeOf = sizeof(uint) // NameHash
+                              + sizeof(byte); // Count
+
+    /// <include file='..\docs.ICv01.xml' path='doc/members[@name="IcV01ContainerLibrary"]/Read/*'/>
+    public static Option<T> Read<T>(this Stream stream)
+        where T : IcV01Container
     {
-        if (stream.Length - stream.Position < IcV01Container.SizeOf())
+        if (!stream.CouldRead(SizeOf))
         {
-            return Option<IcV01Container>.None;
+            return Option<T>.None;
         }
 
         var result = new IcV01Container
@@ -44,17 +47,33 @@ public static class IcV01ContainerExtensions
         result.Collections = new IcV01Collection[result.Count];
         for (var i = 0; i < result.Count; i++)
         {
-            var optionContainer = stream.ReadIcV01Collection();
-            if (optionContainer.IsSome(out var container))
-                result.Collections[i] = container;
+            var optionCollection = stream.Read<IcV01Collection>();
+            if (optionCollection.IsSome(out var collection))
+                result.Collections[i] = collection;
         }
 
-        return Option.Some(result);
+        return Option.Some((T) result);
+    }
+
+    public static Option<Exception> Write(this Stream stream, IcV01Container container)
+    {
+        stream.Write(container.NameHash);
+        stream.Write(container.Count);
+        
+        foreach (var collection in container.Collections)
+        {
+            var writeOption = stream.Write(collection);
+            if (!writeOption.IsNone)
+                return writeOption;
+        }
+        
+        return Option.None<Exception>();
     }
     
+    /// <include file='..\docs.ICv01.xml' path='doc/members[@name="IcV01ContainerLibrary"]/ToXElement/*'/>
     public static XElement ToXElement(this IcV01Container container)
     {
-        var xe = new XElement("container");
+        var xe = new XElement(XName);
         
         var optionHashResult = HashDatabases.Lookup(container.NameHash);
         if (optionHashResult.IsSome(out var hashResult))
@@ -76,5 +95,57 @@ public static class IcV01ContainerExtensions
         }
 
         return xe;
+    }
+
+    public static Result<bool, Exception> FromXElement(this IcV01Container container, XElement xe)
+    {
+        if (!string.Equals(xe.Name.LocalName, XName))
+        {
+            return Result.Err<bool>(new System.Xml.XmlException($"Node {xe.Name.LocalName} does not equal {XName}"));
+        }
+
+        var nameHashOption = xe.GetAttributeOrNone("name")
+            .Map(s => s.Jenkins())
+            .OrElse(() => xe.GetAttributeOrNone("id")
+                .Map(s => uint.Parse(s, NumberStyles.HexNumber)));
+        
+        if (!nameHashOption.IsSome(out var nameHash))
+        {
+            return Result.Err<bool>(new InvalidOperationException("both name and id attributes are both missing"));
+        }
+
+        container.NameHash = nameHash;
+        
+        var collections = new List<IcV01Collection>(2);
+        if (xe.Elements(XName).Any())
+        {
+            var collection = new IcV01Collection
+            {
+                Type = EIcV01CollectionType.Container
+            };
+            var result = collection.FromXElement(xe);
+            if (result.IsOk(out _))
+            {
+                collections.Add(collection);
+            }
+        }
+        
+        if (xe.Elements(IcV01PropertyLibrary.XName).Any())
+        {
+            var collection = new IcV01Collection
+            {
+                Type = EIcV01CollectionType.Property
+            };
+            var result = collection.FromXElement(xe);
+            if (result.IsOk(out _))
+            {
+                collections.Add(collection);
+            }
+        }
+
+        container.Collections = collections.ToArray();
+        container.Count = (byte) container.Collections.Length;
+        
+        return Result.OkExn(true);
     }
 }

@@ -1,6 +1,6 @@
-﻿using System.Xml.Linq;
+using System.Xml.Linq;
 using ApexFormat.IC.V01.Enum;
-using ApexToolsLauncher.Core.Class;
+using ApexToolsLauncher.Core.Extensions;
 using ApexToolsLauncher.Core.Libraries;
 using CommunityToolkit.HighPerformance;
 using RustyOptions;
@@ -11,9 +11,9 @@ namespace ApexFormat.IC.V01.Class;
 /// Structure:
 /// <br/>Type - <see cref="EIcV01CollectionType"/>
 /// <br/>Count - <see cref="ushort"/>
-/// <br/>Collections OR Properties - <see cref="ushort"/>
+/// <br/>Containers OR Properties - <see cref="IcV01Container"/> OR <see cref="IcV01Property"/>
 /// </summary>
-public class IcV01Collection : ISizeOf
+public class IcV01Collection
 {
     public EIcV01CollectionType Type = EIcV01CollectionType.Unk0;
     public ushort Count = 0;
@@ -21,20 +21,25 @@ public class IcV01Collection : ISizeOf
     public IcV01Container[] Containers = [];
     public IcV01Property[] Properties = [];
 
-    public static uint SizeOf()
+    public override string ToString()
     {
-        return sizeof(EIcV01CollectionType) + // Type
-               sizeof(ushort); // Count
+        return $"{Count} {Type}";
     }
 }
 
-public static class IcV01CollectionExtensions
+public static class IcV01CollectionLibrary
 {
-    public static Option<IcV01Collection> ReadIcV01Collection(this Stream stream)
+    public const string XName = "collection";
+    
+    public const int SizeOf = sizeof(EIcV01CollectionType) // Type
+                              + sizeof(ushort); // Count
+    
+    public static Option<T> Read<T>(this Stream stream)
+        where T : IcV01Collection
     {
-        if (stream.Length - stream.Position < IcV01Collection.SizeOf())
+        if (!stream.CouldRead(SizeOf))
         {
-            return Option<IcV01Collection>.None;
+            return Option<T>.None;
         }
         
         var result = new IcV01Collection
@@ -51,9 +56,9 @@ public static class IcV01CollectionExtensions
                 result.Containers = new IcV01Container[result.Count];
                 for (var i = 0; i < result.Count; i++)
                 {
-                    var optionCollection = stream.ReadIcV01Container();
-                    if (optionCollection.IsSome(out var collection))
-                        result.Containers[i] = collection;
+                    var optionContainer = stream.Read<IcV01Container>();
+                    if (optionContainer.IsSome(out var container))
+                        result.Containers[i] = container;
                 }
                 break;
             }
@@ -71,13 +76,48 @@ public static class IcV01CollectionExtensions
             default:
                 throw new ArgumentOutOfRangeException();
         }
-        
-        return Option.Some(result);
+
+        return Option.Some((T) result);
     }
-    
+
+    public static Option<Exception> Write(this Stream stream, IcV01Collection collection)
+    {
+        stream.Write(collection.Type);
+        stream.Write(collection.Count);
+        
+        switch (collection.Type)
+        {
+            case EIcV01CollectionType.Unk0:
+            case EIcV01CollectionType.Container:
+            {
+                foreach (var container in collection.Containers)
+                {
+                    var writeOption = stream.Write(container);
+                    if (!writeOption.IsNone)
+                        return writeOption;
+                }
+                break;
+            }
+            case EIcV01CollectionType.Property:
+            {
+                foreach (var property in collection.Properties)
+                {
+                    var writeOption = stream.Write(property);
+                    if (!writeOption.IsNone)
+                        return writeOption;
+                }
+                break;
+            }
+            default:
+                return Option.Some<Exception>(new ArgumentOutOfRangeException($"collection type was invalid state {collection.Type}"));
+        }
+
+        return Option.None<Exception>();
+    }
+
     public static XElement ToXElement(this IcV01Collection collection)
     {
-        var xe = new XElement("collection");
+        var xe = new XElement(XName);
         xe.SetAttributeValue("type", collection.Type.ToXmlString());
 
         if (collection.Containers.Length != 0)
@@ -115,5 +155,43 @@ public static class IcV01CollectionExtensions
         Array.Sort(xes, XDocumentLibrary.SortNameThenId);
 
         return xes;
+    }
+
+    public static Result<bool, Exception> PropertiesFromXElement(this IcV01Collection collection, XElement xe)
+    {
+        collection.Type = EIcV01CollectionType.Property;
+        collection.Properties = (from pxe in xe.Elements(IcV01PropertyLibrary.XName)
+            let property = new IcV01Property()
+            let result = property.FromXElement(pxe)
+            where result.IsOk(out _)
+                select property
+        ).ToArray();
+        collection.Count = (ushort) collection.Properties.Length;
+        
+        return Result.OkExn(true);
+    }
+
+    public static Result<bool, Exception> ContainersFromXElement(this IcV01Collection collection, XElement xe)
+    {
+        collection.Type = EIcV01CollectionType.Container;
+        collection.Containers = (from cxe in xe.Elements(IcV01ContainerLibrary.XName)
+            let container = new IcV01Container()
+            let result = container.FromXElement(cxe)
+            where result.IsOk(out _)
+                select container
+        ).ToArray();
+        collection.Count = (ushort) collection.Containers.Length;
+        
+        return Result.OkExn(true);
+    }
+    
+    public static Result<bool, Exception> FromXElement(this IcV01Collection collection, XElement xe)
+    {
+        return collection.Type switch
+        {
+            EIcV01CollectionType.Unk0 or EIcV01CollectionType.Container => collection.ContainersFromXElement(xe),
+            EIcV01CollectionType.Property => collection.PropertiesFromXElement(xe),
+            _ => Result.Err<bool>(new ArgumentOutOfRangeException())
+        };
     }
 }

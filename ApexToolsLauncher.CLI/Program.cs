@@ -2,23 +2,14 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
-using ApexChain.AAFSARC;
-using ApexFormat.AAF.V01;
-using ApexFormat.ADF.V04;
-using ApexFormat.AVTX.V01;
-using ApexFormat.IC.V01;
-using ApexFormat.RTPC.V01;
-using ApexFormat.RTPC.V03;
-using ApexFormat.SARC.V02;
-using ApexFormat.TAB.V02;
-using ApexToolsLauncher.CLI.Script;
 using ApexToolsLauncher.Core.Config;
 using ApexToolsLauncher.Core.Hash;
 using ApexToolsLauncher.Core.Libraries;
 using CommandLine;
 using CommandLine.Text;
-using HavokFormat.Scene;
+#if !DEBUG
+using System.Threading.Tasks;
+#endif
 
 namespace ApexToolsLauncher.CLI;
 
@@ -46,51 +37,6 @@ class Program
             .WithNotParsed(e => MainWithErrors(options, e));
         
         Close();
-    }
-
-    public static string[] FilterUnsupportedPaths(IEnumerable<string> inPaths)
-    {
-        var supportedPaths = new List<string>();
-        var pathsToCheck = inPaths.ToList();
-        
-        for (var i = 0; i < pathsToCheck.Count; i++)
-        {
-            var inputPath = pathsToCheck[i];
-
-            try
-            {
-                if (!Path.Exists(inputPath))
-                    continue;
-
-                if (TabV02Manager.CanProcess(inputPath) ||
-                    SarcV02Manager.CanProcess(inputPath) ||
-                    AafV01Manager.CanProcess(inputPath) ||
-                    AafV01SarcV02Manager.CanProcess(inputPath) ||
-                    AdfV04Manager.CanProcess(inputPath) ||
-                    AvtxV01Manager.CanProcess(inputPath) ||
-                    RtpcV01Manager.CanProcess(inputPath) ||
-                    RtpcV03Manager.CanProcess(inputPath) ||
-                    IcV01Manager.CanProcess(inputPath) ||
-                    HkSceneManager.CanProcess(inputPath) ||
-                    Path.GetExtension(inputPath) == ".xml"
-                ) {
-                    supportedPaths.Add(inputPath);
-                    continue;
-                }
-
-                if (Directory.Exists(inputPath))
-                { // directory unsupported, try process child files
-                    pathsToCheck.AddRange(Directory.GetFiles(inputPath, "*", SearchOption.TopDirectoryOnly));
-                }
-            }
-            catch (Exception e)
-            {
-                ConsoleLibrary.Log($"Failed to check '{inputPath}'", ConsoleColor.Yellow);
-                ConsoleLibrary.Log($"{e}: {e.Message}", ConsoleColor.Red);
-            }
-        }
-
-        return supportedPaths.ToArray();
     }
 
     public static void MainWithOptions(AtlClOptions inOptions)
@@ -123,38 +69,49 @@ class Program
                 Directory.CreateDirectory(options.OutputDirectory);
         }
 
-        var paths = FilterUnsupportedPaths(options.InputPaths);
-        
-        // if (Path.GetExtension(inPath) == ".xml")
-        // {
-        //     manager = new ScriptManager();
-        //     message = $"{message} as Script";
-        // }
+        var paths = inOptions.InputPaths.ToArray();
         
 #if DEBUG
-        for (var i = 0; i < paths.Length; i++)
+        foreach (var path in paths)
         {
-            OperateFile(paths[i], options.OutputDirectory);
+            var managerOption = AtlOperate.GetOperator(path);
+            if (!managerOption.IsSome(out var manager))
+            {
+                ConsoleLibrary.Log($"File not supported {path}", LogType.Warning);
+                continue;
+            }
+            
+            var pathName = Path.GetFileName(path);
+            if (string.IsNullOrEmpty(pathName))
+                pathName = Path.GetDirectoryName(path);
+
+            ConsoleLibrary.Log($"Processing {pathName} as {manager.GetProcessorName()}", LogType.Info);
+
+            AtlOperate.RunOperator(path, manager, options.OutputDirectory);
+
+            ConsoleLibrary.Log($"Finished {pathName}", LogType.Info);
         }
 #else
-        Parallel.For(0, paths.Length, i =>
+        Parallel.ForEach(paths, (path) =>
         {
-            OperateFile(paths[i], options.OutputDirectory);
+            var managerOption = AtlOperate.GetOperator(path);
+            if (!managerOption.IsSome(out var manager))
+            {
+                ConsoleLibrary.Log($"File not supported {path}", LogType.Warning);
+                return;
+            }
+            
+            var pathName = Path.GetFileName(path);
+            if (string.IsNullOrEmpty(pathName))
+                pathName = Path.GetDirectoryName(path);
+
+            ConsoleLibrary.Log($"Processing {pathName} as {manager.GetProcessorName()}", LogType.Info);
+
+            AtlOperate.RunOperator(path, manager, options.OutputDirectory);
+
+            ConsoleLibrary.Log($"Finished {pathName}", LogType.Info);
         });
 #endif
-    }
-
-    public static void OperateFile(string inPath, string outDirectory)
-    {
-        if (Path.GetExtension(inPath) == ".xml")
-        {
-            var manager = new ScriptManager();
-            manager.ProcessBasic(inPath, outDirectory);
-            
-            return;
-        }
-        
-        AtlOperate.OperateFile(inPath, outDirectory);
     }
 
     public static void MainWithErrors(ParserResult<AtlClOptions> result, IEnumerable<Error> errors)

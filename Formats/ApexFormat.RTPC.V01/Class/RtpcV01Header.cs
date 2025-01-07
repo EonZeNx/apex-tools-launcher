@@ -1,15 +1,9 @@
 ﻿using ApexToolsLauncher.Core.Class;
+using ApexToolsLauncher.Core.Extensions;
 using CommunityToolkit.HighPerformance;
 using RustyOptions;
 
 namespace ApexFormat.RTPC.V01.Class;
-
-public static class RtpcV01HeaderConstants
-{
-    public const uint Magic = 0x43505452; // RTPC
-    public const ushort MajorVersion = 0x01;
-    public const ushort MinorVersion = 0x00;
-}
 
 /// <summary>
 /// Structure:
@@ -19,9 +13,9 @@ public static class RtpcV01HeaderConstants
 /// </summary>
 public class RtpcV01Header : ISizeOf
 {
-    public uint Magic = RtpcV01HeaderConstants.Magic;
-    public ushort MajorVersion = RtpcV01HeaderConstants.MajorVersion;
-    public ushort MinorVersion = RtpcV01HeaderConstants.MinorVersion;
+    public uint Magic = RtpcV01HeaderLibrary.Magic;
+    public ushort MajorVersion = RtpcV01HeaderLibrary.MajorVersion;
+    public ushort MinorVersion = RtpcV01HeaderLibrary.MinorVersion;
 
     public static uint SizeOf()
     {
@@ -31,11 +25,19 @@ public class RtpcV01Header : ISizeOf
     }
 }
 
-public static class RtpcV01HeaderExtensions
+public static class RtpcV01HeaderLibrary
 {
+    public const int SizeOf = sizeof(uint) // Magic
+                              + sizeof(ushort) // MajorVersion
+                              + sizeof(ushort); // MinorVersion
+    
+    public const uint Magic = 0x43505452; // RTPC
+    public const ushort MajorVersion = 0x01;
+    public const ushort MinorVersion = 0x00;
+    
     public static Option<RtpcV01Header> ReadRtpcV01Header(this Stream stream)
     {
-        if (stream.Length - stream.Position < RtpcV01Header.SizeOf())
+        if (!stream.CouldRead(SizeOf))
         {
             return Option<RtpcV01Header>.None;
         }
@@ -47,17 +49,17 @@ public static class RtpcV01HeaderExtensions
             MinorVersion = stream.Read<ushort>(),
         };
 
-        if (result.Magic != RtpcV01HeaderConstants.Magic)
+        if (result.Magic != Magic)
         {
             return Option<RtpcV01Header>.None;
         }
 
-        if (result.MajorVersion != RtpcV01HeaderConstants.MajorVersion)
+        if (result.MajorVersion != MajorVersion)
         {
             return Option<RtpcV01Header>.None;
         }
 
-        if (result.MinorVersion != RtpcV01HeaderConstants.MinorVersion)
+        if (result.MinorVersion != MinorVersion)
         {
             return Option<RtpcV01Header>.None;
         }

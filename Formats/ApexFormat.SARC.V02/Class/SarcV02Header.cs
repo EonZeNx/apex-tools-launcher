@@ -2,14 +2,7 @@
 using CommunityToolkit.HighPerformance;
 using RustyOptions;
 
-namespace ApexFormat.SARC.V02;
-
-public static class SarcV02HeaderConstants
-{
-    public const uint MagicLength = 0x04;
-    public const uint Magic = 0x43524153; // "SARC"
-    public const uint Version = 0x02;
-}
+namespace ApexFormat.SARC.V02.Class;
 
 /// <summary>
 /// Structure:
@@ -20,9 +13,9 @@ public static class SarcV02HeaderConstants
 /// </summary>
 public class SarcV02Header : ISizeOf
 {
-    public uint MagicLength = SarcV02HeaderConstants.MagicLength;
-    public uint Magic = SarcV02HeaderConstants.Magic;
-    public uint Version = SarcV02HeaderConstants.Version;
+    public uint MagicLength = SarcV02HeaderLibrary.MagicLength;
+    public uint Magic = SarcV02HeaderLibrary.Magic;
+    public uint Version = SarcV02HeaderLibrary.Version;
     public uint Size;
 
     public static uint SizeOf()
@@ -34,8 +27,17 @@ public class SarcV02Header : ISizeOf
     }
 }
 
-public static class SarcV02HeaderExtensions
+public static class SarcV02HeaderLibrary
 {
+    public const int SizeOf = sizeof(uint) // MagicLength
+                              + sizeof(uint) // Magic
+                              + sizeof(uint) // Version
+                              + sizeof(uint); // Size
+    
+    public const uint MagicLength = 0x04;
+    public const uint Magic = 0x43524153; // "SARC"
+    public const uint Version = 0x02;
+    
     public static Option<SarcV02Header> ReadSarcV02Header(this Stream stream)
     {
         if (stream.Length - stream.Position < SarcV02Header.SizeOf())
@@ -51,17 +53,17 @@ public static class SarcV02HeaderExtensions
             Size = stream.Read<uint>()
         };
 
-        if (result.MagicLength != SarcV02HeaderConstants.MagicLength)
+        if (result.MagicLength != MagicLength)
         {
             return Option<SarcV02Header>.None;
         }
 
-        if (result.Magic != SarcV02HeaderConstants.Magic)
+        if (result.Magic != Magic)
         {
             return Option<SarcV02Header>.None;
         }
 
-        if (result.Version != SarcV02HeaderConstants.Version)
+        if (result.Version != Version)
         {
             return Option<SarcV02Header>.None;
         }

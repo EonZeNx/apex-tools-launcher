@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Numerics;
 
 namespace ApexToolsLauncher.Core.Libraries;
@@ -48,5 +49,25 @@ public static class MathLibrary
         
         var desiredAlignment = AlignDistance(value, align);
         return value + (uint) desiredAlignment;
+    }
+    
+    public static byte HexToByte(string value)
+    {
+        return value.Length < 1
+            ? (byte) 0 : Convert.ToByte(value, 16);
+    }
+    
+    public static uint HexToUInt(string value)
+    {
+        if (value.Length < 1) return 0;
+        
+        // todo: this might break things for RTPC
+        // var safeValue = "";
+        // for (var i = value.Length - 2; i >= 0; i -= 2)
+        // {
+        //     safeValue += value[i..(i + 2)];
+        // }
+        
+        return uint.Parse(value, NumberStyles.HexNumber);
     }
 }

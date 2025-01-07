@@ -12,7 +12,7 @@ public class RtpcV03Variant : RtpcV03VariantHeader
     public object? DeferredData = null;
 }
 
-public static class RtpcV03VariantExtensions
+public static class RtpcV03VariantLibrary
 {
     public static RtpcV03Variant VariantHeaderToVariant(this RtpcV03VariantHeader header)
     {
@@ -159,7 +159,7 @@ public static class RtpcV03VariantExtensions
             break;
         case ERtpcV03VariantType.ObjectId:
             var objectIdValue = (RtpcV03ObjectId) variant.DeferredData;
-            var objectId = objectIdValue.String();
+            var objectId = objectIdValue.ToHexString();
             xe.SetValue(objectId);
             break;
         case ERtpcV03VariantType.Events:

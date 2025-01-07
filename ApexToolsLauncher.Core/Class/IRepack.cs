@@ -1,11 +1,23 @@
-﻿namespace ApexToolsLauncher.Core.Class;
+﻿using RustyOptions;
 
-public interface IExtractFile
+namespace ApexToolsLauncher.Core.Class;
+
+public interface IRepackPathToStream
 {
-    int ExtractFile(Stream inStream, Stream outStream);
+    Result<int, Exception> RepackPathToStream(string inPath, Stream outStream);
 }
 
-public interface IExtractDirectory
+public interface IRepackStreamToStream
 {
-    int ExtractFile(Stream inStream, string outFilePath);
+    Result<int, Exception> RepackStreamToStream(Stream inStream, Stream outStream);
+}
+
+public interface IRepackStreamToPath
+{
+    Result<int, Exception> RepackStreamToPath(Stream inStream, string outPath);
+}
+
+public interface IRepackPathToPath
+{
+    Result<int, Exception> RepackPathToPath(string inPath, string outPath);
 }
