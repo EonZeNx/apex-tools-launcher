@@ -159,7 +159,7 @@ public static class RtpcV03VariantLibrary
             break;
         case ERtpcV03VariantType.ObjectId:
             var objectIdValue = (RtpcV03ObjectId) variant.DeferredData;
-            var objectId = objectIdValue.String();
+            var objectId = objectIdValue.ToHexString();
             xe.SetValue(objectId);
             break;
         case ERtpcV03VariantType.Events:

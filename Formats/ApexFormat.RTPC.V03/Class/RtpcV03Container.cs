@@ -8,12 +8,21 @@ namespace ApexFormat.RTPC.V03.Class;
 
 /// <summary>
 /// Structure:
+/// <br/>NameHash - <see cref="uint"/>
+/// <br/>Offset - <see cref="uint"/>
+/// <br/>PropertyCount - <see cref="ushort"/>
+/// <br/>ContainerCount - <see cref="ushort"/>
 /// <br/>Properties - <see cref="RtpcV03Variant"/>[]
 /// <br/>Containers - <see cref="RtpcV03Container"/>[]
 /// <br/>AssignedPropertyCount - <see cref="uint"/>
 /// </summary>
-public class RtpcV03Container : RtpcV03ContainerHeader
+public class RtpcV03Container
 {
+    public uint NameHash = 0;
+    public uint Offset = 0;
+    public ushort PropertyCount = 0;
+    public ushort ContainerCount = 0;
+    
     public RtpcV03Variant[] Properties = [];
     public RtpcV03Container[] Containers = [];
     public uint AssignedPropertyCount = 0;
@@ -21,28 +30,28 @@ public class RtpcV03Container : RtpcV03ContainerHeader
 
 public static class RtpcV03ContainerLibrary
 {
-    public static RtpcV03Container HeaderToContainer(this RtpcV03ContainerHeader header)
-    {
-        var result = new RtpcV03Container
-        {
-            NameHash = header.NameHash,
-            Offset = header.Offset,
-            PropertyCount = header.PropertyCount,
-            ContainerCount = header.ContainerCount,
-            Properties = new RtpcV03Variant[header.PropertyCount],
-            Containers = new RtpcV03Container[header.ContainerCount],
-        };
-
-        return result;
-    }
+    public const int SizeOf = sizeof(uint) // NameHash
+                              + sizeof(uint) // Offset
+                              + sizeof(ushort) // PropertyCount
+                              + sizeof(ushort); // ContainerCount
     
     public static Option<RtpcV03Container> ReadRtpcV03Container(this Stream stream)
     {
-        var optionContainerHeader = stream.ReadRtpcV03ContainerHeader();
-        if (!optionContainerHeader.IsSome(out var containerHeader))
+        if (stream.CouldRead(SizeOf))
+        {
             return Option<RtpcV03Container>.None;
+        }
         
-        var result = containerHeader.HeaderToContainer();
+        var result = new RtpcV03Container
+        {
+            NameHash = stream.Read<uint>(),
+            Offset = stream.Read<uint>(),
+            PropertyCount = stream.Read<ushort>(),
+            ContainerCount = stream.Read<ushort>(),
+        };
+        
+        result.Properties = new RtpcV03Variant[result.PropertyCount];
+        result.Containers = new RtpcV03Container[result.ContainerCount];
         
         var originalPosition = stream.Position;
         stream.Seek(result.Offset, SeekOrigin.Begin);

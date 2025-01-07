@@ -3,12 +3,10 @@ using System.Text;
 using System.Xml.Linq;
 using System.Xml.Schema;
 using ApexFormat.IC.V01.Enum;
-using ApexToolsLauncher.Core.Class;
 using ApexToolsLauncher.Core.Extensions;
 using ApexToolsLauncher.Core.Hash;
 using ApexToolsLauncher.Core.Libraries;
 using CommunityToolkit.HighPerformance;
-using Microsoft.VisualBasic;
 using RustyOptions;
 
 namespace ApexFormat.IC.V01.Class;
@@ -259,9 +257,9 @@ public static class IcV01PropertyLibrary
                 xe.SetValue(string.Join(",", bytes.Select(b => $"{b:X2}")));
                 break;
             case EIcVariantV01.ObjectId:
-                var objectIdValue = (IcV01ObjectId) property.Data;
-                var objectId = IcV01ObjectIdLibrary.ToString(objectIdValue);
-                xe.SetValue(objectId);
+                var oid = (IcV01ObjectId) property.Data;
+                var oidString = oid.ToString();
+                xe.SetValue(oidString);
                 break;
             case EIcVariantV01.Events:
                 var eventPairs = ((uint, uint)[]) property.Data;

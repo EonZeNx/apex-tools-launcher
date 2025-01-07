@@ -1,7 +1,6 @@
 ﻿using System.Text;
 using System.Xml.Linq;
 using ApexFormat.IC.V01.Enum;
-using ApexToolsLauncher.Core.Class;
 using ApexToolsLauncher.Core.Extensions;
 using ApexToolsLauncher.Core.Libraries;
 using CommunityToolkit.HighPerformance;

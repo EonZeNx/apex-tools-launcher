@@ -8,6 +8,11 @@ public class RtpcV03ObjectId
     public ushort Second = 0;
     public ushort Third = 0;
     public ushort Data = 0;
+
+    public override string ToString()
+    {
+        return this.ToHexString();
+    }
 }
 
 public static class RtpcV03ObjectIdLibrary
@@ -22,11 +27,9 @@ public static class RtpcV03ObjectIdLibrary
         return result;
     }
     
-    public static string String(this RtpcV03ObjectId oid)
+    public static string ToHexString(this RtpcV03ObjectId oid)
     {
-        var result = $"{oid.ToUInt64():X016}";
-
-        return result;
+        return $"{oid.ToUInt64():X016}";
     }
     
     public static RtpcV03ObjectId ReadRtpcV01ObjectId(this Stream stream)
