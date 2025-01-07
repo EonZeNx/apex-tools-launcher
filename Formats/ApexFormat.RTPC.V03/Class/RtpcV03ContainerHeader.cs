@@ -29,7 +29,7 @@ public class RtpcV03ContainerHeader : ISizeOf
     }
 }
 
-public static class RtpcV03ContainerHeaderHeaderExtensions
+public static class RtpcV03ContainerHeaderHeaderLibrary
 {
     public static Option<RtpcV03ContainerHeader> ReadRtpcV03ContainerHeader(this Stream stream)
     {
