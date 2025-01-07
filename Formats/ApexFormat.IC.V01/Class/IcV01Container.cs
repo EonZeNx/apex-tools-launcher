@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.Xml.Linq;
 using ApexFormat.IC.V01.Enum;
 using ApexToolsLauncher.Core.Extensions;
@@ -33,7 +33,7 @@ public static class IcV01ContainerLibrary
     public static Option<T> Read<T>(this Stream stream)
         where T : IcV01Container
     {
-        if (stream.CouldRead(SizeOf))
+        if (!stream.CouldRead(SizeOf))
         {
             return Option<T>.None;
         }

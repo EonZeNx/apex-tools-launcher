@@ -180,7 +180,7 @@ public class SarcV02File : ICanExtractPath, IExtractPathToPath, IExtractStreamTo
 
     public bool CanRepackPath(string path)
     {
-        throw new NotImplementedException();
+        return false;
     }
 
     public Result<int, Exception> RepackPathToPath(string inPath, string outPath)

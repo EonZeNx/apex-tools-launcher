@@ -28,7 +28,7 @@ public static class SarcV02ArchiveEntryExtensions
     
     public static Option<SarcV02ArchiveEntry> ReadSarcV02ArchiveEntry(this Stream stream)
     {
-        if (stream.CouldRead(SizeOf))
+        if (!stream.CouldRead(SizeOf))
         {
             return Option<SarcV02ArchiveEntry>.None;
         }

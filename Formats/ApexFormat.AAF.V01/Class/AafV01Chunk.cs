@@ -30,7 +30,7 @@ public static class AafV01ChunkLibrary
     
     public static Option<AafV01Chunk> ReadAafV01Chunk(this Stream stream)
     {
-        if (stream.CouldRead(SizeOf))
+        if (!stream.CouldRead(SizeOf))
         {
             return Option<AafV01Chunk>.None;
         }

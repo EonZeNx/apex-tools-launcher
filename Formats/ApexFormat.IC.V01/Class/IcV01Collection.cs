@@ -1,4 +1,4 @@
-﻿using System.Xml.Linq;
+using System.Xml.Linq;
 using ApexFormat.IC.V01.Enum;
 using ApexToolsLauncher.Core.Extensions;
 using ApexToolsLauncher.Core.Libraries;
@@ -37,7 +37,7 @@ public static class IcV01CollectionLibrary
     public static Option<T> Read<T>(this Stream stream)
         where T : IcV01Collection
     {
-        if (stream.CouldRead(SizeOf))
+        if (!stream.CouldRead(SizeOf))
         {
             return Option<T>.None;
         }
@@ -166,7 +166,7 @@ public static class IcV01CollectionLibrary
             where result.IsOk(out _)
                 select property
         ).ToArray();
-        collection.Count = (byte) collection.Properties.Length;
+        collection.Count = (ushort) collection.Properties.Length;
         
         return Result.OkExn(true);
     }
@@ -180,7 +180,7 @@ public static class IcV01CollectionLibrary
             where result.IsOk(out _)
                 select container
         ).ToArray();
-        collection.Count = (byte) collection.Containers.Length;
+        collection.Count = (ushort) collection.Containers.Length;
         
         return Result.OkExn(true);
     }
