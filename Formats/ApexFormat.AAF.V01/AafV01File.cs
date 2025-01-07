@@ -97,11 +97,11 @@ public class AafV01File : ICanExtractPath, IExtractPathToPath, IExtractStreamToS
 
     public Result<int, Exception> RepackPathToPath(string inPath, string outPath)
     {
-        throw new NotImplementedException();
+        return Result.Err<int>(new NotImplementedException());
     }
 
     public Result<int, Exception> RepackStreamToStream(Stream inStream, Stream outStream)
     {
-        throw new NotImplementedException();
+        return Result.Err<int>(new NotImplementedException());
     }
 }
