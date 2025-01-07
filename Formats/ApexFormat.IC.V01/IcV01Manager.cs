@@ -37,6 +37,6 @@ public class IcV01Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
 
     public string GetProcessorName()
     {
-        return "IC v01";
+        return $"IC v{IcV01FileLibrary.Version:D2}";
     }
 }

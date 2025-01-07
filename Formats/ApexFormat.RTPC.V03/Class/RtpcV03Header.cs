@@ -26,7 +26,7 @@ public static class RtpcV03HeaderLibrary
     
     public static Option<RtpcV03Header> ReadRtpcV03Header(this Stream stream)
     {
-        if (stream.CouldRead(SizeOf))
+        if (!stream.CouldRead(SizeOf))
         {
             return Option<RtpcV03Header>.None;
         }

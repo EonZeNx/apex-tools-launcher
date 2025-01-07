@@ -54,9 +54,9 @@ public class RtpcV01File : ICanExtractPath, IExtractPathToPath, IExtractStreamTo
         if (!optionContainer.IsSome(out var container))
             return Result.Err<int>(new InvalidOperationException($"Failed to extract {nameof(RtpcV01Container)}"));
 
-        var outer = new XElement("entity");
+        var outer = new XElement(RtpcV01FileLibrary.XName);
         outer.SetAttributeValue("extension", ExtractExtension);
-        outer.SetAttributeValue("version", "1");
+        outer.SetAttributeValue("version", RtpcV01FileLibrary.Version);
 
         var rootXElement = container.ToXElement();
         outer.Add(rootXElement);
@@ -86,4 +86,10 @@ public class RtpcV01File : ICanExtractPath, IExtractPathToPath, IExtractStreamTo
     {
         return Result.Err<int>(new NotImplementedException());
     }
+}
+
+public static class RtpcV01FileLibrary
+{
+    public const string XName = "entity";
+    public const int Version = 1;
 }

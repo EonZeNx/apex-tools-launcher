@@ -37,7 +37,7 @@ public static class RtpcV03ContainerLibrary
     
     public static Option<RtpcV03Container> ReadRtpcV03Container(this Stream stream)
     {
-        if (stream.CouldRead(SizeOf))
+        if (!stream.CouldRead(SizeOf))
         {
             return Option<RtpcV03Container>.None;
         }
