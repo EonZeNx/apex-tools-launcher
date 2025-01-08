@@ -19,7 +19,7 @@ public class AppState
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public Dictionary<string, string>? JsonLastProfileId
     {
-        get => LastProfileId.Count != 0 ? JsonLastProfileId : null;
+        get => LastProfileId.Count != 0 ? LastProfileId : null;
         set => LastProfileId = value ?? [];
     }
 }

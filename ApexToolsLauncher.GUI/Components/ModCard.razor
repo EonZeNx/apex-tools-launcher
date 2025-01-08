@@ -40,7 +40,7 @@
           Color="Color.Primary"
           Value="@(ProfileConfig.ModConfigs.ContainsKey(ModId))"
           ValueChanged="@OnModToggled"
-          Disabled="@(string.Equals(ProfileId, ConstantsLibrary.InvalidString))"
+          Disabled="@(ConstantsLibrary.IsStringInvalid(ProfileId))"
         />
       </MudStack>
     </CardHeaderActions>

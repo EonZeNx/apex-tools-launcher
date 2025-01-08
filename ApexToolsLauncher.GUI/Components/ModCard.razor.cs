@@ -67,7 +67,7 @@ public partial class ModCard : MudComponentBase, IDisposable
 
     protected void TrySelectFirstVersion()
     {
-        if (!ConstantsLibrary.IsStringInvalid(SelectedVersion) || ModConfig.Versions.Count == 0)
+        if (ModConfig.Versions.Count == 0)
         {
             return;
         }

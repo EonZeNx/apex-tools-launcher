@@ -3,7 +3,7 @@
 @using ApexToolsLauncher.Core.Libraries
 @inherits MudComponentBase
 
-<div class="mt-4">
+<div class="mt-1">
   <GameCardsComponent GameChanged="@OnGameChanged"/>
 
   <MudGrid Class="mt-4" Spacing="3">
@@ -21,7 +21,7 @@
     </MudItem>
 
     <MudItem xs="8" Style="height: 20rem">
-      @if (!string.Equals(ModId, ConstantsLibrary.InvalidString))
+      @if (!ConstantsLibrary.IsStringInvalid(ModId))
       {
         <ModCard
           GameId="@GameId"

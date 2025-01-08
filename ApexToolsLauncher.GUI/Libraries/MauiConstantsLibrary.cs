@@ -3,12 +3,12 @@ using MudBlazor;
 
 namespace ApexToolsLauncher.GUI.Libraries;
 
-public struct AltPageInfo
+public struct PageInfo
 {
     public string Title { get; set; }
     public string Icon { get; set; }
 
-    public AltPageInfo(string title, string icon)
+    public PageInfo(string title, string icon)
     {
         Title = title;
         Icon = icon;
@@ -17,13 +17,13 @@ public struct AltPageInfo
 
 public static class MauiConstantsLibrary
 {
-    public static IMask IdMask { get; set; } = new RegexMask(@"^[\w ]+$");
+    public static string IdMask { get; set; } = @"^[\w ]+$";
 
-    public static Dictionary<string, AltPageInfo> PageInfos { get; set; } = new()
+    public static Dictionary<string, PageInfo> PageInfos { get; set; } = new()
     {
-        {"manage", new AltPageInfo("Manage", Icons.Material.Filled.EditNote)},
-        {"create", new AltPageInfo("Create", Icons.Material.Filled.Add)},
-        {"io_tools", new AltPageInfo("IO tools", Icons.Material.Filled.JoinLeft)},
-        {"euler", new AltPageInfo("Euler", Icons.Material.Filled.Rotate90DegreesCcw)},
+        {"manage", new PageInfo("Manage", Icons.Material.Filled.EditNote)},
+        {"create", new PageInfo("Create", Icons.Material.Filled.Add)},
+        {"io_tools", new PageInfo("IO tools", Icons.Material.Filled.JoinLeft)},
+        {"euler", new PageInfo("Euler", Icons.Material.Filled.Rotate90DegreesCcw)},
     };
 }
