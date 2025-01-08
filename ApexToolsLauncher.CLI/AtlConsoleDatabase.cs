@@ -92,7 +92,7 @@ public static class AtlConsoleDatabase
             ConsoleLibrary.Log($"Database backup created at '{databaseBackupPath}'", ConsoleColor.White);
         }
         
-        var lines = File.ReadLines(filePath).ToArray();
+        var lines = File.ReadLines(filePath).Select(l => l.Trim()).ToArray();
         var failed = HashDatabases.AddToDatabase(lines, databaseName, hashType).ToArray();
 
         if (failed.Length > 0)
