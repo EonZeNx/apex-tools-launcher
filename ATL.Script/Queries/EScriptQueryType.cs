@@ -6,16 +6,15 @@ public enum EScriptQueryType
 {
     Unknown = -1,
     Files,
-    Directories
+    Directories,
+    Both
 }
 
 public static class EScriptQueryTypeExtensions 
 {
-    public static readonly Dictionary<EScriptQueryType, string> VariableToXString = new()
-    {
-        { EScriptQueryType.Files,       "files" },
-        { EScriptQueryType.Directories, "directories" },
-    };
+    public static readonly Dictionary<EScriptQueryType, string> VariableToXString = Enum.GetValues(typeof(EScriptQueryType))
+        .Cast<EScriptQueryType>()
+        .ToDictionary(cc => cc, cc => cc.ToString().ToLower());
 
     public static readonly Dictionary<string, EScriptQueryType> XStringToVariable =
         VariableToXString.ToDictionary(kvp => kvp.Value, kvp => kvp.Key);

@@ -10,12 +10,13 @@ namespace ATL.Script.Actions;
 public class ScriptActionDelete : IScriptAction
 {
     public const string NodeName = "delete";
+    public string Format(string message) => $"{NodeName.ToUpper()}: {message}";
     
-    public void Process(XElement node, Dictionary<string, IScriptVariable> parentVars)
+    public ScriptProcessResult Process(XElement node, Dictionary<string, IScriptVariable> parentVars)
     {
         var targetAttr = node.Attribute("target");
         if (targetAttr is null)
-            return;
+            return ScriptProcessResult.Error(Format("target attribute missing"));
 
         var targetPath = ScriptLibrary.InterpolateString(targetAttr.Value, parentVars);
 
@@ -27,12 +28,14 @@ public class ScriptActionDelete : IScriptAction
             }
             else if (Directory.Exists(targetPath))
             {
-                Directory.Delete(targetPath);
+                Directory.Delete(targetPath, true);
             }
         }
         catch (Exception e)
         {
-            ConsoleLibrary.Log(e.Message, LogType.Error);
+            return ScriptProcessResult.Error(Format($"{e.Message}"));
         }
+        
+        return ScriptProcessResult.Ok();
     }
 }
