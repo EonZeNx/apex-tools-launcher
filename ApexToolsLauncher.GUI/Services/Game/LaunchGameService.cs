@@ -1,10 +1,9 @@
 using ApexToolsLauncher.GUI.Services.App;
-using ApexToolsLauncher.GUI.Services.Game;
 using ApexToolsLauncher.GUI.Services.Mod;
 
-namespace ApexToolsLauncher.GUI.Services;
+namespace ApexToolsLauncher.GUI.Services.Game;
 
-public class LaunchGameService
+public class LaunchGameService : ILaunchGameService
 {
     protected AppConfigService AppConfigService { get; set; }
     protected IGameConfigService GameConfigService { get; set; }

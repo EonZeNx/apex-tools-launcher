@@ -65,6 +65,9 @@ public partial class EulerConvertComponent : MudComponentBase
     protected float Pitch { get; set; }
     protected float Yaw { get; set; }
     protected float Roll { get; set; }
+    protected Matrix3x3 Output { get; set; }
+    protected string OutputFormated =>
+        $"{Format(Output.A.X)}, {Format(Output.A.Y)}, {Format(Output.A.Z)}, 0, {Format(Output.B.X)}, {Format(Output.B.Y)}, {Format(Output.B.Z)}, 0, {Format(Output.C.X)}, {Format(Output.C.Y)}, {Format(Output.C.Z)}, 0";
 
     protected string Calculate()
     {
@@ -96,8 +99,9 @@ public partial class EulerConvertComponent : MudComponentBase
         var r1 = result.FromX();
         var r2 = result.FromY();
         var r3 = result.FromZ();
-        
-        return $"{Format(r1.X)}, {Format(r1.Y)}, {Format(r1.Z)}, 0, {Format(r2.X)}, {Format(r2.Y)}, {Format(r2.Z)}, 0, {Format(r3.X)}, {Format(r3.Y)}, {Format(r3.Z)}, 0";
+
+        Output = new Matrix3x3(r1, r2, r3);
+        return OutputFormated;
     }
 
 
