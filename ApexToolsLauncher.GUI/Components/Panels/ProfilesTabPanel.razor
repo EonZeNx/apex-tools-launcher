@@ -1,5 +1,48 @@
+@using ApexToolsLauncher.Core.Libraries
 @inherits MudComponentBase
 
-<div class="@Class" style="@Style">
-  <MudText>Profiles</MudText>
-</div>
+<MudGrid Class="@Class" Style="@Style" Spacing="0">
+  <MudItem xs="4" Class="d-flex justify-center align-center">
+    <MudList
+      T="string"
+      SelectedValue="@ProfileId"
+      SelectedValueChanged="@ListValueChanged"
+      Color="@Color.Primary"
+      Style="width: 100%; height: 100%; overflow-y: scroll"
+    >
+      @if (ProfileConfigs.Count == 0)
+      {
+        <MudListItem Text="No mods found" Value="ConstantsLibrary.InvalidString"/>
+      }
+      else
+      {
+        foreach (var (modId, config) in ProfileConfigs)
+        {
+          var icon = Icons.Material.Filled.RadioButtonUnchecked;
+          var iconColour = Color.Inherit;
+
+          if (ProfileConfig.ModConfigs.ContainsKey(modId))
+          {
+            icon = Icons.Material.Filled.RadioButtonChecked;
+            iconColour = Color.Primary;
+          }
+
+          <MudListItem Value="@modId">
+            <MudStack Row="@true" Class="align-center">
+              <MudIcon Icon="@icon" Color="@iconColour" Size="Size.Small"/>
+              <MudText Typo="Typo.body1">@(config.Title)</MudText>
+            </MudStack>
+          </MudListItem>
+        }
+      }
+    </MudList>
+    
+    <MudDivider Vertical="true" FlexItem="true" />
+  </MudItem>
+
+  <MudItem xs="8" Class="pa-4 d-flex flex-column justify-space-between">
+    <MudStack Spacing="1">
+      <MudText Typo="Typo.h6">Description</MudText>
+    </MudStack>
+  </MudItem>
+</MudGrid>
