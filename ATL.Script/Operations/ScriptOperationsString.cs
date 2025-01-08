@@ -1,13 +1,14 @@
 ﻿using System.Xml.Linq;
+using ATL.Script.Blocks;
 using ATL.Script.Libraries;
 using ATL.Script.Variables;
 using RustyOptions;
 
-namespace ATL.Script.Blocks;
+namespace ATL.Script.Operations;
 
-public class ScriptBlockPath : IScriptBlock, IScriptVariable
+public class ScriptOperationsString : IScriptBlock, IScriptVariable
 {
-    public const string NodeName = "path";
+    public const string NodeName = "string";
     
     public Dictionary<string, IScriptVariable> Variables { get; set; } = new();
 
