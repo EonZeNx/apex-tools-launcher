@@ -6,6 +6,7 @@
         <Nullable>enable</Nullable>
         <AssemblyName>ApexFormat.IRTPC.V14</AssemblyName>
         <RootNamespace>ApexFormat.IRTPC.V14</RootNamespace>
+        <LangVersion>13</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>
