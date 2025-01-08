@@ -18,6 +18,9 @@ public partial class ManagePage : MudComponentBase, IDisposable
     protected IGameConfigService? GameConfigService { get; set; }
     
     [Inject]
+    protected IProfileConfigService? ProfileConfigService { get; set; }
+    
+    [Inject]
     protected IModConfigService? ModConfigService { get; set; }
     
     [Inject]
@@ -64,6 +67,7 @@ public partial class ManagePage : MudComponentBase, IDisposable
     {
         AppStateService?.RegisterOnReload(OnConfigReloaded);
         GameConfigService?.RegisterOnReload(OnConfigReloaded);
+        ProfileConfigService?.RegisterOnReload(OnConfigReloaded);
         ModConfigService?.RegisterOnReload(OnConfigReloaded);
     }
 
@@ -71,6 +75,7 @@ public partial class ManagePage : MudComponentBase, IDisposable
     {
         AppStateService?.UnregisterOnReload(OnConfigReloaded);
         GameConfigService?.UnregisterOnReload(OnConfigReloaded);
+        ProfileConfigService?.UnregisterOnReload(OnConfigReloaded);
         ModConfigService?.UnregisterOnReload(OnConfigReloaded);
     }
 }

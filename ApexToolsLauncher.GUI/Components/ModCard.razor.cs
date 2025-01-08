@@ -20,10 +20,13 @@ public partial class ModCard : MudComponentBase, IDisposable
     protected IModConfigService? ModConfigService { get; set; }
     
     [Parameter]
-    public string GameId { get; set; } = "GameId";
+    public string GameId { get; set; } = ConstantsLibrary.InvalidString;
     
     [Parameter]
-    public string ModId { get; set; } = "ModId";
+    public string ProfileId { get; set; } = ConstantsLibrary.InvalidString;
+    
+    [Parameter]
+    public string ModId { get; set; } = ConstantsLibrary.InvalidString;
 
     public string SelectedVersion { get; set; } = ConstantsLibrary.InvalidString;
     public GameConfig GameConfig { get; set; } = new();
@@ -32,6 +35,8 @@ public partial class ModCard : MudComponentBase, IDisposable
 
     protected void OnVersionChanged(string version)
     {
+        if (ProfileConfigService is null) return;
+
         SelectedVersion = version;
 
         if (!ProfileConfig.ModConfigs.ContainsKey(ModId))
@@ -40,11 +45,13 @@ public partial class ModCard : MudComponentBase, IDisposable
         }
         
         ProfileConfig.ModConfigs[ModId] = version;
-        // ProfileConfigService.Save(GameId, GameConfig.SelectedProfile, ProfileConfig);
+        ProfileConfigService.Save(GameId, ProfileId, ProfileConfig);
     }
     
-    protected void OnModEnabled(bool isEnabled)
+    protected void OnModToggled(bool isEnabled)
     {
+        if (ProfileConfigService is null) return;
+        
         if (isEnabled)
         {
             TrySelectFirstVersion();
@@ -55,7 +62,7 @@ public partial class ModCard : MudComponentBase, IDisposable
             ProfileConfig.ModConfigs.Remove(ModId);
         }
         
-        // ProfileConfigService.Save(GameId, GameConfig.SelectedProfile, ProfileConfig);
+        ProfileConfigService.Save(GameId, ProfileId, ProfileConfig);
     }
 
     protected void TrySelectFirstVersion()
@@ -71,13 +78,13 @@ public partial class ModCard : MudComponentBase, IDisposable
     
     protected void ReloadData()
     {
-        if (GameConfigService is null || ModConfigService is null)
+        if (GameConfigService is null || ProfileConfigService is null || ModConfigService is null)
         {
             return;
         }
         
         GameConfig = GameConfigService.Get(GameId);
-        // ProfileConfig = ProfileConfigService.Get(GameId, GameConfig.SelectedProfile);
+        ProfileConfig = ProfileConfigService.Get(GameId, ProfileId);
         ModConfig = ModConfigService.Get(GameId, ModId);
 
         if (ProfileConfig.ModConfigs.TryGetValue(ModId, out var version))
