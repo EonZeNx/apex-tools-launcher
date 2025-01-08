@@ -4,6 +4,7 @@ using System.IO;
 using System.Xml.Linq;
 using ApexToolsLauncher.CLI.Script.Libraries;
 using ApexToolsLauncher.CLI.Script.Variables;
+using ApexToolsLauncher.Core.Libraries;
 
 namespace ApexToolsLauncher.CLI.Script.Actions;
 
@@ -34,7 +35,21 @@ public class ScriptActionProcess : IScriptAction
         
         try
         {
-            AtlOperate.OperateFile(target, outDirectory);
+            var managerOption = AtlOperate.GetOperator(target);
+            if (!managerOption.IsSome(out var manager))
+            {
+                return ScriptProcessResult.Error(Format($"File not supported {target}"));
+            }
+            
+            var pathName = Path.GetFileName(target);
+            if (string.IsNullOrEmpty(pathName))
+                pathName = Path.GetDirectoryName(target);
+                
+            ConsoleLibrary.Log($"Processing {pathName} as {manager.GetProcessorName()}", LogType.Info);
+                
+            AtlOperate.RunOperator(target, manager, outDirectory);
+                
+            ConsoleLibrary.Log($"Finished {pathName}", LogType.Info);
         }
         catch (Exception e)
         {
