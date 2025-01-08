@@ -37,6 +37,13 @@
             Margin="Margin.Dense"
             Variant="Variant.Outlined"
           />
+
+          <MudTextField
+            T="float"
+            Label="W1"
+            Margin="Margin.Dense"
+            Variant="Variant.Outlined"
+          />
         </MudStack>
       </MudItem>
 
@@ -62,6 +69,13 @@
             T="float"
             Label="Z2"
             @bind-Value="@(Input.C.Y)"
+            Margin="Margin.Dense"
+            Variant="Variant.Outlined"
+          />
+
+          <MudTextField
+            T="float"
+            Label="W2"
             Margin="Margin.Dense"
             Variant="Variant.Outlined"
           />
@@ -93,32 +107,52 @@
             Margin="Margin.Dense"
             Variant="Variant.Outlined"
           />
+
+          <MudTextField
+            T="float"
+            Label="W3"
+            Margin="Margin.Dense"
+            Variant="Variant.Outlined"
+          />
         </MudStack>
       </MudItem>
 
+      <MudItem xs="12">
+        <MudDivider/>
+      </MudItem>
+
+      <MudItem xs="12">
+        <MudTextField
+          T="string"
+          Label="Rotation"
+          Value="@Calculate()"
+          Margin="Margin.Dense"
+          Variant="Variant.Outlined"
+        />
+      </MudItem>
 
       <MudItem xs="4">
         <MudStack Spacing="2">
           <MudTextField
-            T="float"
+            T="string"
             Label="Pitch"
-            @bind-Value="@Pitch"
+            Value="@Format(Pitch)"
             Margin="Margin.Dense"
             Variant="Variant.Outlined"
           />
 
           <MudTextField
-            T="float"
+            T="string"
             Label="Yaw"
-            @bind-Value="@Yaw"
+            Value="@Format(Yaw)"
             Margin="Margin.Dense"
             Variant="Variant.Outlined"
           />
 
           <MudTextField
-            T="float"
+            T="string"
             Label="Roll"
-            @bind-Value="@Roll"
+            Value="@Format(Roll)"
             Margin="Margin.Dense"
             Variant="Variant.Outlined"
           />

@@ -1,4 +1,5 @@
 using System.Numerics;
+using ApexToolsLauncher.Core.Extensions;
 using ApexToolsLauncher.Core.Libraries;
 using ApexToolsLauncher.GUI.Services.Development;
 using Microsoft.AspNetCore.Components;
@@ -13,36 +14,42 @@ public partial class GameToEulerCard : MudComponentBase
 
     protected Matrix3x3 Input = Matrix3x3.Zero();
     
-    protected float Pitch { get; set; }
-    protected float Psi => float.DegreesToRadians(Pitch);
+    protected float Psi { get; set; } = 0;
+    protected float Pitch => float.RadiansToDegrees(Psi);
     
-    protected float Yaw { get; set; }
-    protected float Theta => float.DegreesToRadians(Yaw);
+    protected float Theta { get; set; } = 0;
+    protected float Yaw => float.RadiansToDegrees(Theta);
+
+    protected float Phi { get; set; } = 0;
+    protected float Roll => float.RadiansToDegrees(Phi);
     
-    protected float Roll { get; set; }
-    protected float Phi => float.DegreesToRadians(Roll);
-    
-    protected Vector3 Output { get; set; }
-    
-    protected void Calculate()
+    protected string Calculate()
     {
-        if (LogService is null) return;
+        if (LogService is null) return "";
 
-        var outA = Vector3.Zero;
-        outA.X = (float) (Math.Cos(Theta) * Math.Cos(Phi));
-        outA.Y = (float) (Math.Sin(Psi) * Math.Sin(Theta) * Math.Cos(Phi) - Math.Cos(Psi) * Math.Sin(Phi));
-        outA.Z = (float) (Math.Cos(Psi) * Math.Sin(Theta) * Math.Cos(Phi) + Math.Sin(Psi) * Math.Sin(Phi));
+        Psi = 0;
+        Theta = 0;
+        Phi = 0;
+        
+        if (!Input.C.X.AlmostEqual(1) && !Input.C.X.AlmostEqual(-1))
+        {
+            Theta = (float) -Math.Asin(Input.C.X);
+            Psi = (float) (Math.Atan2(Input.C.Y / Math.Cos(Theta), Input.C.Z / Math.Cos(Theta)));
+            Phi = (float) (Math.Atan2(Input.B.X / Math.Cos(Theta), Input.A.X / Math.Cos(Theta)));
+        }
+        else if (Input.C.X.AlmostEqual(1))
+        {
+            Theta = (float) -Math.PI / 2;
+            Psi = (float) (-Phi + Math.Atan2(-Input.A.Y, -Input.A.Z));
+        }
+        else if (Input.C.X.AlmostEqual(-1))
+        {
+            Theta = (float) Math.PI / 2;
+            Psi = (float) (Phi + Math.Atan2(Input.A.Y, Input.A.Z));
+        }
 
-        var outB = Vector3.Zero;
-        outB.X = (float) (Math.Cos(Theta) * Math.Sin(Phi));
-        outB.Y = (float) (Math.Sin(Psi) * Math.Sin(Theta) * Math.Sin(Phi) - Math.Cos(Psi) * Math.Cos(Phi));
-        outB.Z = (float) (Math.Cos(Psi) * Math.Sin(Theta) * Math.Sin(Phi) + Math.Sin(Psi) * Math.Cos(Phi));
-
-        var outC = Vector3.Zero;
-        outC.X = (float) -Math.Sin(Theta);
-        outC.Y = (float) (Math.Sin(Psi) * Math.Cos(Theta));
-        outC.Z = (float) (Math.Cos(Psi) * Math.Cos(Theta));
+        return $"{Format(Pitch)}, {Format(Yaw)}, {Format(Roll)}";
     }
 
-    protected static string Format(float value) => $"{value:0.####}";
+    protected static string Format(float value) => $"{value:0.##}";
 }
