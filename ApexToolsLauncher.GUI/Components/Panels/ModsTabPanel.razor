@@ -2,13 +2,13 @@
 @inherits MudComponentBase
 
 <div class="@Class" style="@Style">
-  <MudStack Row="@true" Style="height: 100%">
+  <MudStack Row="@true" Spacing="0" Style="height: 100%">
     <MudList
       T="string"
       SelectedValue="@ModId"
       SelectedValueChanged="@ListValueChanged"
       Color="@Color.Primary"
-      Style="height: 100%; overflow-y: scroll; flex-grow: 1; border-right: 1px solid #FFFFFFAA"
+      Style="height: 100%; overflow-y: scroll; flex-grow: 1"
     >
       @if (ModConfigs.Count == 0)
       {
@@ -36,8 +36,10 @@
         }
       }
     </MudList>
+    
+    <MudDivider Vertical="true" FlexItem="true"/>
 
-    <div style="height: 100%; flex-grow: 3">
+    <div class="pa-2" style="height: 100%; flex-grow: 3">
       <MudStack Spacing="1">
         <MudText Typo="Typo.body1">Description</MudText>
         <MudText Typo="Typo.body2">@(ModConfig.Description)</MudText>

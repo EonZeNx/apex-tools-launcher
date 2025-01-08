@@ -259,6 +259,8 @@ public class HashDatabase
         return Option.Some(result);
     }
     
+    public Option<HashLookupResult> Lookup(int hash, EHashType hashType = EHashType.Unknown) => Lookup((uint) hash, hashType);
+    
     public void AddKnown(uint hash, HashLookupResult result)
     {
         KnownHashes.TryAdd(hash, result);
