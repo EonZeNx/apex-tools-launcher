@@ -46,12 +46,6 @@ public partial class ManagePage : MudComponentBase, IDisposable
         ProfileId = profileId;
     }
     
-    protected void OnModChanged(string modId)
-    {
-        ModId = modId;
-        StateHasChanged();
-    }
-    
     protected async void OnConfigReloaded()
     {
         if (AppStateService is null || ModConfigService is null)

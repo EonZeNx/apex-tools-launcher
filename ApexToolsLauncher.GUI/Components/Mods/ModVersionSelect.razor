@@ -9,6 +9,7 @@
   ValueChanged="@OnVersionChanged"
   Margin="Margin.Dense"
   FullWidth="@true"
+  Disabled="@(ConstantsLibrary.IsStringInvalid(ProfileId))"
   Class="flex-grow-0 mt-1"
 >
   <MudSelectItem Value="@ConstantsLibrary.InvalidString" Style="font-style: italic">Off</MudSelectItem>
