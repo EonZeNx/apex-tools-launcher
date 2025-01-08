@@ -70,13 +70,10 @@ public class ScriptBlockFor : IScriptBlock
         var skipFails = false;
         if (parentVars.TryGetValue("skip_fails", out var skipFailsVar))
         {
-            var optionSkipFails = skipFailsVar.As<string>();
+            var optionSkipFails = skipFailsVar.As<bool>();
             if (optionSkipFails.IsSome(out var skipFailsValue))
             {
-                if (bool.TryParse(skipFailsValue, out var boolean))
-                {
-                    skipFails = boolean;
-                }
+                skipFails = skipFailsValue;
             }
         }
         
