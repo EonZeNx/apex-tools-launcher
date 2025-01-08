@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using System.Text;
 using System.Xml.Linq;
 using System.Xml.Schema;
 using ApexFormat.IC.V01.Enum;
@@ -99,6 +100,103 @@ public static class IcV01PropertyLibrary
 
         return Option.Some(result);
     }
+
+    public static Option<Exception> Write(this Stream stream, IcV01Property property)
+    {
+        stream.Write(property.NameHash);
+        stream.Write(property.Variant);
+
+        if (property.Data is null)
+        {
+            return Option.Some<Exception>(new InvalidOperationException("property.Data is null"));
+        }
+
+        switch (property.Variant)
+        {
+            case EIcVariantV01.Unassigned:
+            case EIcVariantV01.UInteger32:
+                stream.Write((uint) property.Data);
+                break;
+            case EIcVariantV01.Float32:
+                stream.Write((float) property.Data);
+                break;
+            case EIcVariantV01.String:
+                var dataString = (string) property.Data;
+                stream.Write((ushort) dataString.Length);
+                stream.Write(Encoding.UTF8.GetBytes(dataString));
+                break;
+            case EIcVariantV01.Vector2:
+                var dataVec2 = (float[]) property.Data;
+                if (dataVec2.Length != 2)
+                    return Option.Some<Exception>(new ArgumentOutOfRangeException($"{property.Variant} had length {dataVec2.Length}"));
+                foreach (var v in dataVec2)
+                    stream.Write(v);
+                break;
+            case EIcVariantV01.Vector3:
+                var dataVec3 = (float[]) property.Data;
+                if (dataVec3.Length != 3)
+                    return Option.Some<Exception>(new ArgumentOutOfRangeException($"{property.Variant} had length {dataVec3.Length}"));
+                foreach (var v in dataVec3)
+                    stream.Write(v);
+                break;
+            case EIcVariantV01.Vector4:
+                var dataVec4 = (float[]) property.Data;
+                if (dataVec4.Length != 4)
+                    return Option.Some<Exception>(new ArgumentOutOfRangeException($"{property.Variant} had length {dataVec4.Length}"));
+                foreach (var v in dataVec4)
+                    stream.Write(v);
+                break;
+            case EIcVariantV01.Matrix3X3:
+                var dataMat3 = (float[]) property.Data;
+                if (dataMat3.Length != 9)
+                    return Option.Some<Exception>(new ArgumentOutOfRangeException($"{property.Variant} had length {dataMat3.Length}"));
+                foreach (var v in dataMat3)
+                    stream.Write(v);
+                break;
+            case EIcVariantV01.Matrix3X4:
+                var dataMat3X4 = (float[]) property.Data;
+                if (dataMat3X4.Length != 12)
+                    return Option.Some<Exception>(new ArgumentOutOfRangeException($"{property.Variant} had length {dataMat3X4.Length}"));
+                foreach (var v in dataMat3X4)
+                    stream.Write(v);
+                break;
+            case EIcVariantV01.UInteger32Array:
+                var dataUintArray = (uint[]) property.Data;
+                stream.Write((uint) dataUintArray.Length);
+                foreach (var v in dataUintArray)
+                    stream.Write(v);
+                break;
+            case EIcVariantV01.Float32Array:
+                var dataFloatArray = (float[]) property.Data;
+                stream.Write((uint) dataFloatArray.Length);
+                foreach (var v in dataFloatArray)
+                    stream.Write(v);
+                break;
+            case EIcVariantV01.ByteArray:
+                var dataByteArray = (byte[]) property.Data;
+                stream.Write((uint) dataByteArray.Length);
+                foreach (var v in dataByteArray)
+                    stream.Write(v);
+                break;
+            case EIcVariantV01.ObjectId:
+                var objectId = (IcV01ObjectId) property.Data;
+                stream.Write(objectId);
+                break;
+            case EIcVariantV01.Events:
+                var dataEvents = ((uint, uint)[]) property.Data;
+                stream.Write((uint) dataEvents.Length);
+                foreach (var evt in dataEvents)
+                {
+                    stream.Write(evt.Item1);
+                    stream.Write(evt.Item2);
+                }
+                break;
+            default:
+                return Option.Some<Exception>(new ArgumentOutOfRangeException($"invalid variant {property.Variant}"));
+        }
+        
+        return Option<Exception>.None;
+    }
     
     public static XElement ToXElement(this IcV01Property property)
     {
@@ -180,20 +278,28 @@ public static class IcV01PropertyLibrary
     
     public static Result<bool, Exception> FromXElement(this IcV01Property property, XElement xe)
     {
-        if (string.Equals(xe.Name.LocalName, XName))
+        const StringSplitOptions defaultStringSplitOptions = StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries;
+        
+        if (!string.Equals(xe.Name.LocalName, XName))
         {
             return Result.Err<bool>(new System.Xml.XmlException($"Node {xe.Name.LocalName} does not equal {XName}"));
         }
         
-        xe.GetAttributeOrNone("name").Match(
-            s => property.NameHash = s.Jenkins(),
-            () => xe.GetAttributeOrNone("id")
-                .MatchSome(s => property.NameHash = uint.Parse(s, NumberStyles.HexNumber)));
-
-        var optionAttribute = xe.GetAttributeOrNone("type");
-        if (!optionAttribute.IsSome(out var typeAttribute))
+        var nameHashOption = xe.GetAttributeOrNone("name")
+            .Map(s => s.Jenkins())
+            .OrElse(() => xe.GetAttributeOrNone("id")
+                .Map(s => uint.Parse(s, NumberStyles.HexNumber)));
+        
+        if (!nameHashOption.IsSome(out var nameHash))
         {
-            return Result.Err<bool>(new ArgumentOutOfRangeException());
+            return Result.Err<bool>(new InvalidOperationException("both name and id attributes are both missing"));
+        }
+
+        property.NameHash = nameHash;
+        
+        if (!xe.GetAttributeOrNone("type").IsSome(out var typeAttribute))
+        {
+            return Result.Err<bool>(new InvalidOperationException("type attribute missing"));
         }
 
         property.Variant = typeAttribute.ToEIcVariantV01();
@@ -227,34 +333,59 @@ public static class IcV01PropertyLibrary
                 return Result.OkExn(true);
             }
             case EIcVariantV01.Vector2:
+            {
+                var strValues = xe.Value.Split(",", defaultStringSplitOptions);
+                property.Data = strValues.Length == 2
+                    ? Array.ConvertAll(strValues, float.Parse) : new float[2];
+                
+                return Result.OkExn(true);
+            }
             case EIcVariantV01.Vector3:
+            {
+                var strValues = xe.Value.Split(",", defaultStringSplitOptions);
+                property.Data = strValues.Length == 3
+                    ? Array.ConvertAll(strValues, float.Parse) : new float[3];
+                
+                return Result.OkExn(true);
+            }
             case EIcVariantV01.Vector4:
+            {
+                var strValues = xe.Value.Split(",", defaultStringSplitOptions);
+                property.Data = strValues.Length == 4
+                    ? Array.ConvertAll(strValues, float.Parse) : new float[4];
+                
+                return Result.OkExn(true);
+            }
             case EIcVariantV01.Float32Array:
             {
-                var strValues = xe.Value.Split(",");
-                property.Data = Array.ConvertAll(strValues, float.Parse);
+                var strValues = xe.Value.Split(",", defaultStringSplitOptions);
+                property.Data = strValues.Length == 9
+                    ? Array.ConvertAll(strValues, float.Parse) : new float[9];
                 
                 return Result.OkExn(true);
             }
             case EIcVariantV01.Matrix3X3:
             case EIcVariantV01.Matrix3X4:
             {
-                var strValues = xe.Value.Split(",");
-                property.Data = Array.ConvertAll(strValues, float.Parse);
+                var strValues = xe.Value.Split(",", defaultStringSplitOptions);
+                property.Data = strValues.Length == 12
+                    ? Array.ConvertAll(strValues, float.Parse) : new float[12];
                 
                 return Result.OkExn(true);
             }
             case EIcVariantV01.UInteger32Array:
             {
-                var strValues = xe.Value.Split(",");
-                property.Data = Array.ConvertAll(strValues, uint.Parse);
+                var strValues = xe.Value.Split(",", defaultStringSplitOptions);
+                property.Data = strValues.Length != 0
+                    ? Array.ConvertAll(strValues, uint.Parse) : [];
                 
                 return Result.OkExn(true);
             }
             case EIcVariantV01.ByteArray:
             {
-                var strValues = xe.Value.Split(",");
-                property.Data = Array.ConvertAll(strValues, MathLibrary.HexToByte);
+                var strValues = xe.Value.Split(",", defaultStringSplitOptions);
+                property.Data = strValues.Length != 0
+                    ? Array.ConvertAll(strValues, MathLibrary.HexToByte) : [];
                 
                 return Result.OkExn(true);
             }
@@ -264,31 +395,27 @@ public static class IcV01PropertyLibrary
             }
             case EIcVariantV01.ObjectId:
             {
-                if (!ulong.TryParse(xe.Value, out var result))
-                {
-                    return Result.Err<bool>(new XmlSchemaException($"{xe.Value} is not a valid {property.Variant.ToXmlString()}"));
-                }
-                
-                // todo: test this, might break
-                property.Data = result;
+                property.Data = IcV01ObjectIdLibrary.FromString(xe.Value);
                 
                 return Result.OkExn(true);
             }
             case EIcVariantV01.Events:
             {
-                string[] eventStringArray = [xe.Value];
-                if (xe.Value.Contains(','))
+                if (string.IsNullOrEmpty(xe.Value))
                 {
-                    eventStringArray = xe.Value.Split(", ");
+                    property.Data = Array.Empty<(uint, uint)>();
+                    return Result.OkExn(true);
                 }
-        
-                property.Data = (from eventString in eventStringArray 
-                        select eventString.Split("=") into eventStrings 
-                        select Array.ConvertAll(eventStrings, MathLibrary.HexToUInt) into eventsArray 
-                        select (eventsArray[0], eventsArray[1]))
+
+                property.Data = xe.Value.Split(", ", defaultStringSplitOptions)
+                    .Select(eStr => eStr.Split("=", defaultStringSplitOptions)
+                        .Select(MathLibrary.HexToUInt)
+                        .ToArray())
+                    .Select(e => (e[0], e[1]))
                     .ToArray();
-            }
+                
                 break;
+            }
             case EIcVariantV01.Total:
             {
                 return Result.Err<bool>(new ArgumentOutOfRangeException());

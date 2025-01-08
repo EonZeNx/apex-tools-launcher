@@ -56,4 +56,9 @@ public class AvtxV01Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
         
         return result;
     }
+
+    public string GetProcessorName()
+    {
+        return "AVTX v01";
+    }
 }

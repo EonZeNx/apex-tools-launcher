@@ -240,4 +240,9 @@ public class SarcV02Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
         
         return result;
     }
+
+    public string GetProcessorName()
+    {
+        return "SARC v02";
+    }
 }

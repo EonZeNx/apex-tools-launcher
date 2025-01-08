@@ -1,7 +1,6 @@
 ﻿using System.Globalization;
 using System.Xml.Linq;
 using ApexFormat.IC.V01.Enum;
-using ApexToolsLauncher.Core.Extensions;
 using ApexToolsLauncher.Core.Hash;
 using ApexToolsLauncher.Core.Libraries;
 using CommunityToolkit.HighPerformance;
@@ -54,6 +53,21 @@ public static class IcV01ContainerLibrary
 
         return Option.Some((T) result);
     }
+
+    public static Option<Exception> Write(this Stream stream, IcV01Container container)
+    {
+        stream.Write(container.NameHash);
+        stream.Write(container.Count);
+        
+        foreach (var collection in container.Collections)
+        {
+            var writeOption = stream.Write(collection);
+            if (!writeOption.IsNone)
+                return writeOption;
+        }
+        
+        return Option.None<Exception>();
+    }
     
     /// <include file='..\docs.ICv01.xml' path='doc/members[@name="IcV01ContainerLibrary"]/ToXElement/*'/>
     public static XElement ToXElement(this IcV01Container container)
@@ -84,22 +98,29 @@ public static class IcV01ContainerLibrary
 
     public static Result<bool, Exception> FromXElement(this IcV01Container container, XElement xe)
     {
-        if (string.Equals(xe.Name.LocalName, XName))
+        if (!string.Equals(xe.Name.LocalName, XName))
         {
             return Result.Err<bool>(new System.Xml.XmlException($"Node {xe.Name.LocalName} does not equal {XName}"));
         }
-        
-        xe.GetAttributeOrNone("name").Match(
-            s => container.NameHash = s.Jenkins(),
-            () => xe.GetAttributeOrNone("id")
-                .MatchSome(s => container.NameHash = uint.Parse(s, NumberStyles.HexNumber)));
 
+        var nameHashOption = xe.GetAttributeOrNone("name")
+            .Map(s => s.Jenkins())
+            .OrElse(() => xe.GetAttributeOrNone("id")
+                .Map(s => uint.Parse(s, NumberStyles.HexNumber)));
+        
+        if (!nameHashOption.IsSome(out var nameHash))
+        {
+            return Result.Err<bool>(new InvalidOperationException("both name and id attributes are both missing"));
+        }
+
+        container.NameHash = nameHash;
+        
         var collections = new List<IcV01Collection>(2);
-        if (xe.Elements(IcV01PropertyLibrary.XName).Any())
+        if (xe.Elements(XName).Any())
         {
             var collection = new IcV01Collection
             {
-                Type = EIcV01CollectionType.Property
+                Type = EIcV01CollectionType.Container
             };
             var result = collection.FromXElement(xe);
             if (result.IsOk(out _))
@@ -108,11 +129,11 @@ public static class IcV01ContainerLibrary
             }
         }
         
-        if (xe.Elements(XName).Any())
+        if (xe.Elements(IcV01PropertyLibrary.XName).Any())
         {
             var collection = new IcV01Collection
             {
-                Type = EIcV01CollectionType.Container
+                Type = EIcV01CollectionType.Property
             };
             var result = collection.FromXElement(xe);
             if (result.IsOk(out _))

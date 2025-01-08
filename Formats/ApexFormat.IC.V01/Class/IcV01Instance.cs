@@ -1,4 +1,5 @@
-﻿using System.Xml.Linq;
+﻿using System.Text;
+using System.Xml.Linq;
 using ApexFormat.IC.V01.Enum;
 using ApexToolsLauncher.Core.Class;
 using ApexToolsLauncher.Core.Extensions;
@@ -61,6 +62,27 @@ public static class IcV01InstanceLibrary
         return Option.Some((T) result);
     }
 
+    public static Option<Exception> Write(this Stream stream, IcV01Instance instance)
+    {
+        stream.Write(instance.Count);
+        foreach (var collection in instance.Collections)
+        {
+            var writeOption = stream.Write(collection);
+            if (!writeOption.IsNone)
+                return writeOption;
+        }
+
+        if (instance.PropertyCount != 0)
+        {
+            stream.Write(instance.PropertyCount);
+            stream.Write(instance.PropertyType);
+            stream.Write((ushort) instance.Name.Length);
+            stream.Write(Encoding.UTF8.GetBytes(instance.Name));
+        }
+        
+        return Option<Exception>.None;
+    }
+
     public static XElement ToXElement(this IcV01Instance instance)
     {
         var xe = new XElement(XName);
@@ -81,17 +103,23 @@ public static class IcV01InstanceLibrary
         return xe;
     }
 
-    public static Result<bool, Exception> FromXElement(this IcV01Instance instance, XElement xe, bool noChildren = false)
+    public static Result<T, Exception> Read<T>(this XElement xe, bool noChildren = false)
+        where T : IcV01Instance
     {
-        if (string.Equals(xe.Name.LocalName, XName))
+        if (!string.Equals(xe.Name.LocalName, XName))
         {
-            return Result.Err<bool>(new System.Xml.XmlException($"Node {xe.Name.LocalName} does not equal {XName}"));
+            return Result.Err<T>(new InvalidOperationException($"Node {xe.Name.LocalName} does not equal {XName}"));
         }
         
-        xe.GetAttributeOrNone("name")
-            .MatchSome(s => instance.Name = s);
+        var instance = new IcV01Instance();
+        if (xe.GetAttributeOrNone("name").IsSome(out var name))
+        {
+            instance.PropertyCount = 1;
+            instance.PropertyType = EIcV01CollectionType.Unk0;
+            instance.Name = name;
+        }
 
-        if (noChildren) return Result.OkExn(true);
+        if (noChildren) return Result.OkExn((T) instance);
 
         var collections = new List<IcV01Collection>(2);
         if (xe.Elements(IcV01PropertyLibrary.XName).Any())
@@ -123,15 +151,20 @@ public static class IcV01InstanceLibrary
         instance.Collections = collections.ToArray();
         instance.Count = (byte) instance.Collections.Length;
 
-        return Result.OkExn(true);
+        return Result.OkExn((T) instance);
     }
-
+    
     public static Result<bool, Exception> CanRepack(this IcV01Instance instance, XElement xe)
     {
         try
         {
-            var result = instance.FromXElement(xe, true);
-            return result;
+            var result = xe.Read<IcV01Instance>(true);
+            if (result.IsErr(out var e) && e is not null)
+            {
+                return Result.Err<bool>(e);
+            }
+            
+            return Result.OkExn(true);
         }
         catch (Exception e)
         {

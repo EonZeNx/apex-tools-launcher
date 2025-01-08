@@ -92,4 +92,9 @@ public class AafV01Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
         
         return result;
     }
+
+    public string GetProcessorName()
+    {
+        return "AAF v01";
+    }
 }

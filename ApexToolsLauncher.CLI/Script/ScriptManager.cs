@@ -52,4 +52,9 @@ public class ScriptManager : IProcessBasic
         
         return 0;
     }
+
+    public string GetProcessorName()
+    {
+        return "ATL Script";
+    }
 }
