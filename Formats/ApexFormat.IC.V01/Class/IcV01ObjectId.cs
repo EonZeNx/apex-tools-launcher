@@ -13,7 +13,7 @@ public class IcV01ObjectId
 
     public override string ToString()
     {
-        return IcV01ObjectIdLibrary.ToString(this);
+        return $"{this.ToUInt64():X016}";
     }
 }
 
@@ -39,11 +39,6 @@ public static class IcV01ObjectIdLibrary
         return result;
     }
     
-    public static string ToString(this IcV01ObjectId oid)
-    {
-        return $"{oid.ToUInt64():X016}";
-    }
-
     public static IcV01ObjectId FromString(string s)
     {
         var value = ulong.Parse(s, NumberStyles.HexNumber);
