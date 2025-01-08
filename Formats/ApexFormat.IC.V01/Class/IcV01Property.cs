@@ -36,7 +36,7 @@ public static class IcV01PropertyLibrary
     
     public static Option<IcV01Property> ReadIcV01Property(this Stream stream)
     {
-        if (stream.Length - stream.Position < SizeOf)
+        if (stream.CouldRead(SizeOf))
         {
             return Option<IcV01Property>.None;
         }

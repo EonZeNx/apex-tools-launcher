@@ -20,11 +20,15 @@ public class AafV01SarcV02Manager : ICanProcessStream, ICanProcessPath, IProcess
 
     public int ProcessBasic(string inFilePath, string outDirectory)
     {
-        using var inBuffer = new FileStream(inFilePath, FileMode.Open);
-        using var sarcBuffer = new MemoryStream();
+        using var inStream = new FileStream(inFilePath, FileMode.Open);
+        using var sarcStream = new MemoryStream();
 
-        var result = AafV01Manager.Decompress(inBuffer, sarcBuffer);
-        sarcBuffer.Seek(0, SeekOrigin.Begin);
+        var aafV01File = new AafV01File();
+        var aafResult = aafV01File.ExtractStreamToStream(inStream, sarcStream);
+        if (aafResult.IsErr(out _))
+            return -1;
+        
+        sarcStream.Seek(0, SeekOrigin.Begin);
         
         var outDirectoryPath = Path.GetDirectoryName(inFilePath);
         if (!string.IsNullOrEmpty(outDirectory) && Directory.Exists(outDirectory))
@@ -37,18 +41,22 @@ public class AafV01SarcV02Manager : ICanProcessStream, ICanProcessPath, IProcess
             Directory.CreateDirectory(directoryPath);
 
         var sarcV02File = new SarcV02File();
-        sarcV02File.ExtractStreamToPath(sarcBuffer, directoryPath);
+        var sarcResult = sarcV02File.ExtractStreamToPath(sarcStream, directoryPath);
+        if (sarcResult.IsErr(out _))
+            return -1;
         
         var tocPath = $"{inFilePath}.toc";
         if (File.Exists(tocPath))
         {
             using var tocStream = new FileStream(tocPath, FileMode.Open);
-            tocStream.ReadSarcV02Toc()
+            var tocResult = tocStream.ReadSarcV02Toc()
                 .OkOr<SarcV02Toc, Exception>(new InvalidOperationException())
                 .Map(_ => 0);
+            if (tocResult.IsErr(out _))
+                return -1;
         }
         
-        return result;
+        return 0;
     }
 
     public string GetProcessorName()

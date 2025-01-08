@@ -37,7 +37,7 @@ public static class IcV01CollectionLibrary
     public static Option<T> Read<T>(this Stream stream)
         where T : IcV01Collection
     {
-        if (stream.Length - stream.Position < SizeOf)
+        if (stream.CouldRead(SizeOf))
         {
             return Option<T>.None;
         }

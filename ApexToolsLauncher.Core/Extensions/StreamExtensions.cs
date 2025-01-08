@@ -1,6 +1,5 @@
 ﻿using System.Text;
 using System.Buffers;
-using System.Numerics;
 using System.Runtime.CompilerServices;
 using ApexToolsLauncher.Core.Class;
 using CommunityToolkit.HighPerformance;
