@@ -29,6 +29,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApexFormat.AVTX.V01", "Apex
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApexFormat.RTPC.V03", "ApexFormats\ApexFormat.RTPC.V03\ApexFormat.RTPC.V03.csproj", "{1804A580-6180-483A-ACCF-12E85FFB2CE9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ATL.Script", "ATL.Script\ATL.Script.csproj", "{159599AA-1C54-4F0F-A807-5234CA717682}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -88,6 +90,10 @@ Global
 		{1804A580-6180-483A-ACCF-12E85FFB2CE9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1804A580-6180-483A-ACCF-12E85FFB2CE9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1804A580-6180-483A-ACCF-12E85FFB2CE9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{159599AA-1C54-4F0F-A807-5234CA717682}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{159599AA-1C54-4F0F-A807-5234CA717682}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{159599AA-1C54-4F0F-A807-5234CA717682}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{159599AA-1C54-4F0F-A807-5234CA717682}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

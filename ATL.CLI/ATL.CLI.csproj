@@ -18,6 +18,7 @@
       <ProjectReference Include="..\ApexFormats\ApexFormat.SARC.V02\ApexFormat.SARC.V02.csproj" />
       <ProjectReference Include="..\ApexFormats\ApexFormat.TAB.V02\ApexFormat.TAB.V02.csproj" />
       <ProjectReference Include="..\ATL.Core\ATL.Core.csproj" />
+      <ProjectReference Include="..\ATL.Script\ATL.Script.csproj" />
     </ItemGroup>
 
     <ItemGroup>
