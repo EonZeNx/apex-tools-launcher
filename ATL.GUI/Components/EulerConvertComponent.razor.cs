@@ -50,6 +50,11 @@ public struct Matrix3x3
     public Vector3 FromX() => new (A.X, B.X, C.X);
     public Vector3 FromY() => new (A.Y, B.Y, C.Y);
     public Vector3 FromZ() => new (A.Z, B.Z, C.Z);
+
+    public override string ToString()
+    {
+        return $"({A}, {B}, {C})";
+    }
 }
 
 public partial class EulerConvertComponent : MudComponentBase
@@ -63,6 +68,8 @@ public partial class EulerConvertComponent : MudComponentBase
 
     protected string Calculate()
     {
+        if (LogService is null) return "fail";
+        
         var rotator = new Vector3(Pitch, Yaw, Roll);
 
         var rx = ToRx(rotator);
@@ -90,7 +97,7 @@ public partial class EulerConvertComponent : MudComponentBase
         var r2 = result.FromY();
         var r3 = result.FromZ();
         
-        return $"({Format(r1.X)}, {Format(r1.Y)}, {Format(r1.Z)}) | ({Format(r2.X)}, {Format(r2.Y)}, {Format(r2.Z)}) | ({Format(r3.X)}, {Format(r3.Y)}, {Format(r3.Z)})";
+        return $"{Format(r1.X)}, {Format(r1.Y)}, {Format(r1.Z)}, 0, {Format(r2.X)}, {Format(r2.Y)}, {Format(r2.Z)}, 0, {Format(r3.X)}, {Format(r3.Y)}, {Format(r3.Z)}, 0";
     }
 
 
@@ -146,7 +153,7 @@ public partial class EulerConvertComponent : MudComponentBase
         rz.B.X = sinRadians;
         rz.B.Y = cosRadians;
         
-        rz.C.Y = 1;
+        rz.C.Z = 1;
         
         return rz;
     }
@@ -176,30 +183,6 @@ public partial class EulerConvertComponent : MudComponentBase
         var result = new Vector3(rotator.A.Z, rotator.B.Z, rotator.C.Z);
 
         return result;
-    }
-
-    protected float CalcXRotator(Vector3 vector, Matrix3x3 rotator)
-    {
-        var rotatorVector = rotator.FromX();
-        var mult = vector * rotatorVector;
-
-        return Sum(mult);
-    }
-
-    protected float CalcYRotator(Vector3 vector, Matrix3x3 rotator)
-    {
-        var rotatorVector = rotator.FromY();
-        var mult = vector * rotatorVector;
-
-        return Sum(mult);
-    }
-
-    protected float CalcZRotator(Vector3 vector, Matrix3x3 rotator)
-    {
-        var rotatorVector = rotator.FromZ();
-        var mult = vector * rotatorVector;
-
-        return Sum(mult);
     }
     
     protected Vector3 CalcRotatorVector(Vector3 vector, Matrix3x3 rot)
