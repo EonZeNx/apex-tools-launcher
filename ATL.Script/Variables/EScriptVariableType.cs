@@ -6,6 +6,7 @@ public enum EScriptVariableType
 {
     Unknown = -1,
     String,
+    Bool,
     Int,
     Float
 }

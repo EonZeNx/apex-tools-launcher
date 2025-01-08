@@ -64,7 +64,7 @@ public class AdfV04Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
     
     public int ProcessBasic(string inFilePath, string outDirectory)
     {
-        var inBuffer = new FileStream(inFilePath, FileMode.Open);
+        using var inBuffer = new FileStream(inFilePath, FileMode.Open);
         
         var outDirectoryPath = Path.GetDirectoryName(inFilePath);
         if (!string.IsNullOrEmpty(outDirectory) && Directory.Exists(outDirectory))
