@@ -4,7 +4,7 @@ using MudBlazor;
 
 namespace ATL.GUI.Pages;
 
-public partial class HomePage : MudComponentBase
+public partial class ManagePage : MudComponentBase
 {
     [Inject]
     protected AppStateService AppStateService { get; set; } = new();
