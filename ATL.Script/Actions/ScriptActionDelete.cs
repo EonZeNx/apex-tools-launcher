@@ -9,9 +9,9 @@ namespace ATL.Script.Actions;
 
 public class ScriptActionDelete : IScriptAction
 {
-    public static string NodeName { get; } = "delete";
+    public const string NodeName = "delete";
     
-    public void Process(XElement node, Dictionary<string, ScriptVariable> parentVars)
+    public void Process(XElement node, Dictionary<string, IScriptVariable> parentVars)
     {
         var targetAttr = node.Attribute("target");
         if (targetAttr is null)

@@ -8,9 +8,9 @@ namespace ATL.Script.Actions;
 
 public class ScriptActionProcess : IScriptAction
 {
-    public static string NodeName { get; } = "process";
+    public const string NodeName = "process";
     
-    public void Process(XElement node, Dictionary<string, ScriptVariable> parentVars)
+    public void Process(XElement node, Dictionary<string, IScriptVariable> parentVars)
     {
         var targetAttr = node.Attribute("target");
         if (targetAttr is null)

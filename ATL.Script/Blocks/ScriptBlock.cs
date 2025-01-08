@@ -1,72 +1,69 @@
 ﻿using System.Xml.Linq;
-using ATL.Core.Libraries;
 using ATL.Script.Actions;
+using ATL.Script.Queries;
 using ATL.Script.Variables;
 
 namespace ATL.Script.Blocks;
 
 public class ScriptBlock : IScriptBlock
 {
-    public Dictionary<string, ScriptVariable> Variables { get; set; } = new();
+    public Dictionary<string, IScriptVariable> Variables { get; set; } = new();
     
-    public virtual void Process(XElement node, Dictionary<string, ScriptVariable> parentVars)
+    public virtual void Process(XElement node, Dictionary<string, IScriptVariable> parentVars)
     {
         foreach (var element in node.Elements())
         {
             var xeName = element.Name.ToString();
-            var allVariables = new Dictionary<string, ScriptVariable>();
+            
+            // Do this every iteration as new variables can be added
+            var allVariables = new Dictionary<string, IScriptVariable>();
             Variables.ToList()
                 .ForEach(kvp => allVariables.TryAdd(kvp.Key, kvp.Value));
             parentVars.ToList()
                 .ForEach(kvp => allVariables.TryAdd(kvp.Key, kvp.Value));
+
+            IScriptAction? scriptAction = xeName switch
+            {
+                ScriptVariable.NodeName => new ScriptVariable(),
+                ScriptActionCopy.NodeName => new ScriptActionCopy(),
+                ScriptActionRename.NodeName => new ScriptActionRename(),
+                ScriptActionMove.NodeName => new ScriptActionMove(),
+                ScriptActionDelete.NodeName => new ScriptActionDelete(),
+                ScriptActionProcess.NodeName => new ScriptActionProcess(),
+                ScriptQuery.NodeName => new ScriptQuery(),
+                ScriptActionPrint.NodeName => new ScriptActionPrint(),
+                ScriptBlockFor.NodeName => new ScriptBlockFor(),
+                _ => null
+            };
             
-            if (xeName == ScriptVariable.NodeName)
-            {
-                var optionVar = element.GetScriptVariable(allVariables);
-                if (!optionVar.IsSome(out var scriptVariable))
-                {
-                    ConsoleLibrary.Log("Failed to initialise variable", ConsoleColor.Red);
-                    continue;
-                }
-                
-                Variables.TryAdd(scriptVariable.Name, scriptVariable);
-                continue;
-            }
-
-            IScriptAction? scriptAction = null;
-            if (xeName == ScriptActionCopy.NodeName)
-            {
-                scriptAction = new ScriptActionCopy();
-            }
-            else if (xeName == ScriptActionRename.NodeName)
-            {
-                scriptAction = new ScriptActionRename();
-            }
-            else if (xeName == ScriptActionMove.NodeName)
-            {
-                scriptAction = new ScriptActionMove();
-            }
-            else if (xeName == ScriptActionDelete.NodeName)
-            {
-                scriptAction = new ScriptActionDelete();
-            }
-            else if (xeName == ScriptActionReplace.NodeName)
-            {
-                scriptAction = new ScriptActionReplace();
-            }
-            else if (xeName == ScriptActionProcess.NodeName)
-            {
-                scriptAction = new ScriptActionProcess();
-            }
-            else if (xeName == ScriptBlockFile.NodeName)
-            {
-                scriptAction = new ScriptBlockFile();
-            }
-
             if (scriptAction is null)
                 continue;
             
             scriptAction.Process(element, allVariables);
+
+            if (scriptAction is not IScriptVariable scriptVariable)
+                continue;
+            
+            if (!Variables.TryGetValue(scriptVariable.Name, out var existingVar))
+            {
+                Variables.Add(scriptVariable.Name, scriptVariable);
+                continue;
+            }
+            
+            if (scriptVariable.MetaType == EScriptVariableMetaType.List
+                && existingVar.MetaType == EScriptVariableMetaType.List)
+            {
+                var optionExistingData = existingVar.As<List<string>>();
+                if (!optionExistingData.IsSome(out var existingData))
+                    continue;
+                
+                var optionNewData = existingVar.As<List<string>>();
+                if (!optionNewData.IsSome(out var newData))
+                    continue;
+                
+                // TODO: untested, ensure this updates Variables map
+                existingData.AddRange(newData);
+            }
         }
     }
 }

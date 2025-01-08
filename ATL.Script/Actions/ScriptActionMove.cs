@@ -9,9 +9,9 @@ namespace ATL.Script.Actions;
 
 public class ScriptActionMove : IScriptAction
 {
-    public static string NodeName { get; } = "move";
+    public const string NodeName = "move";
     
-    public void Process(XElement node, Dictionary<string, ScriptVariable> parentVars)
+    public void Process(XElement node, Dictionary<string, IScriptVariable> parentVars)
     {
         var fromAttr = node.Attribute("from");
         if (fromAttr is null)

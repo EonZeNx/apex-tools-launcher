@@ -8,9 +8,9 @@ namespace ATL.Script.Actions;
 
 public class ScriptActionCopy : IScriptAction
 {
-    public static string NodeName { get; } = "copy";
+    public const string NodeName = "copy";
     
-    public void Process(XElement node, Dictionary<string, ScriptVariable> parentVars)
+    public void Process(XElement node, Dictionary<string, IScriptVariable> parentVars)
     {
         var fromAttr = node.Attribute("from");
         if (fromAttr is null)

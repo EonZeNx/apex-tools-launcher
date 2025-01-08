@@ -10,5 +10,5 @@ public interface IScriptAction
     /// </summary>
     /// <param name="node">The XML node this action represents</param>
     /// <param name="parentVars">All parent variables</param>
-    void Process(XElement node, Dictionary<string, ScriptVariable> parentVars);
+    void Process(XElement node, Dictionary<string, IScriptVariable> parentVars);
 }
