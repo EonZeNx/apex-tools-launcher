@@ -1,9 +1,7 @@
 ﻿using System.Xml.Linq;
-using ApexFormat.RTPC.V01.Enum;
 using ApexToolsLauncher.Core.Extensions;
 using ApexToolsLauncher.Core.Hash;
 using ApexToolsLauncher.Core.Libraries;
-using Microsoft.VisualBasic;
 using RustyOptions;
 
 namespace ApexFormat.RTPC.V01.Class;
@@ -24,9 +22,9 @@ public class RtpcV01Container : RtpcV01ContainerHeader
     }
 }
 
-public static class RtpcV01ContainerExtensions
+public static class RtpcV01ContainerLibrary
 {
-    public static RtpcV01Container HeaderToContainer(this RtpcV01ContainerHeader header)
+    public static RtpcV01Container ToContainer(this RtpcV01ContainerHeader header)
     {
         var result = new RtpcV01Container
         {
@@ -47,7 +45,7 @@ public static class RtpcV01ContainerExtensions
         if (!optionContainerHeader.IsSome(out var containerHeader))
             return Option<RtpcV01Container>.None;
         
-        var result = containerHeader.HeaderToContainer();
+        var result = containerHeader.ToContainer();
         
         var originalPosition = stream.Position;
         stream.Seek(result.Offset, SeekOrigin.Begin);
@@ -71,7 +69,7 @@ public static class RtpcV01ContainerExtensions
         return Option.Some(result);
     }
     
-    public static XElement WriteXElement(this RtpcV01Container container)
+    public static XElement ToXElement(this RtpcV01Container container)
     {
         var xe = new XElement("object");
 
@@ -99,7 +97,7 @@ public static class RtpcV01ContainerExtensions
         
         foreach (var childContainer in container.Containers)
         {
-            xe.Add(childContainer.WriteXElement());
+            xe.Add(childContainer.ToXElement());
         }
         
         return xe;
@@ -141,11 +139,13 @@ public static class RtpcV01ContainerExtensions
         
     }
 
+    // ReSharper disable once UnusedMember.Global
     public static int CountContainers(this RtpcV01Container container)
     {
         return container.ContainerCount + container.Containers.Sum(c => c.CountContainers());
     }
 
+    // ReSharper disable once UnusedMember.Global
     public static string PropertyString(this RtpcV01Container container, string propertyString, int depth = 0)
     {
         const char indentChar = '\t';

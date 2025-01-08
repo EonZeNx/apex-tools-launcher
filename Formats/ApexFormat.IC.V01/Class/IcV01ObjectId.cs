@@ -60,9 +60,9 @@ public static class IcV01ObjectIdLibrary
         return oid;
     }
 
-    public static Option<Exception> Write(this Stream stream, IcV01ObjectId objectId)
+    public static Option<Exception> Write(this Stream stream, IcV01ObjectId oid)
     {
-        stream.Write(objectId.ToUInt64());
+        stream.Write(oid.ToUInt64());
         
         return Option<Exception>.None;
     }
