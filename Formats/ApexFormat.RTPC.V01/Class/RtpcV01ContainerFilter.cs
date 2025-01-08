@@ -22,7 +22,13 @@ public class RtpcV01Filter : IRtpcV01Filter
 
     public virtual bool MatchContainer(RtpcV01Container container, bool useSubFilters = true)
     {
-        return container.Properties.Any(p => MatchProperty(p, useSubFilters));
+        var result = container.Properties.Any(p => MatchProperty(p, false));
+        result |= container.Containers.Any(c => MatchContainer(c, useSubFilters));
+        
+        if (!result) return false;
+
+        if (!useSubFilters) return true;
+        return container.Properties.Any(p => MatchProperty(p));
     }
 
     public virtual bool MatchProperty(RtpcV01Variant property, bool useSubFilters = true)

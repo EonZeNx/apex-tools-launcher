@@ -2,6 +2,7 @@
 using ApexFormat.RTPC.V01.Enum;
 using ApexToolsLauncher.Core.Extensions;
 using ApexToolsLauncher.Core.Hash;
+using Microsoft.VisualBasic;
 using RustyOptions;
 
 namespace ApexFormat.RTPC.V01.Class;
@@ -146,28 +147,49 @@ public static class RtpcV01ContainerExtensions
     
     public static void FilterBy(this RtpcV01Container container, IRtpcV01Filter[] filters)
     {
-        var filteredContainers = new List<RtpcV01Container>();
         foreach (var childContainer in container.Containers)
         {
-            var filteredProperties = childContainer.Properties
-                .Where(p => filters
-                    .Any(f => f.MatchProperty(p)))
-                .ToArray();
-
-            if (filteredProperties.Length == 0)
-                continue;
-            
-            childContainer.Properties = filteredProperties;
-            childContainer.PropertyCount = (ushort) filteredProperties.Length;
-            filteredContainers.Add(childContainer);
+            // filter children
+            FilterBy(childContainer, filters);
         }
+        
+        // filter self properties
+        var filteredProperties = container.Properties
+            .Where(p => filters
+                .Any(f => f.MatchProperty(p)))
+            .ToArray();
+
+        container.Properties = filteredProperties;
+        container.PropertyCount = (ushort) filteredProperties.Length;
+
+        // filter children
+        var filteredContainers = container.Containers
+            .Where(c => filters
+                .Any(f => f.MatchContainer(c)))
+            .ToArray();
         
         container.Containers = filteredContainers.ToArray();
-        container.ContainerCount = (ushort) filteredContainers.Count;
-        
-        foreach (var childContainer in container.Containers)
+        container.ContainerCount = (ushort) filteredContainers.Length;
+    }
+
+    public static int CountContainers(this RtpcV01Container container)
+    {
+        return container.ContainerCount + container.Containers.Sum(c => c.CountContainers());
+    }
+
+    public static string PropertyString(this RtpcV01Container container, string propertyString, int depth = 0)
+    {
+        foreach (var property in container.Properties)
         {
-            childContainer.FilterBy(filters);
+            propertyString += $"\n{new string('\t', depth)}- {property}";
         }
+
+        for (var i = 0; i < container.Containers.Length; i++)
+        {
+            var childContainer = container.Containers[i];
+            propertyString += childContainer.PropertyString(propertyString, depth + 1);
+        }
+
+        return propertyString;
     }
 }
