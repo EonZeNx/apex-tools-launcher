@@ -52,4 +52,9 @@ public static class AdfV04InstanceExtensions
 
         return Option.Some(result);
     }
+
+    public static void WriteXElement(this AdfV04Instance instance, Stream stream)
+    {
+        
+    }
 }

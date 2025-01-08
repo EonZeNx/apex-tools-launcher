@@ -462,7 +462,7 @@ public class AdfV04File
         return Option.Some(xe);
     }
 
-    public Option<XElement> WriteStruct(Stream stream, AdfV04Type adfType, string name)
+    public Option<XElement> WriteStruct(Stream stream, AdfV04InstanceInfo instanceInfo, AdfV04Type adfType, string name)
     {
         var xe = new XElement(adfType.Type.ToXString());
         xe.SetAttributeValue("name", name);
@@ -471,7 +471,7 @@ public class AdfV04File
         
         foreach (var typeMember in adfType.Members)
         {
-            var optionXMember = WriteXInstanceData(stream, typeMember);
+            var optionXMember = WriteXInstanceData(stream, instanceInfo, typeMember);
             if (!optionXMember.IsSome(out var xMember))
                 continue;
             
@@ -481,26 +481,54 @@ public class AdfV04File
         return Option.Some(xe);
     }
     
-    public Option<XElement> WriteArray(Stream stream, AdfV04Type adfType, string name)
+    public Option<XElement> WriteArray(Stream stream, AdfV04InstanceInfo instanceInfo, AdfV04Type adfType, string name, AdfV04Member member)
     {
         var xe = new XElement(adfType.Type.ToXString());
         xe.SetAttributeValue("name", name);
         xe.SetAttributeValue("type", adfType.Name.RemoveAll(CharactersToRemove));
         xe.SetAttributeValue("type-hash", adfType.TypeHash);
         
-        foreach (var typeMember in adfType.Members)
+        var arrayOffset = stream.Read<uint>();
+        if (arrayOffset <= 0)
+            return Option.Some(xe);
+        
+        var optionSubType = FindType(adfType.ScalarTypeHash);
+        if (!optionSubType.IsSome(out var subtype))
+            return Option.Some(xe);
+        
+        var flags = stream.Read<uint>();
+        var count = stream.Read<uint>();
+
+        for (var i = 0; i < count; i += 1)
         {
-            var optionXMember = WriteXInstanceData(stream, typeMember);
-            if (!optionXMember.IsSome(out var xMember))
+            var dataOffset = instanceInfo.InstanceOffset + arrayOffset + subtype.Size * i;
+            stream.Seek(dataOffset, SeekOrigin.Begin);
+
+            var optionXChild = Option<XElement>.None;
+            switch (subtype.Type)
+            {
+                case EAdfV04Type.Scalar:
+                    optionXChild = WriteScalar(stream, subtype, name);
+                    break;
+                case EAdfV04Type.Struct:
+                    optionXChild = WriteStruct(stream, instanceInfo, subtype, string.Empty);
+                    break;
+            }
+
+            if (!optionXChild.IsSome(out var xChild))
                 continue;
             
-            xe.Add(xMember);
+            xe.Add(xChild);
+            if (subtype.Type == EAdfV04Type.Scalar && i != 0)
+            {
+                xe.Add(" ");
+            }
         }
 
         return Option.Some(xe);
     }
 
-    public Option<XElement> WriteXInstanceData(Stream stream, AdfV04Member member)
+    public Option<XElement> WriteXInstanceData(Stream stream, AdfV04InstanceInfo instanceInfo, AdfV04Member member)
     {
         var optionAdfType = FindType(member.TypeHash);
         if (!optionAdfType.IsSome(out var adfType))
@@ -514,11 +542,12 @@ public class AdfV04File
                 optionXMember = WriteScalar(stream, adfType, name);
                 break;
             case EAdfV04Type.Struct:
-                optionXMember = WriteStruct(stream, adfType, name);
+                optionXMember = WriteStruct(stream, instanceInfo, adfType, name);
                 break;
             case EAdfV04Type.Pointer:
                 break;
             case EAdfV04Type.Array:
+                optionXMember = WriteArray(stream, instanceInfo, adfType, name, member);
                 break;
             case EAdfV04Type.InlineArray:
                 break;
@@ -544,7 +573,7 @@ public class AdfV04File
         return Option.Some(xMember);
     }
     
-    public Option<XElement> WriteXInstance(Stream stream, AdfV04InstanceInfo instanceInfo, string[] localStringTable)
+    public Option<XElement> WriteXInstance(Stream stream, AdfV04InstanceInfo instanceInfo)
     {
         var xe = new XElement("instance");
         
@@ -553,15 +582,12 @@ public class AdfV04File
             return Option.None<XElement>();
         
         xe.SetAttributeValue("name", instanceInfo.Name.RemoveAll(CharactersToRemove));
-        
-        var typeName = GetString(adfType.NameIndex, localStringTable);
-        xe.SetAttributeValue("type", typeName.RemoveAll(CharactersToRemove));
-        
+        xe.SetAttributeValue("type", adfType.Name.RemoveAll(CharactersToRemove));
         xe.SetAttributeValue("type-hash", adfType.TypeHash);
 
         foreach (var typeMember in adfType.Members)
         {
-            var optionXMember = WriteXInstanceData(stream, typeMember);
+            var optionXMember = WriteXInstanceData(stream, instanceInfo, typeMember);
             if (!optionXMember.IsSome(out var xMember))
                 continue;
             
@@ -586,7 +612,7 @@ public class AdfV04File
             if (instanceInfo.InstanceOffset == 0 || instanceInfo.InstanceSize == 0)
                 continue;
 
-            var optionXInstance = WriteXInstance(inBuffer, instanceInfo, localStringTable);
+            var optionXInstance = WriteXInstance(inBuffer, instanceInfo);
             if (!optionXInstance.IsSome(out var xInstance))
                 continue;
             
