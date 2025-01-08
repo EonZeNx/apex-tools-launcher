@@ -17,7 +17,17 @@ public class IcV01File : ICanExtractPath, IExtractPathToPath, IExtractStreamToSt
             return false;
         
         using var fileStream = new FileStream(path, FileMode.Open);
-        return !fileStream.Read<IcV01Instance>().IsNone;
+
+        var result = false;
+        try
+        {
+            result = !fileStream.Read<IcV01Instance>().IsNone;
+        }
+        catch (Exception)
+        {
+        }
+
+        return result;
     }
 
     public Result<int, Exception> ExtractStreamToStream(Stream inStream, Stream outStream)

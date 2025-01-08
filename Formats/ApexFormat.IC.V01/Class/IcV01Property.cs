@@ -260,7 +260,7 @@ public static class IcV01PropertyLibrary
                 break;
             case EIcVariantV01.ObjectId:
                 var objectIdValue = (IcV01ObjectId) property.Data;
-                var objectId = objectIdValue.String();
+                var objectId = IcV01ObjectIdLibrary.ToString(objectIdValue);
                 xe.SetValue(objectId);
                 break;
             case EIcVariantV01.Events:
