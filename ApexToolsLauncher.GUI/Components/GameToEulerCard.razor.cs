@@ -51,5 +51,5 @@ public partial class GameToEulerCard : MudComponentBase
         return $"{Format(Pitch)}, {Format(Yaw)}, {Format(Roll)}";
     }
 
-    protected static string Format(float value) => $"{value:0.##}";
+    protected static string Format(float value) => $"{value:0.###}";
 }
