@@ -7,21 +7,20 @@
   Outlined="true"
   Class="@($"mud-elevation-2 {Class}")"
   Style="@Style"
-  PanelStyle="height: 100%"
 >
-  <ApexTabPanel Text="Mods" BadgeData='"0"' BadgeColor="BadgeColour" Style="height: 100%">
+  <ApexTabPanel Text="Mods" BadgeData="@($"{EnabledModCount}")" BadgeColor="BadgeColour">
     <ModsTabPanel
       GameId="@GameId"
       ProfileId="@ProfileId"
-      Style="height: 100%"
+      Style="@PanelStyle"
     />
   </ApexTabPanel>
 
-  <ApexTabPanel Text="Launch args" BadgeData='"0"' BadgeColor="BadgeColour" Style="height: 100%">
+  <ApexTabPanel Text="Launch args" BadgeData="@($"{EnabledLaunchArgumentCount}")" BadgeColor="BadgeColour">
     <LaunchArgsTabPanel
       GameId="@GameId"
       ProfileId="@ProfileId"
-      Style="height: 100%"
+      Style="@PanelStyle"
     />
   </ApexTabPanel>
 
@@ -29,7 +28,7 @@
     <ProfilesTabPanel
       GameId="@GameId"
       ProfileId="@ProfileId"
-      Style="height: 100%"
+      Style="@PanelStyle"
     />
   </ApexTabPanel>
 </ApexTabs>
