@@ -10,13 +10,13 @@ public class ScriptActionMove : IScriptAction
 {
     public static string NodeName { get; } = "move";
     
-    public void Process(XElement element, Dictionary<string, ScriptVariable> variables)
+    public void Process(XElement node, Dictionary<string, ScriptVariable> parentVars)
     {
-        var fromAttr = element.Attribute("from");
+        var fromAttr = node.Attribute("from");
         if (fromAttr is null)
             return;
         
-        var toAttr = element.Attribute("to");
+        var toAttr = node.Attribute("to");
         if (toAttr is null)
             return;
 
@@ -27,7 +27,7 @@ public class ScriptActionMove : IScriptAction
         {
             var fromVarName = targetFrom.Replace(ScriptVariable.NodeSymbol, "");
             
-            var optionFromVar = variables.GetValueOrNone(fromVarName);
+            var optionFromVar = parentVars.GetValueOrNone(fromVarName);
             if (!optionFromVar.IsSome(out var targetFromVar))
             {
                 return;
@@ -46,7 +46,7 @@ public class ScriptActionMove : IScriptAction
         {
             var toVarName = targetTo.Replace(ScriptVariable.NodeSymbol, "");
             
-            var optionToVar = variables.GetValueOrNone(toVarName);
+            var optionToVar = parentVars.GetValueOrNone(toVarName);
             if (!optionToVar.IsSome(out var targetToVar))
             {
                 return;
@@ -61,9 +61,9 @@ public class ScriptActionMove : IScriptAction
             targetTo = toVar;
         }
 
-        if (variables.ContainsKey("working_directory"))
+        if (parentVars.ContainsKey("working_directory"))
         {
-            var optionWorkingDir = variables["working_directory"].AsString();
+            var optionWorkingDir = parentVars["working_directory"].AsString();
             if (optionWorkingDir.IsSome(out var workingDir))
             {
                 targetFrom = Path.Join(workingDir, targetFrom);

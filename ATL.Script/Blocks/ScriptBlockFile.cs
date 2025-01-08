@@ -1,21 +1,23 @@
 ﻿using System.Xml.Linq;
-using ATL.Core.Extensions;
-using ATL.Core.Libraries;
 using ATL.Script.Variables;
 using RustyOptions;
 
-namespace ATL.Script.Actions;
+namespace ATL.Script.Blocks;
 
-public class ScriptActionDelete : IScriptAction
+public class ScriptBlockFile : ScriptBlock, IScriptNode
 {
-    public static string NodeName { get; } = "delete";
+    public static string NodeName { get; } = "open";
     
-    public void Process(XElement node, Dictionary<string, ScriptVariable> parentVars)
+    public override void Process(XElement node, Dictionary<string, ScriptVariable> parentVars)
     {
         var targetAttr = node.Attribute("target");
         if (targetAttr is null)
             return;
         
+        var nameAttr = node.Attribute("name");
+        if (nameAttr is null)
+            return;
+
         var targetPath = targetAttr.Value;
         if (targetPath.StartsWith(ScriptVariable.NodeSymbol))
         {
@@ -36,29 +38,26 @@ public class ScriptActionDelete : IScriptAction
             targetPath = targetVar;
         }
         
-        if (parentVars.ContainsKey("working_directory"))
+        if (parentVars.TryGetValue("working_directory", out var workingDirVar))
         {
-            var optionWorkingDir = parentVars["working_directory"].AsString();
+            var optionWorkingDir = workingDirVar.AsString();
             if (optionWorkingDir.IsSome(out var workingDir))
             {
                 targetPath = Path.Join(workingDir, targetPath);
             }
         }
+        
+        if (!File.Exists(targetPath))
+            return;
 
-        try
+        var fileVariable = new ScriptVariable
         {
-            if (File.Exists(targetPath))
-            {
-                File.Delete(targetPath);
-            }
-            else if (Directory.Exists(targetPath))
-            {
-                Directory.Delete(targetPath);
-            }
-        }
-        catch (Exception e)
-        {
-            ConsoleLibrary.Log(e.Message, LogType.Error);
-        }
+            Name = nameAttr.Value,
+            VariableType = EScriptVariableType.File,
+            Data = targetPath
+        };
+        
+        Variables.TryAdd(fileVariable.Name, fileVariable);
+        base.Process(node, parentVars);
     }
 }
