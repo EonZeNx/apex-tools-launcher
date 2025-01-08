@@ -18,12 +18,4 @@ public static class ConstantsLibrary
         var result = string.Equals(value, InvalidString);
         return result;
     }
-
-    public static string CreateId(string value)
-    {
-        var result = value.ToLowerInvariant().Replace(" ", "_");
-        result = string.Join("_", result.Split(Path.GetInvalidFileNameChars()));
-        
-        return result;
-    }
 }

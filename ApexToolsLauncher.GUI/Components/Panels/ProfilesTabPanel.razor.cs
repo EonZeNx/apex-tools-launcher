@@ -22,6 +22,12 @@ public partial class ProfilesTabPanel : MudComponentBase, IDisposable
     public string ProfileId { get; set; } = ConstantsLibrary.InvalidString;
     
     protected ProfileConfig ProfileConfig { get; set; } = new();
+    protected string EditedTitle { get; set; } = string.Empty;
+    protected bool InvalidTitle => 
+        ProfileConfigService?.IdExists(
+            GameId,
+            ProfileConfigService?.ToId(EditedTitle) ?? ConstantsLibrary.InvalidString
+        ) ?? true;
     protected Dictionary<string, ProfileConfig> ProfileConfigs { get; set; } = [];
 
     protected void ListValueChanged(string? value)
@@ -30,6 +36,40 @@ public partial class ProfilesTabPanel : MudComponentBase, IDisposable
 
         ProfileId = value;
         ReloadData();
+        StateHasChanged();
+    }
+
+    protected void ConfirmName()
+    {
+        if (ProfileConfigService is null) return;
+
+        if (ConstantsLibrary.IsStringInvalid(ProfileId))
+        { // creating a new profile
+            var newProfileId = ProfileConfigService.ToId(EditedTitle);
+            var newProfileConfig = new ProfileConfig
+            {
+                Title = EditedTitle,
+            };
+            
+            var result = ProfileConfigService.Create(GameId, newProfileId, newProfileConfig);
+
+            if (result)
+            {
+                ProfileId = newProfileId;
+            }
+        }
+        else
+        {
+            ProfileConfigService.Save(GameId, ProfileId, ProfileConfig);
+        }
+        
+        ReloadData();
+        StateHasChanged();
+    }
+
+    protected void RefreshEditedTitle()
+    {
+        EditedTitle = ProfileConfig.Title;
         StateHasChanged();
     }
 
@@ -45,6 +85,7 @@ public partial class ProfilesTabPanel : MudComponentBase, IDisposable
         }
         
         ProfileConfig = ProfileConfigService.Get(GameId, ProfileId);
+        EditedTitle = ProfileConfig.Title;
     }
     
     protected override async Task OnParametersSetAsync()

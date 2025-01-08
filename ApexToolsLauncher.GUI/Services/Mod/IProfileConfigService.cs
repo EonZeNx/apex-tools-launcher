@@ -25,6 +25,12 @@ public interface IProfileConfigService
     void Delete(string gameId, string profileId);
     Task DeleteAsync(string gameId, string profileId);
     
+    bool Create(string gameId, string profileId, ProfileConfig? config = null);
+    Task<bool> CreateAsync(string gameId, string profileId, ProfileConfig? config = null);
+
+    string ToId(string value);
+    bool IdExists(string gameId, string profileId);
+    
     void RegisterOnReload(Action action);
     void UnregisterOnReload(Action action);
 }
