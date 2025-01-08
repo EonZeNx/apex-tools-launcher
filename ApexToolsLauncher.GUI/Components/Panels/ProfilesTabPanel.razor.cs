@@ -2,10 +2,11 @@ using ApexToolsLauncher.Core.Config.GUI;
 using ApexToolsLauncher.Core.Libraries;
 using ApexToolsLauncher.GUI.Services.Mod;
 using Microsoft.AspNetCore.Components;
+using MudBlazor;
 
 namespace ApexToolsLauncher.GUI.Components.Panels;
 
-public partial class ProfilesTabPanel : ComponentBase
+public partial class ProfilesTabPanel : MudComponentBase
 {
     [Inject]
     protected IProfileConfigService? ProfileConfigService { get; set; }
