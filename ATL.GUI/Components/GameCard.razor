@@ -1,0 +1,12 @@
+﻿@inherits ComponentBase
+
+<MudCard
+  @onclick="CardClicked"
+  Style="width: 30rem; aspect-ratio: 16 / 9;"
+  Class="rounded-xl"
+  Elevation="@(Selected ? 10 : 1)"
+>
+  <MudCardMedia
+    Image="@($"images/{GameID}_art.jpg")"
+    Style="@($"border-radius: inherit; height: 100%; filter: saturate({(Selected ? "100" : "75")}%)")"/>
+</MudCard>
