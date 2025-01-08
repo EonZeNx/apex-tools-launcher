@@ -144,44 +144,21 @@ public static class RtpcV01ContainerExtensions
         return xe;
     }
     
-    public static void FilterBy(this RtpcV01Container container, Dictionary<string, string[]> filters)
+    public static void FilterBy(this RtpcV01Container container, IRtpcV01Filter[] filters)
     {
         var filteredContainers = new List<RtpcV01Container>();
         foreach (var childContainer in container.Containers)
         {
-            var filteredProperties = new List<RtpcV01Variant>();
-            foreach (var property in childContainer.Properties)
-            {
-                var validProperty = false;
-                foreach (var (name, values) in filters)
-                {
-                    if (name.HashJenkins() != property.NameHash) 
-                        continue;
+            var filteredProperties = childContainer.Properties
+                .Where(p => filters
+                    .Any(f => f.MatchProperty(p)))
+                .ToArray();
 
-                    if (values.Length == 0)
-                    {
-                        validProperty = true;
-                        break;
-                    }
-                    
-                    if (property.DeferredData is null)
-                        continue;
-                    
-                    if (property.VariantType != ERtpcV01VariantType.String)
-                        continue;
-
-                    validProperty = values.Any(v => v == (string) property.DeferredData);
-                }
-                
-                if (validProperty)
-                    filteredProperties.Add(property);
-            }
-            
-            if (filteredProperties.Count == 0)
+            if (filteredProperties.Length == 0)
                 continue;
             
-            childContainer.Properties = filteredProperties.ToArray();
-            childContainer.PropertyCount = (ushort) filteredProperties.Count;
+            childContainer.Properties = filteredProperties;
+            childContainer.PropertyCount = (ushort) filteredProperties.Length;
             filteredContainers.Add(childContainer);
         }
         
