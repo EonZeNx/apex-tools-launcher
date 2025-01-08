@@ -27,9 +27,9 @@
         <AssemblyName>ATL.GUI</AssemblyName>
     </PropertyGroup>
 
-<!--    <PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows' and '$(RuntimeIdentifierOverride)' != ''">-->
-<!--        <RuntimeIdentifier>$(RuntimeIdentifierOverride)</RuntimeIdentifier>-->
-<!--    </PropertyGroup>-->
+    <PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows' and '$(RuntimeIdentifierOverride)' != ''">
+        <RuntimeIdentifier>$(RuntimeIdentifierOverride)</RuntimeIdentifier>
+    </PropertyGroup>
 
     <ItemGroup>
         <!-- App Icon -->
