@@ -1,16 +1,16 @@
 ﻿using System.Xml;
 using System.Xml.Linq;
-using ApexFormat.RTPC.V0104.Class;
+using ApexFormat.IRTPC.V14.Class;
 using ATL.Core.Class;
 using ATL.Core.Libraries;
 
-namespace ApexFormat.RTPC.V0104;
+namespace ApexFormat.IRTPC.V14;
 
-public class RtpcV0104Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
+public class IrtpcV14Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
 {
     public static bool CanProcess(Stream stream)
     {
-        return !stream.ReadRtpcV0104Header().IsNone;
+        return !stream.ReadIrtpcV14Header().IsNone;
     }
     
     public static bool CanProcess(string path)
@@ -31,14 +31,14 @@ public class RtpcV0104Manager : ICanProcessStream, ICanProcessPath, IProcessBasi
     
     public static int Decompress(Stream inBuffer, Stream outBuffer)
     {
-        var optionHeader = inBuffer.ReadRtpcV0104Header();
+        var optionHeader = inBuffer.ReadIrtpcV14Header();
         if (!optionHeader.IsSome(out var header))
             return -1;
 
-        var containers = new RtpcV0104Container[header.ContainerCount];
+        var containers = new IrtpcV14Container[header.ContainerCount];
         for (var i = 0; i < header.ContainerCount; i++)
         {
-            var optionContainer = inBuffer.ReadRtpcV01Container();
+            var optionContainer = inBuffer.ReadIrtpcV14Container();
             if (optionContainer.IsSome(out var container))
                 containers[i] = container;
         }

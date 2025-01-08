@@ -22,8 +22,13 @@ public class SarcV02ArchiveEntry : ISizeOf
     public string FilePath = ""; // length prefix, min size = uint
     public uint DataOffset = 0;
     public uint Size = 0;
-    
-    public static uint SizeOf() => sizeof(uint) + sizeof(uint) + sizeof(uint);
+
+    public static uint SizeOf()
+    {
+        return sizeof(uint) +
+               sizeof(uint) +
+               sizeof(uint);
+    }
 }
 
 public static class SarcV02ArchiveEntryExtensions

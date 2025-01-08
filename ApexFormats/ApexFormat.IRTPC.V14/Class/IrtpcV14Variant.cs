@@ -1,22 +1,22 @@
 ﻿using System.Xml.Linq;
-using ApexFormat.RTPC.V0104.Enum;
+using ApexFormat.IRTPC.V14.Enum;
 using ATL.Core.Extensions;
 using ATL.Core.Hash;
 using CommunityToolkit.HighPerformance;
 using RustyOptions;
 
-namespace ApexFormat.RTPC.V0104.Class;
+namespace ApexFormat.IRTPC.V14.Class;
 
-public class RtpcV0104Variant : RtpcV0104VariantHeader
+public class IrtpcV14Variant : IrtpcV14VariantHeader
 {
     public object? Data = null;
 }
 
-public static class RtpcV0104VariantExtensions
+public static class IrtpcV14VariantExtensions
 {
-    public static RtpcV0104Variant HeaderToContainer(this RtpcV0104VariantHeader header)
+    public static IrtpcV14Variant HeaderToContainer(this IrtpcV14VariantHeader header)
     {
-        var result = new RtpcV0104Variant
+        var result = new IrtpcV14Variant
         {
             NameHash = header.NameHash,
             VariantType = header.VariantType,
@@ -25,40 +25,40 @@ public static class RtpcV0104VariantExtensions
         return result;
     }
     
-    public static Option<RtpcV0104Variant> ReadRtpcV0104Variant(this Stream stream)
+    public static Option<IrtpcV14Variant> ReadIrtpcV14Variant(this Stream stream)
     {
-        var optionContainerHeader = stream.ReadRtpcV0104VariantHeader();
+        var optionContainerHeader = stream.ReadIrtpcV14VariantHeader();
         if (!optionContainerHeader.IsSome(out var containerHeader))
-            return Option<RtpcV0104Variant>.None;
+            return Option<IrtpcV14Variant>.None;
         
         var result = containerHeader.HeaderToContainer();
         switch (result.VariantType)
         {
-            case ERtpcV0104VariantType.Integer32:
+            case EIrtpcV14VariantType.Integer32:
                 result.Data = stream.Read<int>();
                 break;
-            case ERtpcV0104VariantType.Float32:
+            case EIrtpcV14VariantType.Float32:
                 result.Data = stream.Read<float>();
                 break;
-            case ERtpcV0104VariantType.String:
+            case EIrtpcV14VariantType.String:
                 var stringLength = stream.Read<ushort>();
                 result.Data = stream.ReadStringOfLength(stringLength);
                 break;
-            case ERtpcV0104VariantType.Vector2:
+            case EIrtpcV14VariantType.Vector2:
                 result.Data = stream.ReadArray<float>(2);
                 break;
-            case ERtpcV0104VariantType.Vector3:
+            case EIrtpcV14VariantType.Vector3:
                 result.Data = stream.ReadArray<float>(3);
                 break;
-            case ERtpcV0104VariantType.Vector4:
+            case EIrtpcV14VariantType.Vector4:
                 result.Data = stream.ReadArray<float>(4);
                 break;
-            case ERtpcV0104VariantType.DoNotUse01:
+            case EIrtpcV14VariantType.DoNotUse01:
                 break;
-            case ERtpcV0104VariantType.Matrix3X4:
+            case EIrtpcV14VariantType.Matrix3X4:
                 result.Data = stream.ReadArray<float>(12);
                 break;
-            case ERtpcV0104VariantType.Events:
+            case EIrtpcV14VariantType.Events:
                 var count = stream.Read<uint>();
                 var values = new (uint, uint)[count];
     
@@ -69,7 +69,7 @@ public static class RtpcV0104VariantExtensions
 
                 result.Data = values;
                 break;
-            case ERtpcV0104VariantType.Unassigned:
+            case EIrtpcV14VariantType.Unassigned:
             default:
                 break;
         }
@@ -77,7 +77,7 @@ public static class RtpcV0104VariantExtensions
         return Option.Some(result);
     }
 
-    public static XElement WriteXElement(this RtpcV0104Variant variant)
+    public static XElement WriteXElement(this IrtpcV14Variant variant)
     {
         var xe = new XElement("value");
 
@@ -97,29 +97,29 @@ public static class RtpcV0104VariantExtensions
 
         switch (variant.VariantType)
         {
-            case ERtpcV0104VariantType.Integer32:
-            case ERtpcV0104VariantType.Float32:
-            case ERtpcV0104VariantType.String:
+            case EIrtpcV14VariantType.Integer32:
+            case EIrtpcV14VariantType.Float32:
+            case EIrtpcV14VariantType.String:
                 xe.SetValue(variant.Data);
                 break;
-            case ERtpcV0104VariantType.Vector2:
-            case ERtpcV0104VariantType.Vector3:
-            case ERtpcV0104VariantType.Vector4:
+            case EIrtpcV14VariantType.Vector2:
+            case EIrtpcV14VariantType.Vector3:
+            case EIrtpcV14VariantType.Vector4:
                 var vec = (float[]) variant.Data;
                 xe.SetValue(string.Join(",", vec));
                 break;
-            case ERtpcV0104VariantType.Matrix3X4:
+            case EIrtpcV14VariantType.Matrix3X4:
                 var mat = (float[]) variant.Data;
                 xe.SetValue(string.Join(",", mat));
                 break;
-            case ERtpcV0104VariantType.Events:
+            case EIrtpcV14VariantType.Events:
                 var eventPairs = ((uint, uint)[]) variant.Data;
                 var events = eventPairs.Select(e => $"{e.Item1:X8}={e.Item2:X8}");
                 xe.SetValue(string.Join(", ", events));
                 break;
-            case ERtpcV0104VariantType.Unassigned:
+            case EIrtpcV14VariantType.Unassigned:
                 break;
-            case ERtpcV0104VariantType.DoNotUse01:
+            case EIrtpcV14VariantType.DoNotUse01:
             default:
                 throw new ArgumentOutOfRangeException();
         }

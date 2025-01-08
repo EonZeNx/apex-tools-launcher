@@ -9,6 +9,7 @@ Mod tools for [Avalanche Studios](https://avalanchestudios.com/) games. Launch, 
 | RTPC          | 1       | Extract    |
 | AAF           | 1       | Extract    |
 | SARC          | 2       | Extract    |
+| TOC           | -       | TBD        |
 | ADF           | 4       | Extract    |
 | TAB / ARC     | 2       | Extract    |
 | DDSC / AVTX   | 1       | ToDo       |
@@ -22,12 +23,12 @@ Once support for Just Cause 4 is rolled out, this will be required.
 I am unable to share this file due to licensing, but if you have the game it should be located in your installation folder.
 
 ## Discord
-Feel free to join the EonZeNx server here https://discord.gg/SAjVFmMGdd or the official Just Cause modding community server here https://discord.gg/just-cause-unlimited-449584016648044555
+EonZeNx: https://discord.gg/SAjVFmMGdd
+Just Cause modding community: https://discord.gg/just-cause-unlimited-449584016648044555
 
 # References
-
-- **[aaronkirkham's jc-model-renderer](https://github.com/aaronkirkham)**: The JC Model Renderer had some very useful 
-  info, especially regarding compression.
+- **[aaronkirkham's jc-model-renderer](https://github.com/aaronkirkham)**: The JC Model Renderer had some very useful info, especially regarding compression.
+- **[PredatorCZ's ApexLib](https://github.com/PredatorCZ/ApexLib)**: Lots of model format info here.
 - **[kk19's DECA](https://github.com/kk49/deca)**: Very helpful for detailed file formats.
 
 # License

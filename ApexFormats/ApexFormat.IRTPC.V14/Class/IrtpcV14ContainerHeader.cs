@@ -2,7 +2,7 @@
 using CommunityToolkit.HighPerformance;
 using RustyOptions;
 
-namespace ApexFormat.RTPC.V0104.Class;
+namespace ApexFormat.IRTPC.V14.Class;
 
 /// <summary>
 /// Structure:
@@ -11,7 +11,7 @@ namespace ApexFormat.RTPC.V0104.Class;
 /// <br/>MinorVersion - <see cref="ushort"/>
 /// <br/>PropertyCount - <see cref="ushort"/>
 /// </summary>
-public class RtpcV0104ContainerHeader : ISizeOf
+public class IrtpcV14ContainerHeader : ISizeOf
 {
     public uint NameHash = 0;
     public byte MajorVersion = 0;
@@ -27,16 +27,16 @@ public class RtpcV0104ContainerHeader : ISizeOf
     }
 }
 
-public static class RtpcV0104ContainerHeaderExtensions
+public static class IrtpcV14ContainerHeaderExtensions
 {
-    public static Option<RtpcV0104ContainerHeader> ReadRtpcV0104ContainerHeader(this Stream stream)
+    public static Option<IrtpcV14ContainerHeader> ReadIrtpcV14ContainerHeader(this Stream stream)
     {
-        if (stream.Length - stream.Position < RtpcV0104ContainerHeader.SizeOf())
+        if (stream.Length - stream.Position < IrtpcV14ContainerHeader.SizeOf())
         {
-            return Option<RtpcV0104ContainerHeader>.None;
+            return Option<IrtpcV14ContainerHeader>.None;
         }
 
-        var result = new RtpcV0104ContainerHeader
+        var result = new IrtpcV14ContainerHeader
         {
             NameHash = stream.Read<uint>(),
             MajorVersion = stream.Read<byte>(),

@@ -4,8 +4,8 @@
         <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <AssemblyName>ApexFormat.RTPC.V0104</AssemblyName>
-        <RootNamespace>ApexFormat.RTPC.V0104</RootNamespace>
+        <AssemblyName>ApexFormat.IRTPC.V14</AssemblyName>
+        <RootNamespace>ApexFormat.IRTPC.V14</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
