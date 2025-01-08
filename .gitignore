@@ -11,7 +11,7 @@ riderModule.iml
 */obj/*
 
 *.env
-/ATL.Core/databases/*
+/ApexToolsLauncher.Core/databases/*
 /Builds/*
 /Resources/*
 /Tests/*

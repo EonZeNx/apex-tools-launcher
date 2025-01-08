@@ -1,0 +1,48 @@
+@using ApexToolsLauncher.Core.Libraries
+@inherits MudComponentBase
+
+<MudStack
+  Row="@true"
+  Class="@($"align-center {Class}")"
+  Style="@Style"
+>
+  @if (AllowCreate)
+  {
+    <MudIconButton
+      Icon="@Icons.Material.Filled.Add"
+      Variant="Variant.Filled"
+      Color="Color.Primary"
+      OnClick="@CreateProfile"
+    />
+  }
+  
+  <MudSelect
+    T="@string"
+    Label="Profile"
+    Variant="Variant.Outlined"
+    ValueChanged="@OnProfileChanged"
+    Margin="Margin.Dense"
+    FullWidth="@true"
+    Style="@($"min-width: {SelectorMinWidth}")"
+    Error="@(ProfileInvalid())"
+  >
+    <MudSelectItem Value="@(ConstantsLibrary.InvalidString)" Disabled="@true">None</MudSelectItem>
+    @foreach (var (profileId, profileConfig) in ProfileConfigs)
+    {
+      <MudSelectItem Value="@(profileId)">
+        @(profileConfig.Title)<span style="opacity: 75%"> &bull; @(profileConfig.ModConfigs.Count) mod@(profileConfig.ModConfigs.Count != 1 ? "s" : "")</span>
+      </MudSelectItem>
+    }
+  </MudSelect>
+  
+  @if (AllowEdit)
+  {
+    <MudIconButton
+      Icon="@Icons.Material.Filled.Edit"
+      Variant="Variant.Filled"
+      Color="Color.Secondary"
+      OnClick="@EditProfile"
+      Disabled="@(ProfileInvalid())"
+    />
+  }
+</MudStack>

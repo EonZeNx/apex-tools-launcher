@@ -1,0 +1,45 @@
+﻿@inherits MudComponentBase
+@using ApexToolsLauncher.Core.Libraries
+
+<MudCard Class="@Class" Style="@Style">
+  <MudCardHeader Class="pb-0">
+    <CardHeaderContent>
+      <MudStack Row="@true" AlignItems="AlignItems.Center">
+        <MudText Typo="Typo.h6">Mods</MudText>
+        <MudText Typo="Typo.subtitle1" Style="opacity: 66%">&bull;</MudText>
+        <MudText Typo="Typo.subtitle1" Style="opacity: 66%">@(ModConfigs.Count) found</MudText>
+      </MudStack>
+    </CardHeaderContent>
+  </MudCardHeader>
+  
+  <MudCardContent Style="overflow-y: scroll">
+    <MudList
+      T="string"
+      SelectedValue="@ModId"
+      SelectedValueChanged="@ListValueChanged"
+      Color="@Color.Primary"
+    >
+      @if (ModConfigs.Count == 0)
+      {
+        <MudListItem Text="No mods found" Value="ConstantsLibrary.InvalidString"/>
+      }
+      else
+      {
+        foreach (var (modId, config) in ModConfigs)
+        {
+          var icon = Icons.Material.Filled.RadioButtonUnchecked;
+          if (ProfileConfig.ModConfigs.ContainsKey(modId))
+          {
+            icon = Icons.Material.Filled.RadioButtonChecked;
+          }
+          
+          <MudListItem
+            Text="@config.Title"
+            Value="@modId"
+            Icon="@icon"
+          />
+        }
+      }
+    </MudList>
+  </MudCardContent>
+</MudCard>

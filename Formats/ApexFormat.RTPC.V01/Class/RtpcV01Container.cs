@@ -1,6 +1,6 @@
 ﻿using System.Xml.Linq;
-using ATL.Core.Extensions;
-using ATL.Core.Hash;
+using ApexToolsLauncher.Core.Extensions;
+using ApexToolsLauncher.Core.Hash;
 using RustyOptions;
 
 namespace ApexFormat.RTPC.V01.Class;

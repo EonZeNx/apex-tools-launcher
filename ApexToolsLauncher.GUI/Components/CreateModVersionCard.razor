@@ -1,0 +1,49 @@
+﻿@using ApexToolsLauncher.GUI.Libraries
+
+<MudCard Outlined="@true">
+  <MudCardHeader Class="align-center gap-1">
+    <CardHeaderContent>
+      <MudTextField
+        T="string"
+        Label="Title"
+        @bind-Value="@ContentConfig.Title"
+        Immediate="@true"
+        Variant="@Variant.Outlined"
+        Margin="Margin.Dense"
+        Mask="@MauiConstantsLibrary.IdMask"
+      />
+    </CardHeaderContent>
+    
+    <CardHeaderActions>
+      <MudIconButton
+        Icon="@(Expanded ? Icons.Material.Filled.KeyboardArrowUp : Icons.Material.Filled.KeyboardArrowDown)"
+        OnClick="@ToggleExpand"
+      />
+    </CardHeaderActions>
+  </MudCardHeader>
+  
+  <MudCollapse @bind-Expanded="@Expanded">
+    <MudCardContent Class="pt-0">
+      <MudStack>
+        <MudTextField
+          T="string"
+          Label="Description"
+          @bind-Value="@ContentConfig.Description"
+          Immediate="@true"
+          Variant="@Variant.Outlined"
+          Margin="Margin.Dense"
+          Lines="3"
+          AutoGrow="@true"
+        />
+        <MudTextField
+          T="string"
+          Label="Target"
+          @bind-Value="@ContentConfig.Target"
+          Immediate="@true"
+          Variant="@Variant.Outlined"
+          Margin="Margin.Dense"
+        />
+      </MudStack>
+    </MudCardContent>
+  </MudCollapse>
+</MudCard>
