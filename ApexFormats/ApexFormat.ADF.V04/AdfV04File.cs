@@ -469,9 +469,15 @@ public class AdfV04File
         xe.SetAttributeValue("type", adfType.Name.RemoveAll(CharactersToRemove));
         xe.SetAttributeValue("type-hash", adfType.TypeHash);
         
-        foreach (var typeMember in adfType.Members)
+        foreach (var member in adfType.Members)
         {
-            var optionXMember = WriteXInstanceData(stream, instanceInfo, typeMember);
+            var optionMemberType = FindType(member.TypeHash);
+            if (!optionMemberType.IsSome(out var memberType))
+                continue;
+
+            var memberName = member.Name.RemoveAll(CharactersToRemove);
+            
+            var optionXMember = WriteXInstanceData(stream, instanceInfo, memberType, memberName);
             if (!optionXMember.IsSome(out var xMember))
                 continue;
             
@@ -481,7 +487,7 @@ public class AdfV04File
         return Option.Some(xe);
     }
     
-    public Option<XElement> WriteArray(Stream stream, AdfV04InstanceInfo instanceInfo, AdfV04Type adfType, string name, AdfV04Member member)
+    public Option<XElement> WriteArray(Stream stream, AdfV04InstanceInfo instanceInfo, AdfV04Type adfType, string name)
     {
         var xe = new XElement(adfType.Type.ToXString());
         xe.SetAttributeValue("name", name);
@@ -528,13 +534,8 @@ public class AdfV04File
         return Option.Some(xe);
     }
 
-    public Option<XElement> WriteXInstanceData(Stream stream, AdfV04InstanceInfo instanceInfo, AdfV04Member member)
+    public Option<XElement> WriteXInstanceData(Stream stream, AdfV04InstanceInfo instanceInfo, AdfV04Type adfType, string name)
     {
-        var optionAdfType = FindType(member.TypeHash);
-        if (!optionAdfType.IsSome(out var adfType))
-            return Option.None<XElement>();
-
-        var name = member.Name.RemoveAll(CharactersToRemove);
         var optionXMember = Option.None<XElement>();
         switch (adfType.Type)
         {
@@ -547,7 +548,7 @@ public class AdfV04File
             case EAdfV04Type.Pointer:
                 break;
             case EAdfV04Type.Array:
-                optionXMember = WriteArray(stream, instanceInfo, adfType, name, member);
+                optionXMember = WriteArray(stream, instanceInfo, adfType, name);
                 break;
             case EAdfV04Type.InlineArray:
                 break;
@@ -585,9 +586,15 @@ public class AdfV04File
         xe.SetAttributeValue("type", adfType.Name.RemoveAll(CharactersToRemove));
         xe.SetAttributeValue("type-hash", adfType.TypeHash);
 
-        foreach (var typeMember in adfType.Members)
+        foreach (var member in adfType.Members)
         {
-            var optionXMember = WriteXInstanceData(stream, instanceInfo, typeMember);
+            var optionMemberType = FindType(member.TypeHash);
+            if (!optionMemberType.IsSome(out var memberType))
+                continue;
+
+            var name = member.Name.RemoveAll(CharactersToRemove);
+            
+            var optionXMember = WriteXInstanceData(stream, instanceInfo, memberType, name);
             if (!optionXMember.IsSome(out var xMember))
                 continue;
             
