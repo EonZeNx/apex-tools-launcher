@@ -46,8 +46,6 @@ public class ModConfigService : IModConfigService
         
         if (!optionConfig.IsSome(out var modConfig))
         {
-            LogService?.Warning($"Failed to load '{modId}' for '{gameId}'");
-            
             if (ModConfigs.TryGetValue(gameId, out var existingModConfigs))
             {
                 if (existingModConfigs.ContainsKey(modId))
@@ -149,6 +147,11 @@ public class ModConfigService : IModConfigService
     public ModConfig Get(string gameId, string modId)
     {
         var result = new ModConfig();
+        if (ConstantsLibrary.IsStringInvalid(gameId) || ConstantsLibrary.IsStringInvalid(modId))
+        {
+            LogService?.Debug($"'{gameId}' or '{modId}' is invalid");
+            return result;
+        }
         
         if (ModConfigs.TryGetValue(gameId, out var modConfigs))
         {

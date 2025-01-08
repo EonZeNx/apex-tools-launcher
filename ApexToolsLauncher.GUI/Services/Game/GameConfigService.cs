@@ -22,8 +22,6 @@ public class GameConfigService : IGameConfigService
         var optionConfig = ConfigLibrary.LoadGameConfig(gameId);
         if (!optionConfig.IsSome(out var gameConfig))
         {
-            LogService?.Warning($"Failed to load '{gameId}'");
-            
             if (GameConfigs.ContainsKey(gameId))
             {
                 LogService?.Info($"Found existing GameConfig for '{gameId}'");
@@ -71,6 +69,12 @@ public class GameConfigService : IGameConfigService
     public GameConfig Get(string gameId)
     {
         var result = new GameConfig();
+        if (ConstantsLibrary.IsStringInvalid(gameId))
+        {
+            LogService?.Debug($"'{gameId}' is invalid");
+            return result;
+        }
+        
         if (GameConfigs.TryGetValue(gameId, out var gameConfig))
         {
             result = gameConfig;
