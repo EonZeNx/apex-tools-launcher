@@ -48,14 +48,14 @@ public partial class GameModsComponent : ComponentBase, IDisposable
     protected override void OnInitialized()
     {
         GameConfigService.RegisterOnReload(OnConfigReloaded);
-        ProfileConfigService.RegisterConfigReload(OnConfigReloaded);
+        ProfileConfigService.RegisterOnReload(OnConfigReloaded);
         ModConfigService.RegisterOnReload(OnConfigReloaded);
     }
     
     public void Dispose()
     {
         GameConfigService.UnregisterOnReload(OnConfigReloaded);
-        ProfileConfigService.UnregisterConfigReload(OnConfigReloaded);
+        ProfileConfigService.UnregisterOnReload(OnConfigReloaded);
         ModConfigService.UnregisterOnReload(OnConfigReloaded);
     }
 }
