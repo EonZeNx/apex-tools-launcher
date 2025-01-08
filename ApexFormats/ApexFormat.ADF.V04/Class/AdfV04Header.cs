@@ -1,4 +1,4 @@
-﻿using ApexFormat.ADF.V04.Enum;
+﻿using ApexFormat.ADF.V04.Enums;
 using ATL.Core.Class;
 using ATL.Core.Extensions;
 using CommunityToolkit.HighPerformance;

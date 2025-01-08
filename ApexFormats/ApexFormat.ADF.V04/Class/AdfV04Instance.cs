@@ -19,6 +19,8 @@ public class AdfV04Instance : ISizeOf
     public uint PayloadOffset = 0;
     public uint PayloadSize   = 0;
     public ulong NameIndex    = 0;
+
+    public string Name { get; set; } = "EMPTY";
     
     public static uint SizeOf()
     {
