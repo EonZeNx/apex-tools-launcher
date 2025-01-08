@@ -21,6 +21,7 @@ using ATL.Core.Libraries;
 using ATL.Script;
 using CommandLine;
 using CommandLine.Text;
+using HavokFormat.Scene;
 
 namespace ATL.CLI;
 
@@ -73,6 +74,7 @@ class Program
                     RtpcV01Manager.CanProcess(inputPath) ||
                     RtpcV03Manager.CanProcess(inputPath) ||
                     IrtpcV14Manager.CanProcess(inputPath) ||
+                    HkSceneManager.CanProcess(inputPath) ||
                     Path.GetExtension(inputPath) == ".xml"
                 ) {
                     supportedPaths.Add(inputPath);
