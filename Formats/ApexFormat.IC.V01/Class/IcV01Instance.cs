@@ -158,7 +158,7 @@ public static class IcV01InstanceLibrary
         try
         {
             var result = xe.Read<IcV01Instance>(true);
-            if (result.IsErr(out var e) && e is not null)
+            if (result.Err().IsSome(out var e))
             {
                 return Result.Err<bool>(e);
             }

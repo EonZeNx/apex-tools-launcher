@@ -61,11 +61,11 @@ public class SarcV02File : ICanExtractPath, IExtractPathToPath, IExtractStreamTo
         return result;
     }
     
-    public static Result<bool, Exception> WriteEntryFile(string outPath, SarcV02ArchiveEntry[] entries)
+    public Result<bool, Exception> WriteEntryFile(string outPath, SarcV02ArchiveEntry[] entries)
     {
-        var outer = new XElement("archive");
-        outer.SetAttributeValue("extension", "ee");
-        outer.SetAttributeValue("version", "2");
+        var outer = new XElement(SarcV02FileLibrary.XName);
+        outer.SetAttributeValue("extension", ExtractExtension);
+        outer.SetAttributeValue("version", SarcV02FileLibrary.Version);
         
         var root = new XElement("files");
         foreach (var archiveEntry in entries)
@@ -192,4 +192,10 @@ public class SarcV02File : ICanExtractPath, IExtractPathToPath, IExtractStreamTo
     {
         return Result.Err<int>(new NotImplementedException());
     }
+}
+
+public static class SarcV02FileLibrary
+{
+    public const string XName = "archive";
+    public const int Version = 2;
 }

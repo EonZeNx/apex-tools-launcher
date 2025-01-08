@@ -158,4 +158,5 @@ public class IcV01File : ICanExtractPath, IExtractPathToPath, IExtractStreamToSt
 public static class IcV01FileLibrary
 {
     public const string XName = "instances";
+    public const int Version = 1;
 }
