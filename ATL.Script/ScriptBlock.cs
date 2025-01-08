@@ -13,7 +13,9 @@ public class ScriptBlock
     {
         foreach (var element in node.Elements())
         {
-            if (element.Name.ToString() == ScriptVariable.NodeName)
+            var xeName = element.Name.ToString();
+            
+            if (xeName == ScriptVariable.NodeName)
             {
                 var optionVar = element.GetScriptVariable();
                 if (!optionVar.IsSome(out var scriptVariable))
@@ -23,12 +25,20 @@ public class ScriptBlock
                 }
                 
                 Variables.TryAdd(scriptVariable.Name, scriptVariable);
+                continue;
             }
-            else if (element.Name.ToString() == ScriptActionCopy.NodeName)
+
+            IScriptAction? scriptAction = null;
+            if (xeName == ScriptActionCopy.NodeName)
             {
-                var scriptAction = new ScriptActionCopy();
-                scriptAction.Process(element, Variables);
+                scriptAction = new ScriptActionCopy();
             }
+            else if (xeName == ScriptActionRename.NodeName)
+            {
+                scriptAction = new ScriptActionRename();
+            }
+
+            scriptAction?.Process(element, Variables);
         }
     }
 }

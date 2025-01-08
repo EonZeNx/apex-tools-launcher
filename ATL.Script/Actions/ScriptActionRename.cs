@@ -6,9 +6,9 @@ using RustyOptions;
 
 namespace ATL.Script.Actions;
 
-public class ScriptActionCopy : IScriptAction
+public class ScriptActionRename : IScriptAction
 {
-    public static string NodeName { get; } = "copy";
+    public static string NodeName { get; } = "rename";
     
     public void Process(XElement element, Dictionary<string, ScriptVariable> variables)
     {
@@ -78,14 +78,14 @@ public class ScriptActionCopy : IScriptAction
                 if (File.Exists(targetTo))
                     File.Delete(targetTo);
                 
-                File.Copy(targetFrom, targetTo);
+                File.Move(targetFrom, targetTo);
             }
             else if (Directory.Exists(targetFrom))
             {
                 if (Directory.Exists(targetTo))
                     Directory.Delete(targetTo);
                 
-                IOLibrary.CopyDirectory(targetFrom, targetTo);
+                Directory.Move(targetFrom, targetTo);
             }
         }
         catch (Exception e)
