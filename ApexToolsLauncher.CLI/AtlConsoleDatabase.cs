@@ -101,7 +101,7 @@ public static class AtlConsoleDatabase
             
             try
             { // Save failed values to file
-                var logPath = Path.Join(ConfigLibrary.GetBasePath(), CoreConfig.AppConfig.LogPath);
+                var logPath = CoreConfig.AppConfig.LogPath;
                 if (!Directory.Exists(logPath))
                     Directory.CreateDirectory(logPath);
                 
