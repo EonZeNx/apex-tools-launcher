@@ -36,7 +36,9 @@ public partial class GameCardsComponent : ComponentBase, IDisposable
         }
 
         GameIds = GameConfigService.GetAll().Keys.ToList();
-        if (!GameIds.Contains(SelectedGameId) && !ConstantsLibrary.IsStringInvalid(SelectedGameId))
+        if (GameIds.Contains(SelectedGameId)) return;
+        
+        if (GameIds.Count != 0 && ConstantsLibrary.IsStringInvalid(SelectedGameId) || !ConstantsLibrary.IsStringInvalid(SelectedGameId))
         {
             GameIdChanged(GameIds.Count == 0 ? ConstantsLibrary.InvalidString : GameIds[0]);
         }
