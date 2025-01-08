@@ -1,10 +1,37 @@
-﻿namespace ATL.GUI.Services.Development;
+﻿using System.Runtime.CompilerServices;
+
+namespace ATL.GUI.Services.Development;
 
 public interface ILogService
 {
-    void Log(string message, string filePath = "FILE", string functionName = "FUNCTION", int lineNumber = -1);
-    void Debug(string message, string filePath = "FILE", string functionName = "FUNCTION", int lineNumber = -1);
-    void Info(string message, string filePath = "FILE", string functionName = "FUNCTION", int lineNumber = -1);
-    void Warning(string message, string filePath = "FILE", string functionName = "FUNCTION", int lineNumber = -1);
-    void Error(string message, string filePath = "FILE", string functionName = "FUNCTION", int lineNumber = -1);
+    void Log(
+        string message,
+        [CallerFilePath] string filePath = "FILE",
+        [CallerMemberName] string functionName = "FUNCTION",
+        [CallerLineNumber] int lineNumber = -1
+    );
+    void Debug(
+        string message,
+        [CallerFilePath] string filePath = "FILE",
+        [CallerMemberName] string functionName = "FUNCTION",
+        [CallerLineNumber] int lineNumber = -1
+    );
+    void Info(
+        string message,
+        [CallerFilePath] string filePath = "FILE",
+        [CallerMemberName] string functionName = "FUNCTION",
+        [CallerLineNumber] int lineNumber = -1
+    );
+    void Warning(
+        string message,
+        [CallerFilePath] string filePath = "FILE",
+        [CallerMemberName] string functionName = "FUNCTION",
+        [CallerLineNumber] int lineNumber = -1
+    );
+    void Error(
+        string message,
+        [CallerFilePath] string filePath = "FILE",
+        [CallerMemberName] string functionName = "FUNCTION",
+        [CallerLineNumber] int lineNumber = -1
+    );
 }

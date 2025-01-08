@@ -19,6 +19,6 @@ public interface IGameStateService
     Dictionary<string, GameState> GetAll();
     Task<Dictionary<string, GameState>> GetAllAsync();
     
-    void RegisterStateUpdated(Action action);
-    void UnregisterStateUpdated(Action action);
+    void RegisterOnReload(Action action);
+    void UnregisterOnReload(Action action);
 }

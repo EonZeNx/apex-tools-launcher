@@ -35,7 +35,7 @@ public static class MauiProgram
         builder.Logging.AddDebug();
 
         builder.Services.AddScoped<ILogService, LogService>();
-        builder.Services.AddScoped<AppStateService>();
+        builder.Services.AddScoped<IAppStateService, AppStateService>();
         
         builder.Services.AddScoped<AppConfigService>();
         builder.Services.AddScoped<IGameConfigService, GameConfigService>();

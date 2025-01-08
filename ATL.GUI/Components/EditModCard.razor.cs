@@ -90,11 +90,11 @@ public partial class EditModCard : ComponentBase, IDisposable
     
     protected override void OnInitialized()
     {
-        ModConfigService.RegisterConfigReload(OnConfigReloaded);
+        ModConfigService.RegisterOnReload(OnConfigReloaded);
     }
 
     public void Dispose()
     {
-        ModConfigService.UnregisterConfigReload(OnConfigReloaded);
+        ModConfigService.UnregisterOnReload(OnConfigReloaded);
     }
 }

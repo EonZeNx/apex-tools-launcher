@@ -198,14 +198,25 @@ public class ModConfigService : IModConfigService
         return result;
     }
 
-    
-    public void RegisterConfigReload(Action action)
+
+    public bool Contains(string gameId, string modId)
+    {
+        if (ModConfigs.TryGetValue(gameId, out var modConfigs))
+        {
+            return modConfigs.ContainsKey(modId);
+        }
+
+        return false;
+    }
+
+
+    public void RegisterOnReload(Action action)
     {
         LogService?.Debug("Adding to reload event");
         ConfigReloaded += action;
     }
 
-    public void UnregisterConfigReload(Action action)
+    public void UnregisterOnReload(Action action)
     {
         LogService?.Debug("Removing from reload event");
         ConfigReloaded -= action;

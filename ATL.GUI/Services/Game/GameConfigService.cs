@@ -120,13 +120,13 @@ public class GameConfigService : IGameConfigService
         return result;
     }
 
-    public void RegisterConfigReload(Action action)
+    public void RegisterOnReload(Action action)
     {
         LogService?.Debug("Adding to reload event");
         ConfigReloaded += action;
     }
 
-    public void UnregisterConfigReload(Action action)
+    public void UnregisterOnReload(Action action)
     {
         LogService?.Debug("Removing from reload event");
         ConfigReloaded -= action;

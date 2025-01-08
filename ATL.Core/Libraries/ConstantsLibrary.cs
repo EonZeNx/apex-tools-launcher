@@ -8,6 +8,7 @@ public static class ConstantsLibrary
     public static int[] AppWindowSize => [1280, 900];
     
     public static string AppConfigFileName = "alt_config";
+    public static string AppStateFileName = "alt_state";
     public static string ModConfigFileName = "mod_config";
     
     public static string InvalidString => "?";
