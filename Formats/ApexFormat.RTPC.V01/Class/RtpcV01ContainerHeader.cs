@@ -30,7 +30,7 @@ public static class RtpcV01ContainerHeaderLibrary
     
     public static Option<RtpcV01ContainerHeader> ReadRtpcV01ContainerHeader(this Stream stream)
     {
-        if (stream.CouldRead(SizeOf))
+        if (!stream.CouldRead(SizeOf))
         {
             return Option<RtpcV01ContainerHeader>.None;
         }

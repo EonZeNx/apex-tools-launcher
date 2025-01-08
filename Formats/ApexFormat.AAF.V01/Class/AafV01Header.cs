@@ -40,7 +40,7 @@ public static class AafV01HeaderLibrary
     
     public static Option<AafV01Header> ReadAafV01Header(this Stream stream)
     {
-        if (stream.CouldRead(SizeOf))
+        if (!stream.CouldRead(SizeOf))
         {
             return Option<AafV01Header>.None;
         }

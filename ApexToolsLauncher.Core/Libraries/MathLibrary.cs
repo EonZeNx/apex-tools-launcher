@@ -61,12 +61,13 @@ public static class MathLibrary
     {
         if (value.Length < 1) return 0;
         
-        var safeValue = "";
-        for (var i = value.Length - 2; i >= 0; i -= 2)
-        {
-            safeValue += value[i..(i + 2)];
-        }
+        // todo: this might break things for RTPC
+        // var safeValue = "";
+        // for (var i = value.Length - 2; i >= 0; i -= 2)
+        // {
+        //     safeValue += value[i..(i + 2)];
+        // }
         
-        return uint.Parse(safeValue, NumberStyles.AllowHexSpecifier);
+        return uint.Parse(value, NumberStyles.HexNumber);
     }
 }

@@ -59,7 +59,8 @@ public static class StreamExtensions
         return buffer;
     }
     
-    public static T[] ReadArray<T>(this Stream stream, int count) where T : unmanaged
+    public static T[] ReadArray<T>(this Stream stream, int count)
+        where T : unmanaged
     {
         var values = new T[count];
         for (var i = 0; i < count; i++)
@@ -70,7 +71,8 @@ public static class StreamExtensions
         return values;
     }
     
-    public static T[] ReadArrayLengthPrefix<T>(this Stream stream) where T : unmanaged
+    public static T[] ReadArrayLengthPrefix<T>(this Stream stream)
+        where T : unmanaged
     {
         return stream.ReadArray<T>(stream.Read<int>());
     }
