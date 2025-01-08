@@ -1,13 +1,9 @@
 using System.Text.Json.Serialization;
-using ATL.Core.Libraries;
 
 namespace ATL.Core.Config.GUI;
 
 public class GameConfig
 {
-    [JsonPropertyName("selected_profile")]
-    public string SelectedProfile { get; set; } = ConstantsLibrary.InvalidString;
-    
     [JsonPropertyName("title")]
     public string Title { get; set; } = "Title";
     

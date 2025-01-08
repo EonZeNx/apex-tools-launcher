@@ -1,25 +1,28 @@
 using ATL.Core.Config.GUI;
-using ATL.GUI.Services;
+using ATL.GUI.Services.Game;
 using Microsoft.AspNetCore.Components;
+using MudBlazor;
 
 namespace ATL.GUI.Components;
 
-public partial class GameInfoComponent : ComponentBase, IDisposable
+public partial class GameActionsComponent : MudComponentBase, IDisposable
 {
     [Inject]
-    protected GameConfigService GameConfigService { get; set; } = new();
-    
-    [CascadingParameter]
-    public string GameId { get; set; } = "GameId";
+    protected IGameConfigService? GameConfigService { get; set; }
     
     [Parameter]
-    public bool UseProfileComponent { get; set; } = true;
+    public string GameId { get; set; } = "GameId";
     
     protected GameConfig GameConfig { get; set; } = new();
+
+    protected void OnProfileChanged(string profileId)
+    {
+        
+    }
     
     protected void ReloadData()
     {
-        GameConfig = GameConfigService.Get(GameId);
+        GameConfig = GameConfigService?.GetOrLoad(GameId) ?? new GameConfig();
     }
     
     protected override async Task OnParametersSetAsync()
@@ -35,11 +38,11 @@ public partial class GameInfoComponent : ComponentBase, IDisposable
     
     protected override void OnInitialized()
     {
-        GameConfigService.RegisterConfigReload(OnConfigReloaded);
+        GameConfigService?.RegisterConfigReload(OnConfigReloaded);
     }
 
     public void Dispose()
     {
-        GameConfigService.UnregisterConfigReload(OnConfigReloaded);
+        GameConfigService?.UnregisterConfigReload(OnConfigReloaded);
     }
 }

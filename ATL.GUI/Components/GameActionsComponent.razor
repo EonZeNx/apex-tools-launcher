@@ -1,0 +1,13 @@
+@inherits MudComponentBase;
+
+<MudStack Row="@true" AlignItems="AlignItems.Center" Wrap="Wrap.Wrap" Class="@Class">
+  <MudText Typo="Typo.h4" Style="line-height: var(--mud-typography-h6-lineheight)">@(GameConfig.Title)</MudText>
+  <MudSpacer/>
+  
+  <ModProfileSelect GameId="@GameId" ProfileChanged="@OnProfileChanged"/>
+  <MudButton
+    Variant="Variant.Filled"
+    StartIcon="@Icons.Material.Filled.RocketLaunch"
+    Color="Color.Primary"
+  >Launch</MudButton>
+</MudStack>

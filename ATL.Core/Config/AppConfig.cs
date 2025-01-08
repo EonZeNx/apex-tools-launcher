@@ -9,13 +9,13 @@ public class AppConfig
     public string LogPath { get; set; } = Path.Join(AppDomain.CurrentDomain.BaseDirectory, "logs");
     
     [JsonPropertyName("game_config_path")]
-    public string GameConfigPath { get; set; } = "game_config";
+    public string GameConfigPath { get; set; } = "games";
     
     [JsonPropertyName("databases_directory")]
     public string DatabasesDirectory { get; set; } = Path.Join(AppDomain.CurrentDomain.BaseDirectory, "databases");
     
     [JsonPropertyName("profile_config_path")]
-    public string ProfileConfigPath { get; set; } = "profile_config";
+    public string ProfileConfigPath { get; set; } = "profiles";
     
     [JsonPropertyName("mods_path")]
     public string ModsPath { get; set; } = "mods";

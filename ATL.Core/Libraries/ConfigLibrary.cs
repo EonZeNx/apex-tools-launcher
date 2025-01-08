@@ -83,6 +83,24 @@ public static class ConfigLibrary
         var optionConfig = LoadConfig<GameConfig>(configPath);
         return optionConfig;
     }
+
+    public static IEnumerable<string> GetAllGameIds()
+    {
+        var configsPath = GetGameConfigPath();
+        if (!Directory.Exists(configsPath))
+        {
+            Directory.CreateDirectory(configsPath);
+        }
+        
+        var jsonFilePaths = Directory.GetFiles(configsPath, "*.json");
+
+        return (
+            from jsonFilePath in jsonFilePaths
+            select Path.GetFileNameWithoutExtension(jsonFilePath) into jsonFileName
+            let optionConfig = LoadGameConfig(jsonFileName)
+            where !optionConfig.IsNone select jsonFileName
+        ).ToList();
+    }
     
     public static Dictionary<string, GameConfig> LoadGameConfigs()
     {
@@ -152,8 +170,11 @@ public static class ConfigLibrary
     public static string GetSelectedProfileId(string gameId)
     {
         var optionConfig = LoadGameConfig(gameId);
+        // return optionConfig.IsSome(out var gameConfig)
+        //     ? gameConfig.SelectedProfile
+        //     : ConstantsLibrary.InvalidString;
         return optionConfig.IsSome(out var gameConfig)
-            ? gameConfig.SelectedProfile
+            ? ConstantsLibrary.InvalidString
             : ConstantsLibrary.InvalidString;
     }
 

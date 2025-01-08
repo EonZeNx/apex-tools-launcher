@@ -1,4 +1,8 @@
 ﻿using ATL.GUI.Services;
+using ATL.GUI.Services.App;
+using ATL.GUI.Services.Development;
+using ATL.GUI.Services.Game;
+using ATL.GUI.Services.Mod;
 using Microsoft.Extensions.Logging;
 using MudBlazor;
 using MudBlazor.Services;
@@ -30,13 +34,13 @@ public static class MauiProgram
         builder.Services.AddBlazorWebViewDeveloperTools();
         builder.Logging.AddDebug();
 
-        builder.Services.AddScoped<LogService>();
+        builder.Services.AddScoped<ILogService, LogService>();
         builder.Services.AddScoped<AppStateService>();
         
         builder.Services.AddScoped<AppConfigService>();
-        builder.Services.AddScoped<GameConfigService>();
-        builder.Services.AddScoped<ProfileConfigService>();
-        builder.Services.AddScoped<ModConfigService>();
+        builder.Services.AddScoped<IGameConfigService, GameConfigService>();
+        builder.Services.AddScoped<IProfileConfigService, ProfileConfigService>();
+        builder.Services.AddScoped<IModConfigService, ModConfigService>();
         
         builder.Services.AddScoped<LaunchGameService>();
         

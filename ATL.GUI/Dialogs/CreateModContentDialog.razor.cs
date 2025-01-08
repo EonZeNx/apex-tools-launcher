@@ -1,5 +1,6 @@
 using ATL.Core.Config.GUI;
 using ATL.GUI.Services;
+using ATL.GUI.Services.Mod;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 
@@ -33,7 +34,7 @@ public partial class CreateModContentDialog : ComponentBase
         var result = ModContentId.Length != 0;
         if (result)
         {
-            result &= !ModConfigService.ContentExists(GameId, ModId, ModContentId);
+            // result &= !ModConfigService.ContentExists(GameId, ModId, ModContentId);
         }
         
         return result;
@@ -61,7 +62,7 @@ public partial class CreateModContentDialog : ComponentBase
         var modConfig = ModConfigService.Get(GameId, ModId);
         modConfig.Versions[ModContentId] = ModContentConfig;
         
-        ModConfigService.Save(GameId, ModId, modConfig);
+        // ModConfigService.Save(GameId, ModId, modConfig);
         MudDialog?.Close();
     }
 }

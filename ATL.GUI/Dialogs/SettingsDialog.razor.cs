@@ -1,5 +1,6 @@
 using ATL.Core.Config;
 using ATL.GUI.Services;
+using ATL.GUI.Services.App;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 

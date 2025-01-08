@@ -1,6 +1,8 @@
 using ATL.Core.Config.GUI;
 using ATL.Core.Libraries;
 using ATL.GUI.Services;
+using ATL.GUI.Services.Game;
+using ATL.GUI.Services.Mod;
 using Microsoft.AspNetCore.Components;
 
 namespace ATL.GUI.Components;
@@ -8,15 +10,15 @@ namespace ATL.GUI.Components;
 public partial class ModCard : ComponentBase, IDisposable
 {
     [Inject]
-    protected GameConfigService GameConfigService { get; set; } = new();
+    protected IGameConfigService? GameConfigService { get; set; }
     
     [Inject]
-    protected ProfileConfigService ProfileConfigService { get; set; } = new();
+    protected IProfileConfigService? ProfileConfigService { get; set; }
     
     [Inject]
-    protected ModConfigService ModConfigService { get; set; } = new();
+    protected IModConfigService? ModConfigService { get; set; }
     
-    [CascadingParameter]
+    [Parameter]
     public string GameId { get; set; } = "GameId";
     
     [Parameter]
@@ -37,7 +39,7 @@ public partial class ModCard : ComponentBase, IDisposable
         }
         
         ProfileConfig.ModConfigs[ModId] = version;
-        ProfileConfigService.Save(GameId, GameConfig.SelectedProfile, ProfileConfig);
+        // ProfileConfigService.Save(GameId, GameConfig.SelectedProfile, ProfileConfig);
     }
     
     protected void OnModEnabled(bool isEnabled)
@@ -52,7 +54,7 @@ public partial class ModCard : ComponentBase, IDisposable
             ProfileConfig.ModConfigs.Remove(ModId);
         }
         
-        ProfileConfigService.Save(GameId, GameConfig.SelectedProfile, ProfileConfig);
+        // ProfileConfigService.Save(GameId, GameConfig.SelectedProfile, ProfileConfig);
     }
 
     protected void TrySelectFirstVersion()
@@ -68,8 +70,13 @@ public partial class ModCard : ComponentBase, IDisposable
     
     protected void ReloadData()
     {
+        if (GameConfigService is null || ModConfigService is null)
+        {
+            return;
+        }
+        
         GameConfig = GameConfigService.Get(GameId);
-        ProfileConfig = ProfileConfigService.Get(GameId, GameConfig.SelectedProfile);
+        // ProfileConfig = ProfileConfigService.Get(GameId, GameConfig.SelectedProfile);
         ModConfig = ModConfigService.Get(GameId, ModId);
 
         if (ProfileConfig.ModConfigs.TryGetValue(ModId, out var version))
@@ -95,15 +102,15 @@ public partial class ModCard : ComponentBase, IDisposable
     
     protected override void OnInitialized()
     {
-        GameConfigService.RegisterConfigReload(OnConfigReloaded);
-        ProfileConfigService.RegisterConfigReload(OnConfigReloaded);
-        ModConfigService.RegisterConfigReload(OnConfigReloaded);
+        GameConfigService?.RegisterConfigReload(OnConfigReloaded);
+        ProfileConfigService?.RegisterConfigReload(OnConfigReloaded);
+        ModConfigService?.RegisterConfigReload(OnConfigReloaded);
     }
     
     public void Dispose()
     {
-        GameConfigService.UnregisterConfigReload(OnConfigReloaded);
-        ProfileConfigService.UnregisterConfigReload(OnConfigReloaded);
-        ModConfigService.UnregisterConfigReload(OnConfigReloaded);
+        GameConfigService?.UnregisterConfigReload(OnConfigReloaded);
+        ProfileConfigService?.UnregisterConfigReload(OnConfigReloaded);
+        ModConfigService?.UnregisterConfigReload(OnConfigReloaded);
     }
 }

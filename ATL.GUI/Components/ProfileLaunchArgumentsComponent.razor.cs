@@ -1,5 +1,7 @@
 using ATL.Core.Config.GUI;
 using ATL.GUI.Services;
+using ATL.GUI.Services.Game;
+using ATL.GUI.Services.Mod;
 using Microsoft.AspNetCore.Components;
 
 namespace ATL.GUI.Components;

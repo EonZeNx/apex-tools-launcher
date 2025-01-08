@@ -1,9 +1,9 @@
 using System.Runtime.CompilerServices;
 using Microsoft.JSInterop;
 
-namespace ATL.GUI.Services;
+namespace ATL.GUI.Services.Development;
 
-public class LogService
+public class LogService : ILogService
 {
     protected IJSRuntime? JsRuntime { get; set; }
     

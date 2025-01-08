@@ -1,19 +1,19 @@
 using ATL.Core.Config;
 using ATL.Core.Libraries;
+using ATL.GUI.Services.Development;
 
-namespace ATL.GUI.Services;
+namespace ATL.GUI.Services.App;
 
 public class AppConfigService
 {
     public static string AppConfigFileName = "atl_config";
     
     protected AppConfig AppConfig { get; set; } = new();
-    public event Action AppConfigReloaded = () => { };
-    protected LogService LogService { get; set; }
+    protected event Action AppConfigReloaded = () => { };
+    protected ILogService? LogService { get; set; }
     
-    public AppConfigService(LogService? logService = null)
+    public AppConfigService(ILogService? logService = null)
     {
-        logService ??= new LogService();
         LogService = logService;
     }
 
@@ -22,7 +22,7 @@ public class AppConfigService
         var optionConfig = ConfigLibrary.LoadAppConfig();
         if (!optionConfig.IsSome(out var appConfig))
         {
-            LogService.Error("Failed to load");
+            LogService?.Error("Failed to load");
             return AppConfig;
         }
         
@@ -33,7 +33,7 @@ public class AppConfigService
 
         if (fireEvent)
         {
-            LogService.Debug("Calling reload event");
+            LogService?.Debug("Calling reload event");
             AppConfigReloaded.Invoke();
         }
         
@@ -78,13 +78,13 @@ public class AppConfigService
 
     public void RegisterConfigReload(Action action)
     {
-        LogService.Debug("Adding to reload event");
+        LogService?.Debug("Adding to reload event");
         AppConfigReloaded += action;
     }
 
     public void UnregisterConfigReload(Action action)
     {
-        LogService.Debug("Removing from reload event");
+        LogService?.Debug("Removing from reload event");
         AppConfigReloaded -= action;
     }
 }
