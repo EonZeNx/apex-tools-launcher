@@ -13,7 +13,7 @@ public class RtpcV01ObjectId
 
     public override string ToString()
     {
-        return RtpcV01ObjectIdLibrary.ToString(this);
+        return $"{this.ToUInt64():X016}";
     }
 }
 
@@ -42,11 +42,6 @@ public static class RtpcV01ObjectIdLibrary
         return result;
     }
     
-    public static string ToString(this RtpcV01ObjectId oid)
-    {
-        return $"{oid.ToUInt64():X016}";
-    }
-
     public static RtpcV01ObjectId FromString(string s)
     {
         var value = ulong.Parse(s, NumberStyles.HexNumber);

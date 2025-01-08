@@ -13,7 +13,7 @@ namespace ApexFormat.RTPC.V01.Class;
 /// <br/>Offset - <see cref="uint"/>
 /// <br/>PropertyCount - <see cref="ushort"/>
 /// <br/>ContainerCount - <see cref="ushort"/>
-/// <br/>Properties - <see cref="RtpcV01Variant"/>[]
+/// <br/>Properties - <see cref="RtpcV01Property"/>[]
 /// <br/>Containers - <see cref="RtpcV01Container"/>[]
 /// </summary>
 public class RtpcV01Container
@@ -22,12 +22,12 @@ public class RtpcV01Container
     public uint Offset = 0;
     public ushort PropertyCount = 0;
     public ushort ContainerCount = 0;
-    public RtpcV01Variant[] Properties = [];
+    public RtpcV01Property[] Properties = [];
     public RtpcV01Container[] Containers = [];
 
     public override string ToString()
     {
-        return $"{PropertyCount} properties, {ContainerCount} containers";
+        return $"{NameHash:X08} ({PropertyCount}p / {ContainerCount}c)";
     }
 }
 
@@ -53,7 +53,7 @@ public static class RtpcV01ContainerLibrary
             ContainerCount = stream.Read<ushort>(),
         };
         
-        result.Properties = new RtpcV01Variant[result.PropertyCount];
+        result.Properties = new RtpcV01Property[result.PropertyCount];
         result.Containers = new RtpcV01Container[result.ContainerCount];
         
         var originalPosition = stream.Position;
@@ -61,7 +61,7 @@ public static class RtpcV01ContainerLibrary
         
         for (var i = 0; i < result.PropertyCount; i++)
         {
-            var optionVariant = stream.ReadRtpcV01Variant();
+            var optionVariant = stream.ReadRtpcV01Property();
             if (optionVariant.IsSome(out var variant))
                 result.Properties[i] = variant;
         }
