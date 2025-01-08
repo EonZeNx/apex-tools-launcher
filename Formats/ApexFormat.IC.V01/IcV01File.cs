@@ -3,13 +3,13 @@ using System.Xml.Linq;
 using ApexFormat.IC.V01.Class;
 using ApexToolsLauncher.Core.Class;
 using ApexToolsLauncher.Core.Libraries;
+using RustyOptions;
 
 namespace ApexFormat.IC.V01;
 
-public class IcV01File : ICanExtractPath, IExtractPathToPath, IExtractStreamToStream, ICanRepackPath, IRepackPathToPath
+public class IcV01File : ICanExtractPath, IExtractPathToPath, IExtractStreamToStream, ICanRepackPath, IRepackPathToPath, IRepackStreamToStream
 {
     protected string ExtractExtension { get; set; } = "bin";
-    protected string RepackExtension { get; set; } = "xml";
     
     public bool CanExtractPath(string path)
     {
@@ -20,7 +20,7 @@ public class IcV01File : ICanExtractPath, IExtractPathToPath, IExtractStreamToSt
         return !fileStream.Read<IcV01Instance>().IsNone;
     }
 
-    public int ExtractStreamToStream(Stream inStream, Stream outStream)
+    public Result<int, Exception> ExtractStreamToStream(Stream inStream, Stream outStream)
     {
         List<IcV01Instance> instances = [];
         while (inStream.Position < inStream.Length)
@@ -34,7 +34,7 @@ public class IcV01File : ICanExtractPath, IExtractPathToPath, IExtractStreamToSt
             instances.Add(instance);
         }
         
-        var outer = new XElement("instances");
+        var outer = new XElement(IcV01FileLibrary.XName);
         outer.SetAttributeValue("extension", ExtractExtension);
 
         foreach (var instance in instances)
@@ -43,17 +43,17 @@ public class IcV01File : ICanExtractPath, IExtractPathToPath, IExtractStreamToSt
         }
         
         var xd = new XDocument(XDocumentLibrary.ProjectComment(), outer);
-        using var xw = XmlWriter.Create(inStream, new XmlWriterSettings
+        using var xw = XmlWriter.Create(outStream, new XmlWriterSettings
         {
             Indent = true,
             IndentChars = "  "
         });
         xd.Save(xw);
 
-        return 0;
+        return Result.OkExn(0);
     }
 
-    public int ExtractPathToPath(string inPath, string outPath)
+    public Result<int, Exception> ExtractPathToPath(string inPath, string outPath)
     {
         using var inStream = new FileStream(inPath, FileMode.Open);
         
@@ -73,7 +73,7 @@ public class IcV01File : ICanExtractPath, IExtractPathToPath, IExtractStreamToSt
             return false;
         
         var xe = XElement.Load(path);
-        var xInstances = xe.Descendants("instance").ToArray();
+        var xInstances = xe.Descendants(IcV01InstanceLibrary.XName).ToArray();
         
         if (xInstances.Length == 0) return false;
 
@@ -81,8 +81,18 @@ public class IcV01File : ICanExtractPath, IExtractPathToPath, IExtractStreamToSt
         return xInstances.All(xi => instance.CanRepack(xi).IsOk(out _));
     }
 
+    public int RepackStreamToStream(Stream inStream, Stream outStream)
+    {
+        throw new NotImplementedException();
+    }
+
     public int RepackPathToPath(string inPath, string outPath)
     {
         throw new NotImplementedException();
     }
+}
+
+public static class IcV01FileLibrary
+{
+    public const string XName = "instances";
 }
