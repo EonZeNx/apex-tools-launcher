@@ -28,19 +28,20 @@ public partial class ManagePage : MudComponentBase, IDisposable
     protected string ModId { get; set; } = ConstantsLibrary.InvalidString;
 
 
-    protected void SelectedGameChanged(string gameId)
+    protected void OnGameChanged(string gameId)
     {
         GameId = gameId;
     }
     
-    protected void SelectedProfileChanged(string profileId)
+    protected void OnProfileChanged(string profileId)
     {
         ProfileId = profileId;
     }
     
-    protected void SelectedModChanged(string modId)
+    protected void OnModChanged(string modId)
     {
         ModId = modId;
+        StateHasChanged();
     }
     
     protected async void OnConfigReloaded()
@@ -53,8 +54,7 @@ public partial class ManagePage : MudComponentBase, IDisposable
         GameId = AppStateService.GetLastGameId();
         if (!ModConfigService.Contains(GameId, ModId))
         {
-            var allFromGame = await ModConfigService.GetAllFromGameAsync(GameId);
-            ModId = allFromGame.Count != 0 ? allFromGame.Keys.First() : ConstantsLibrary.InvalidString;
+            ModId = ConstantsLibrary.InvalidString;
         }
         
         await InvokeAsync(StateHasChanged);

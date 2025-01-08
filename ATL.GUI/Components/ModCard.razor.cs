@@ -4,10 +4,11 @@ using ATL.GUI.Services;
 using ATL.GUI.Services.Game;
 using ATL.GUI.Services.Mod;
 using Microsoft.AspNetCore.Components;
+using MudBlazor;
 
 namespace ATL.GUI.Components;
 
-public partial class ModCard : ComponentBase, IDisposable
+public partial class ModCard : MudComponentBase, IDisposable
 {
     [Inject]
     protected IGameConfigService? GameConfigService { get; set; }

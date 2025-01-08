@@ -1,6 +1,7 @@
-﻿@using ATL.Core.Libraries
+﻿@inherits MudComponentBase
+@using ATL.Core.Libraries
 
-<MudCard>
+<MudCard Class="@Class" Style="@Style">
   <MudCardHeader Class="pb-0">
     <CardHeaderContent>
       <MudStack Row="@true" AlignItems="AlignItems.Center">
@@ -11,7 +12,7 @@
     </CardHeaderContent>
   </MudCardHeader>
   
-  <MudCardContent Style="overflow-y: auto">
+  <MudCardContent Style="overflow-y: scroll">
     <MudList
       T="string"
       SelectedValue="@ModId"
