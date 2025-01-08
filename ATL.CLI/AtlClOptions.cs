@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using CommandLine;
 
-namespace ATL.CLI.Console;
+namespace ATL.CLI;
 
 public class AtlClOptions : ICloneable
 {

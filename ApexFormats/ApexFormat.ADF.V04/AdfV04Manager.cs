@@ -73,7 +73,7 @@ public class AdfV04Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
         var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(inFilePath);
         var xmlFilePath = Path.Join(outDirectoryPath, $"{fileNameWithoutExtension}.xml");
         
-        var outBuffer = new FileStream(xmlFilePath, FileMode.Create);
+        using var outBuffer = new FileStream(xmlFilePath, FileMode.Create);
         var result = Decompress(inBuffer, outBuffer);
         
         return result;

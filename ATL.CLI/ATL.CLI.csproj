@@ -9,6 +9,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\ApexChains\ApexChain.AAFSARC\ApexChain.AAFSARC.csproj" />
       <ProjectReference Include="..\ApexFormats\ApexFormat.AAF.V01\ApexFormat.AAF.V01.csproj" />
       <ProjectReference Include="..\ApexFormats\ApexFormat.ADF.V04\ApexFormat.ADF.V04.csproj" />
       <ProjectReference Include="..\ApexFormats\ApexFormat.AVTX.V01\ApexFormat.AVTX.V01.csproj" />
@@ -17,6 +18,7 @@
       <ProjectReference Include="..\ApexFormats\ApexFormat.RTPC.V03\ApexFormat.RTPC.V03.csproj" />
       <ProjectReference Include="..\ApexFormats\ApexFormat.SARC.V02\ApexFormat.SARC.V02.csproj" />
       <ProjectReference Include="..\ApexFormats\ApexFormat.TAB.V02\ApexFormat.TAB.V02.csproj" />
+      <ProjectReference Include="..\ATL.Console\ATL.Console.csproj" />
       <ProjectReference Include="..\ATL.Core\ATL.Core.csproj" />
       <ProjectReference Include="..\ATL.Script\ATL.Script.csproj" />
     </ItemGroup>

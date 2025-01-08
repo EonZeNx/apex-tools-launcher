@@ -11,4 +11,5 @@
 	<copy from="$unpack_vehicle_path\$vehicle_name.ee.toc" to="$mod_directory\$mod_vehicle_name.ee.toc"/>
 	<copy from="$unpack_vehicle_path\$vehicle_name.epe" to="$mod_directory\$mod_vehicle_name.epe"/>
 	<copy from="$unpack_vehicle_path\$vehicle_name.stringlookup" to="$mod_directory\$mod_vehicle_name.stringlookup"/>
+	<process target="$mod_directory\$mod_vehicle_name.ee" out_directory="$mod_directory\$mod_vehicle_name"/>
 </atl.script>
