@@ -123,7 +123,7 @@ public class SarcV02Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
         var xmlFilePath = Path.Join(outDirectory, "@tocFiles.xml");
         using var xmlFile = new FileStream(xmlFilePath, FileMode.Create);
         
-        var xd = new XDocument(XDocumentLibrary.AtlGeneratedComment(), outer);
+        var xd = new XDocument(XDocumentLibrary.ProjectComment(), outer);
         using var xw = XmlWriter.Create(xmlFile, new XmlWriterSettings
         {
             Indent = true,
@@ -155,7 +155,7 @@ public class SarcV02Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
         var xmlFilePath = Path.Join(outDirectory, "@files.xml");
         using var xmlFile = new FileStream(xmlFilePath, FileMode.Create);
         
-        var xd = new XDocument(XDocumentLibrary.AtlGeneratedComment(), outer);
+        var xd = new XDocument(XDocumentLibrary.ProjectComment(), outer);
         using var xw = XmlWriter.Create(xmlFile, new XmlWriterSettings
         {
             Indent = true,

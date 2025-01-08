@@ -51,7 +51,7 @@ public class IcV01Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
             outer.Add(instance.ToXElement());
         }
         
-        var xd = new XDocument(XDocumentLibrary.AtlGeneratedComment(), outer);
+        var xd = new XDocument(XDocumentLibrary.ProjectComment(), outer);
         using var xw = XmlWriter.Create(outBuffer, new XmlWriterSettings
         {
             Indent = true,
