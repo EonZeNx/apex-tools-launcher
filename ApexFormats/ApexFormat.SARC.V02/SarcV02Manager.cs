@@ -202,7 +202,7 @@ public class SarcV02Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
             }
             
             var filePath = Path.Join(directoryPath, Path.GetFileName(archiveEntry.FilePath));
-            var outBuffer = new FileStream(filePath, FileMode.Create);
+            using var outBuffer = new FileStream(filePath, FileMode.Create);
             var archiveEntryResult = ReadFileEntry(inBuffer, archiveEntry, outBuffer);
 
             if (archiveEntryResult < 0)
