@@ -40,7 +40,7 @@
     <MudDivider Vertical="true" FlexItem="true" />
   </MudItem>
 
-  <MudItem xs="8" Class="pa-4 d-flex flex-column justify-space-between">
+  <MudItem xs="8" Class="pa-4 d-flex flex-column">
     <MudStack Row="@true" AlignItems="AlignItems.Center">
       <MudTextField
         Label="Title"
@@ -63,7 +63,29 @@
       >
         Confirm
       </MudButton>
-      
     </MudStack>
+    
+    <MudGrid Spacing="2" Class="mt-1">
+      <MudItem xs="4">
+        <MudText Typo="Typo.body1">Game</MudText>
+      </MudItem>
+      <MudItem xs="8">
+        <MudText Typo="Typo.body2">@(GameConfig.Title) (@(GameId))</MudText>
+      </MudItem>
+
+      <MudItem xs="4">
+        <MudText Typo="Typo.body1">Mods</MudText>
+      </MudItem>
+      <MudItem xs="8">
+        <MudText Typo="Typo.body2">@(ProfileConfig.ModConfigs.Count) / @(ModCount) enabled</MudText>
+      </MudItem>
+
+      <MudItem xs="4">
+        <MudText Typo="Typo.body1">Launch arguments</MudText>
+      </MudItem>
+      <MudItem xs="8">
+        <MudText Typo="Typo.body2">@(ProfileConfig.LaunchArguments.Count) / @(GameConfig.LaunchOptions.Count) enabled</MudText>
+      </MudItem>
+    </MudGrid>
   </MudItem>
 </MudGrid>

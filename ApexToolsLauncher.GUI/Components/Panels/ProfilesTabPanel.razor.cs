@@ -1,6 +1,7 @@
 using ApexToolsLauncher.Core.Config.GUI;
 using ApexToolsLauncher.Core.Libraries;
 using ApexToolsLauncher.GUI.Services.App;
+using ApexToolsLauncher.GUI.Services.Game;
 using ApexToolsLauncher.GUI.Services.Mod;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
@@ -13,7 +14,13 @@ public partial class ProfilesTabPanel : MudComponentBase, IDisposable
     protected IAppStateService? AppStateService { get; set; }
     
     [Inject]
+    protected IGameConfigService? GameConfigService { get; set; }
+    
+    [Inject]
     protected IProfileConfigService? ProfileConfigService { get; set; }
+    
+    [Inject]
+    protected IModConfigService? ModConfigService { get; set; }
     
     [Parameter]
     public string GameId { get; set; } = ConstantsLibrary.InvalidString;
@@ -21,6 +28,7 @@ public partial class ProfilesTabPanel : MudComponentBase, IDisposable
     [Parameter]
     public string ProfileId { get; set; } = ConstantsLibrary.InvalidString;
     
+    protected GameConfig GameConfig { get; set; } = new();
     protected ProfileConfig ProfileConfig { get; set; } = new();
     protected string EditedTitle { get; set; } = string.Empty;
     protected bool InvalidTitle => 
@@ -29,6 +37,8 @@ public partial class ProfilesTabPanel : MudComponentBase, IDisposable
             ProfileConfigService?.ToId(EditedTitle) ?? ConstantsLibrary.InvalidString
         ) ?? true;
     protected Dictionary<string, ProfileConfig> ProfileConfigs { get; set; } = [];
+
+    protected int ModCount { get; set; } = 0;
 
     protected void ListValueChanged(string? value)
     {
@@ -76,7 +86,11 @@ public partial class ProfilesTabPanel : MudComponentBase, IDisposable
     protected void ReloadData()
     {
         if (AppStateService is null) return;
+        if (GameConfigService is null) return;
+        if (ModConfigService is null) return;
         if (ProfileConfigService is null) return;
+        
+        GameConfig = GameConfigService.Get(GameId);
         
         ProfileConfigs = ProfileConfigService.GetAllFromGame(GameId);
         if (!ProfileConfigs.ContainsKey(ProfileId) && !ConstantsLibrary.IsStringInvalid(ProfileId))
@@ -86,6 +100,8 @@ public partial class ProfilesTabPanel : MudComponentBase, IDisposable
         
         ProfileConfig = ProfileConfigService.Get(GameId, ProfileId);
         EditedTitle = ProfileConfig.Title;
+
+        ModCount = ModConfigService.GetAllFromGame(GameId).Count;
     }
     
     protected override async Task OnParametersSetAsync()
