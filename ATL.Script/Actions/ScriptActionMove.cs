@@ -1,6 +1,7 @@
 ﻿using System.Xml.Linq;
 using ATL.Core.Extensions;
 using ATL.Core.Libraries;
+using ATL.Script.Libraries;
 using ATL.Script.Variables;
 using RustyOptions;
 
@@ -23,9 +24,9 @@ public class ScriptActionMove : IScriptAction
         var targetFrom = fromAttr.Value;
         var targetTo = toAttr.Value;
 
-        if (targetFrom.StartsWith(ScriptVariable.NodeSymbol))
+        if (targetFrom.StartsWith(ScriptConstantsLibrary.VariableSymbol))
         {
-            var fromVarName = targetFrom.Replace(ScriptVariable.NodeSymbol, "");
+            var fromVarName = targetFrom.Replace(ScriptConstantsLibrary.VariableSymbol, "");
             
             var optionFromVar = parentVars.GetValueOrNone(fromVarName);
             if (!optionFromVar.IsSome(out var targetFromVar))
@@ -42,9 +43,9 @@ public class ScriptActionMove : IScriptAction
             targetFrom = fromVar;
         }
         
-        if (targetTo.StartsWith(ScriptVariable.NodeSymbol))
+        if (targetTo.StartsWith(ScriptConstantsLibrary.VariableSymbol))
         {
-            var toVarName = targetTo.Replace(ScriptVariable.NodeSymbol, "");
+            var toVarName = targetTo.Replace(ScriptConstantsLibrary.VariableSymbol, "");
             
             var optionToVar = parentVars.GetValueOrNone(toVarName);
             if (!optionToVar.IsSome(out var targetToVar))

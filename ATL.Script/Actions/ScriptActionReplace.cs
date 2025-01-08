@@ -1,6 +1,7 @@
 ﻿using System.Xml.Linq;
 using ATL.Core.Extensions;
 using ATL.Core.Libraries;
+using ATL.Script.Libraries;
 using ATL.Script.Variables;
 using RustyOptions;
 
@@ -17,9 +18,9 @@ public class ScriptActionReplace : IScriptAction
             return;
         
         var inFilePath = fileAttr.Value;
-        if (inFilePath.StartsWith(ScriptVariable.NodeSymbol))
+        if (inFilePath.StartsWith(ScriptConstantsLibrary.VariableSymbol))
         {
-            var inFilePathVarName = inFilePath.Replace(ScriptVariable.NodeSymbol, "");
+            var inFilePathVarName = inFilePath.Replace(ScriptConstantsLibrary.VariableSymbol, "");
             
             var optioninFilePathVar = parentVars.GetValueOrNone(inFilePathVarName);
             if (!optioninFilePathVar.IsSome(out var inFilePathVar))

@@ -6,5 +6,7 @@
 - [X] Delete
 
 ## Update 01
-- [ ] Open
-- [ ] Replace
+- [X] Open
+- [X] Replace
+- [ ] String variable manipulation
+- [ ] Process

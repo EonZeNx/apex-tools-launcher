@@ -1,4 +1,5 @@
 ﻿using System.Xml.Linq;
+using ATL.Script.Libraries;
 using ATL.Script.Variables;
 using RustyOptions;
 
@@ -19,9 +20,9 @@ public class ScriptBlockFile : ScriptBlock, IScriptNode
             return;
 
         var targetPath = targetAttr.Value;
-        if (targetPath.StartsWith(ScriptVariable.NodeSymbol))
+        if (targetPath.StartsWith(ScriptConstantsLibrary.VariableSymbol))
         {
-            var targetVarName = targetPath.Replace(ScriptVariable.NodeSymbol, "");
+            var targetVarName = targetPath.Replace(ScriptConstantsLibrary.VariableSymbol, "");
             
             var optionTargetVar = parentVars.GetValueOrNone(targetVarName);
             if (!optionTargetVar.IsSome(out var targetFromVar))

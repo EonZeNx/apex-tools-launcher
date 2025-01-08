@@ -7,7 +7,6 @@ namespace ATL.Script.Variables;
 public class ScriptVariable : IScriptNode
 {
     public static string NodeName { get; } = "var";
-    public static string NodeSymbol { get; } = "$";
     public static string[] NodeNames { get; } = [NodeName, ScriptConstantsLibrary.SettingXString];
     
     public string Name { get; set; } = "UNSET";
@@ -49,7 +48,7 @@ public class ScriptVariable : IScriptNode
 
 public static class ScriptVariableExtensions
 {
-    public static Option<ScriptVariable> GetScriptVariable(this XElement element)
+    public static Option<ScriptVariable> GetScriptVariable(this XElement element, Dictionary<string, ScriptVariable> parentVars)
     {
         var xeName = element.Name.ToString();
         if (!ScriptVariable.NodeNames.Contains(xeName))
@@ -58,12 +57,24 @@ public static class ScriptVariableExtensions
         var nameAttr = element.Attribute("name");
         if (nameAttr is null)
             return Option<ScriptVariable>.None;
+
+        var variableType = element.GetScriptVariableType();
+        
+        var dataAttr = element.Attribute("value");
+        if (dataAttr is null)
+            return Option<ScriptVariable>.None;
+        
+        var data = dataAttr.Value;
+        if (variableType is EScriptVariableType.String or EScriptVariableType.Path)
+        {
+            data = ScriptLibrary.InterpolateString(data, parentVars);
+        }
         
         var result = new ScriptVariable
         {
             Name = nameAttr.Value,
             VariableType = element.GetScriptVariableType(),
-            Data = element.Attribute("value")?.Value
+            Data = data
         };
 
         return Option.Some(result);
