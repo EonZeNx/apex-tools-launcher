@@ -1,5 +1,6 @@
 ﻿using System.Xml.Linq;
 using ApexFormat.IC.V01.Enum;
+using ApexToolsLauncher.Core.Extensions;
 using ApexToolsLauncher.Core.Libraries;
 using CommunityToolkit.HighPerformance;
 using RustyOptions;
@@ -28,6 +29,8 @@ public class IcV01Collection
 
 public static class IcV01CollectionLibrary
 {
+    public const string XName = "collection";
+    
     public const int SizeOf = sizeof(EIcV01CollectionType) // Type
                               + sizeof(ushort); // Count
     
@@ -79,7 +82,7 @@ public static class IcV01CollectionLibrary
 
     public static XElement ToXElement(this IcV01Collection collection)
     {
-        var xe = new XElement("collection");
+        var xe = new XElement(XName);
         xe.SetAttributeValue("type", collection.Type.ToXmlString());
 
         if (collection.Containers.Length != 0)
@@ -117,5 +120,43 @@ public static class IcV01CollectionLibrary
         Array.Sort(xes, XDocumentLibrary.SortNameThenId);
 
         return xes;
+    }
+
+    public static Result<bool, Exception> PropertiesFromXElement(this IcV01Collection collection, XElement xe)
+    {
+        collection.Type = EIcV01CollectionType.Property;
+        collection.Properties = (from pxe in xe.Elements(IcV01PropertyLibrary.XName)
+            let property = new IcV01Property()
+            let result = property.FromXElement(pxe)
+            where result.IsOk(out _)
+                select property
+        ).ToArray();
+        collection.Count = (byte) collection.Properties.Length;
+        
+        return Result.OkExn(true);
+    }
+
+    public static Result<bool, Exception> ContainersFromXElement(this IcV01Collection collection, XElement xe)
+    {
+        collection.Type = EIcV01CollectionType.Container;
+        collection.Containers = (from cxe in xe.Elements(IcV01ContainerLibrary.XName)
+            let container = new IcV01Container()
+            let result = container.FromXElement(cxe)
+            where result.IsOk(out _)
+                select container
+        ).ToArray();
+        collection.Count = (byte) collection.Containers.Length;
+        
+        return Result.OkExn(true);
+    }
+    
+    public static Result<bool, Exception> FromXElement(this IcV01Collection collection, XElement xe)
+    {
+        return collection.Type switch
+        {
+            EIcV01CollectionType.Unk0 or EIcV01CollectionType.Container => collection.ContainersFromXElement(xe),
+            EIcV01CollectionType.Property => collection.PropertiesFromXElement(xe),
+            _ => Result.Err<bool>(new ArgumentOutOfRangeException())
+        };
     }
 }

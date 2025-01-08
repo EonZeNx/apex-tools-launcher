@@ -1,6 +1,9 @@
-﻿using System.Xml.Linq;
+﻿using System.Globalization;
+using System.Xml.Linq;
 using ApexFormat.IC.V01.Enum;
+using ApexToolsLauncher.Core.Extensions;
 using ApexToolsLauncher.Core.Hash;
+using ApexToolsLauncher.Core.Libraries;
 using CommunityToolkit.HighPerformance;
 using RustyOptions;
 
@@ -20,6 +23,8 @@ public class IcV01Container
 /// <include file='..\docs.ICv01.xml' path='doc/members[@name="IcV01ContainerLibrary"]/IcV01ContainerLibrary/*'/>
 public static class IcV01ContainerLibrary
 {
+    public const string XName = "object";
+    
     /// <include file='..\docs.ICv01.xml' path='doc/members[@name="IcV01ContainerLibrary"]/SizeOf/*'/>
     public const int SizeOf = sizeof(uint) // NameHash
                               + sizeof(byte); // Count
@@ -53,7 +58,7 @@ public static class IcV01ContainerLibrary
     /// <include file='..\docs.ICv01.xml' path='doc/members[@name="IcV01ContainerLibrary"]/ToXElement/*'/>
     public static XElement ToXElement(this IcV01Container container)
     {
-        var xe = new XElement("container");
+        var xe = new XElement(XName);
         
         var optionHashResult = HashDatabases.Lookup(container.NameHash);
         if (optionHashResult.IsSome(out var hashResult))
@@ -75,5 +80,50 @@ public static class IcV01ContainerLibrary
         }
 
         return xe;
+    }
+
+    public static Result<bool, Exception> FromXElement(this IcV01Container container, XElement xe)
+    {
+        if (string.Equals(xe.Name.LocalName, XName))
+        {
+            return Result.Err<bool>(new System.Xml.XmlException($"Node {xe.Name.LocalName} does not equal {XName}"));
+        }
+        
+        xe.GetAttributeOrNone("name").Match(
+            s => container.NameHash = s.Jenkins(),
+            () => xe.GetAttributeOrNone("id")
+                .MatchSome(s => container.NameHash = uint.Parse(s, NumberStyles.HexNumber)));
+
+        var collections = new List<IcV01Collection>(2);
+        if (xe.Elements(IcV01PropertyLibrary.XName).Any())
+        {
+            var collection = new IcV01Collection
+            {
+                Type = EIcV01CollectionType.Property
+            };
+            var result = collection.FromXElement(xe);
+            if (result.IsOk(out _))
+            {
+                collections.Add(collection);
+            }
+        }
+        
+        if (xe.Elements(XName).Any())
+        {
+            var collection = new IcV01Collection
+            {
+                Type = EIcV01CollectionType.Container
+            };
+            var result = collection.FromXElement(xe);
+            if (result.IsOk(out _))
+            {
+                collections.Add(collection);
+            }
+        }
+
+        container.Collections = collections.ToArray();
+        container.Count = (byte) container.Collections.Length;
+        
+        return Result.OkExn(true);
     }
 }

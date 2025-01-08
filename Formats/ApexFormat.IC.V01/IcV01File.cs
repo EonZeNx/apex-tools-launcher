@@ -17,7 +17,7 @@ public class IcV01File : ICanExtractPath, IExtractPathToPath, IExtractStreamToSt
             return false;
         
         using var fileStream = new FileStream(path, FileMode.Open);
-        return !fileStream.ReadIcV01Instance().IsNone;
+        return !fileStream.Read<IcV01Instance>().IsNone;
     }
 
     public int ExtractStreamToStream(Stream inStream, Stream outStream)
@@ -25,7 +25,7 @@ public class IcV01File : ICanExtractPath, IExtractPathToPath, IExtractStreamToSt
         List<IcV01Instance> instances = [];
         while (inStream.Position < inStream.Length)
         {
-            var optionInstance = inStream.ReadIcV01Instance();
+            var optionInstance = inStream.Read<IcV01Instance>();
             if (!optionInstance.IsSome(out var instance))
             {
                 break;
@@ -69,7 +69,16 @@ public class IcV01File : ICanExtractPath, IExtractPathToPath, IExtractStreamToSt
 
     public bool CanRepackPath(string path)
     {
-        throw new NotImplementedException();
+        if (!File.Exists(path))
+            return false;
+        
+        var xe = XElement.Load(path);
+        var xInstances = xe.Descendants("instance").ToArray();
+        
+        if (xInstances.Length == 0) return false;
+
+        var instance = new IcV01Instance();
+        return xInstances.All(xi => instance.CanRepack(xi).IsOk(out _));
     }
 
     public int RepackPathToPath(string inPath, string outPath)
