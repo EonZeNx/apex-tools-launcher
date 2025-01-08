@@ -9,6 +9,9 @@
 		<target>$unpack_directory\$ed_en\jc_vehicles\03_sea</target>
 	</query>
 	<for name="i" each="$vehicle_directories">
-		<print color="cyan" value="$i_vehicle_directories"/>
+		<path name="vehicle_name" target="$i_vehicle_directories">
+			<split take="-1"/>
+		</path>
+		<print color="cyan" value="$vehicle_name"/>
 	</for>
 </atl.script>
