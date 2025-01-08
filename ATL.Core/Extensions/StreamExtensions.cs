@@ -15,12 +15,11 @@ public static class StreamExtensions
         stream.Seek(ByteExtensions.Align(stream.Position, align), SeekOrigin.Begin);
     }
     
-    public static string ReadStringZ(this Stream stream)
+    public static string ReadStringZ(this Stream stream, int maxLength = 2048)
     {
         var charList = new List<byte>();
         
-        // Hardcoded sanity check
-        while (charList.Count < 2048)
+        while (charList.Count < maxLength)
         {
             if (stream.Position == stream.Length)
                 break;

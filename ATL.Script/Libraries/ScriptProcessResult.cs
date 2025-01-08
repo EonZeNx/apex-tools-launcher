@@ -1,11 +1,11 @@
 ﻿namespace ATL.Script.Libraries;
 
 public class ScriptProcessResult(
-    EScriptProcessResultType type = EScriptProcessResultType.Complete,
+    EScriptProcessResultType resultType = EScriptProcessResultType.Complete,
     string message = "Ok"
 ) : ICloneable
 {
-    public EScriptProcessResultType Type = type;
+    public EScriptProcessResultType ResultType = resultType;
     public string Message = message;
     
 
@@ -13,7 +13,7 @@ public class ScriptProcessResult(
     {
         var result = new ScriptProcessResult
         {
-            Type = Type,
+            ResultType = ResultType,
             Message = Message
         };
 
@@ -22,7 +22,7 @@ public class ScriptProcessResult(
     
     public void Copy(ScriptProcessResult other)
     {
-        other.Type = Type;
+        other.ResultType = ResultType;
         other.Message = Message;
     }
     
