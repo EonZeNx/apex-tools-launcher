@@ -19,7 +19,7 @@ public class RtpcV03Container : RtpcV03ContainerHeader
     public uint AssignedPropertyCount = 0;
 }
 
-public static class RtpcV03ContainerExtensions
+public static class RtpcV03ContainerLibrary
 {
     public static RtpcV03Container HeaderToContainer(this RtpcV03ContainerHeader header)
     {
@@ -109,7 +109,7 @@ public static class RtpcV03ContainerExtensions
         return 0;
     }
     
-    public static XElement WriteXElement(this RtpcV03Container container)
+    public static XElement ToXElement(this RtpcV03Container container)
     {
         var xe = new XElement("object");
 
@@ -137,7 +137,7 @@ public static class RtpcV03ContainerExtensions
         
         foreach (var childContainer in container.Containers)
         {
-            xe.Add(childContainer.WriteXElement());
+            xe.Add(childContainer.ToXElement());
         }
         
         return xe;
