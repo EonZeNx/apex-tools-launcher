@@ -142,4 +142,63 @@ public static class RtpcV03ContainerExtensions
         
         return xe;
     }
+    
+    public static void FilterBy(this RtpcV03Container container, IRtpcV03Filter[] filters)
+    {
+        foreach (var childContainer in container.Containers)
+        {
+            // filter children
+            FilterBy(childContainer, filters);
+        }
+
+        var primaryMatch = filters.FirstOrNone(f => f.MatchContainer(container));
+        if (primaryMatch.IsSome(out var primaryFilter))
+        {
+            // filter properties
+            var filteredProperties = container.Properties
+                .Where(p => primaryFilter.MatchProperty(p, true))
+                .ToArray();
+
+            container.Properties = filteredProperties;
+        }
+        else
+        {
+            container.Properties = [];
+        }
+        
+        container.PropertyCount = (ushort) container.Properties.Length;
+        
+        // filter child containers
+        var filteredContainers = container.Containers
+            .Where(c => c.PropertyCount != 0 || c.ContainerCount != 0)
+            .ToArray();
+        
+        container.Containers = filteredContainers;
+        container.ContainerCount = (ushort) filteredContainers.Length;
+        
+        
+    }
+
+    public static int CountContainers(this RtpcV03Container container)
+    {
+        return container.ContainerCount + container.Containers.Sum(c => c.CountContainers());
+    }
+
+    public static string PropertyString(this RtpcV03Container container, string propertyString, int depth = 0)
+    {
+        const char indentChar = '\t';
+        propertyString += $"\n{new string(indentChar, depth)}>>> Container d{depth} <<<";
+        
+        foreach (var property in container.Properties)
+        {
+            propertyString += $"\n{new string(indentChar, depth)}- {property}";
+        }
+
+        foreach (var childContainer in container.Containers)
+        {
+            propertyString += childContainer.PropertyString(propertyString, depth + 1);
+        }
+
+        return propertyString;
+    }
 }
