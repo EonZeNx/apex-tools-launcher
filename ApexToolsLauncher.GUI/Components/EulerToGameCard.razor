@@ -3,7 +3,7 @@
 <MudCard Class="@Class" Style="@Style">
   <MudCardHeader Class="pb-0">
     <CardHeaderContent>
-      <MudText Typo="Typo.h5">Converter</MudText>
+      <MudText Typo="Typo.h5">Euler to Game</MudText>
     </CardHeaderContent>
       
     <CardHeaderActions>
@@ -47,7 +47,7 @@
       <MudItem xs="12">
         <MudTextField
           T="string"
-          Label="Output"
+          Label="RTPC"
           Value="@Calculate()"
           Margin="Margin.Dense"
           Variant="Variant.Outlined"
@@ -58,7 +58,7 @@
         <MudStack Spacing="2">
           <MudTextField
             T="string"
-            Label="Out.A.X"
+            Label="ADF X1"
             Value="@(Format(Output.A.X))"
             Margin="Margin.Dense"
             Variant="Variant.Outlined"
@@ -66,23 +66,23 @@
 
           <MudTextField
             T="string"
-            Label="Out.A.Y"
-            Value="@(Format(Output.A.Y))"
+            Label="ADF Y1"
+            Value="@(Format(Output.B.X))"
             Margin="Margin.Dense"
             Variant="Variant.Outlined"
           />
 
           <MudTextField
             T="string"
-            Label="Out.A.Z"
-            Value="@(Format(Output.A.Z))"
+            Label="ADF Z1"
+            Value="@(Format(Output.C.X))"
             Margin="Margin.Dense"
             Variant="Variant.Outlined"
           />
 
           <MudTextField
             T="string"
-            Label="Out.A.W"
+            Label="ADF W1"
             Value="@("0")"
             Margin="Margin.Dense"
             Variant="Variant.Outlined"
@@ -94,15 +94,15 @@
         <MudStack Spacing="2">
           <MudTextField
             T="string"
-            Label="Out.B.X"
-            Value="@(Format(Output.B.X))"
+            Label="ADF X2"
+            Value="@(Format(Output.A.Y))"
             Margin="Margin.Dense"
             Variant="Variant.Outlined"
           />
 
           <MudTextField
             T="string"
-            Label="Out.B.Y"
+            Label="ADF Y2"
             Value="@(Format(Output.B.Y))"
             Margin="Margin.Dense"
             Variant="Variant.Outlined"
@@ -110,15 +110,15 @@
 
           <MudTextField
             T="string"
-            Label="Out.B.Z"
-            Value="@(Format(Output.B.Z))"
+            Label="ADF Z2"
+            Value="@(Format(Output.C.Y))"
             Margin="Margin.Dense"
             Variant="Variant.Outlined"
           />
 
           <MudTextField
             T="string"
-            Label="Out.B.W"
+            Label="ADF W2"
             Value="@("0")"
             Margin="Margin.Dense"
             Variant="Variant.Outlined"
@@ -130,23 +130,23 @@
         <MudStack Spacing="2">
           <MudTextField
             T="string"
-            Label="Out.C.X"
-            Value="@(Format(Output.C.X))"
+            Label="ADF X3"
+            Value="@(Format(Output.A.Z))"
             Margin="Margin.Dense"
             Variant="Variant.Outlined"
           />
 
           <MudTextField
             T="string"
-            Label="Out.C.Y"
-            Value="@(Format(Output.C.Y))"
+            Label="ADF Y3"
+            Value="@(Format(Output.B.Z))"
             Margin="Margin.Dense"
             Variant="Variant.Outlined"
           />
 
           <MudTextField
             T="string"
-            Label="Out.C.Z"
+            Label="ADF Z3"
             Value="@(Format(Output.C.Z))"
             Margin="Margin.Dense"
             Variant="Variant.Outlined"
@@ -154,7 +154,7 @@
 
           <MudTextField
             T="string"
-            Label="Out.C.W"
+            Label="ADF W3"
             Value="@("0")"
             Margin="Margin.Dense"
             Variant="Variant.Outlined"

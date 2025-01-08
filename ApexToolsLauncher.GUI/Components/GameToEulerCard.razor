@@ -1,0 +1,135 @@
+@inherits MudComponentBase
+
+<MudCard Class="@Class" Style="@Style">
+  <MudCardHeader Class="pb-0">
+    <CardHeaderContent>
+      <MudText Typo="Typo.h5">Game to Euler</MudText>
+    </CardHeaderContent>
+      
+    <CardHeaderActions>
+    </CardHeaderActions>
+  </MudCardHeader>
+
+  <MudCardContent>
+    <MudGrid>
+      <MudItem xs="4">
+        <MudStack Spacing="2">
+          <MudTextField
+            T="float"
+            Label="X1"
+            @bind-Value="@(Input.A.X)"
+            Margin="Margin.Dense"
+            Variant="Variant.Outlined"
+          />
+
+          <MudTextField
+            T="float"
+            Label="Y1"
+            @bind-Value="@(Input.B.X)"
+            Margin="Margin.Dense"
+            Variant="Variant.Outlined"
+          />
+
+          <MudTextField
+            T="float"
+            Label="Z1"
+            @bind-Value="@(Input.C.X)"
+            Margin="Margin.Dense"
+            Variant="Variant.Outlined"
+          />
+        </MudStack>
+      </MudItem>
+
+      <MudItem xs="4">
+        <MudStack Spacing="2">
+          <MudTextField
+            T="float"
+            Label="X2"
+            @bind-Value="@(Input.A.Y)"
+            Margin="Margin.Dense"
+            Variant="Variant.Outlined"
+          />
+
+          <MudTextField
+            T="float"
+            Label="Y2"
+            @bind-Value="@(Input.B.Y)"
+            Margin="Margin.Dense"
+            Variant="Variant.Outlined"
+          />
+
+          <MudTextField
+            T="float"
+            Label="Z2"
+            @bind-Value="@(Input.C.Y)"
+            Margin="Margin.Dense"
+            Variant="Variant.Outlined"
+          />
+        </MudStack>
+      </MudItem>
+
+      <MudItem xs="4">
+        <MudStack Spacing="2">
+          <MudTextField
+            T="float"
+            Label="X3"
+            @bind-Value="@(Input.A.Z)"
+            Margin="Margin.Dense"
+            Variant="Variant.Outlined"
+          />
+
+          <MudTextField
+            T="float"
+            Label="Y3"
+            @bind-Value="@(Input.B.Z)"
+            Margin="Margin.Dense"
+            Variant="Variant.Outlined"
+          />
+
+          <MudTextField
+            T="float"
+            Label="Z3"
+            @bind-Value="@(Input.C.Z)"
+            Margin="Margin.Dense"
+            Variant="Variant.Outlined"
+          />
+        </MudStack>
+      </MudItem>
+
+
+      <MudItem xs="4">
+        <MudStack Spacing="2">
+          <MudTextField
+            T="float"
+            Label="Pitch"
+            @bind-Value="@Pitch"
+            Margin="Margin.Dense"
+            Variant="Variant.Outlined"
+          />
+
+          <MudTextField
+            T="float"
+            Label="Yaw"
+            @bind-Value="@Yaw"
+            Margin="Margin.Dense"
+            Variant="Variant.Outlined"
+          />
+
+          <MudTextField
+            T="float"
+            Label="Roll"
+            @bind-Value="@Roll"
+            Margin="Margin.Dense"
+            Variant="Variant.Outlined"
+          />
+        </MudStack>
+      </MudItem>
+      
+      <MudItem xs="8">
+        <MudPaper Outlined="@true" Class="rounded-xl">
+          <MudImage Src="images/pyr_example.png" Style="width: 100%"/>
+        </MudPaper>
+      </MudItem>
+    </MudGrid>
+  </MudCardContent>
+</MudCard>
