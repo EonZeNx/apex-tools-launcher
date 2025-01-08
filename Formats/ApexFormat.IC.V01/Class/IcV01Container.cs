@@ -1,6 +1,7 @@
 ﻿using System.Xml.Linq;
 using ApexFormat.IC.V01.Enum;
 using ApexToolsLauncher.Core.Class;
+using ApexToolsLauncher.Core.Hash;
 using CommunityToolkit.HighPerformance;
 using RustyOptions;
 
@@ -8,22 +9,20 @@ namespace ApexFormat.IC.V01.Class;
 
 /// <summary>
 /// Structure:
-/// <br/>Type - <see cref="EIcV01ContainerType"/>
-/// <br/>Count - <see cref="ushort"/>
-/// <br/>Collections OR Properties - <see cref="ushort"/>
+/// <br/>NameHash - <see cref="uint"/>
+/// <br/>Count - <see cref="byte"/>
+/// <br/>Collections - <see cref="IcV01Collection"/>[]
 /// </summary>
 public class IcV01Container : ISizeOf
 {
-    public EIcV01ContainerType Type = EIcV01ContainerType.Unk0;
-    public ushort Count = 0;
-
+    public uint NameHash = 0;
+    public byte Count = 0;
     public IcV01Collection[] Collections = [];
-    public IcV01Property[] Properties = [];
 
     public static uint SizeOf()
     {
-        return sizeof(EIcV01ContainerType) + // Type
-               sizeof(ushort); // Count
+        return sizeof(uint) + // NameHash
+               sizeof(byte); // Count
     }
 }
 
@@ -35,62 +34,44 @@ public static class IcV01ContainerExtensions
         {
             return Option<IcV01Container>.None;
         }
-        
+
         var result = new IcV01Container
         {
-            Type = stream.Read<EIcV01ContainerType>(),
-            Count = stream.Read<ushort>()
+            NameHash = stream.Read<uint>(),
+            Count = stream.Read<byte>(),
         };
-
-        switch (result.Type)
-        {
-            case EIcV01ContainerType.Unk0:
-            case EIcV01ContainerType.Collection:
-            {
-                result.Collections = new IcV01Collection[result.Count];
-                for (var i = 0; i < result.Count; i++)
-                {
-                    var optionCollection = stream.ReadIcV01Collection();
-                    if (optionCollection.IsSome(out var collection))
-                        result.Collections[i] = collection;
-                }
-                break;
-            }
-            case EIcV01ContainerType.Property:
-            {
-                result.Properties = new IcV01Property[result.Count];
-                for (var i = 0; i < result.Count; i++)
-                {
-                    var optionProperty = stream.ReadIcV01Property();
-                    if (optionProperty.IsSome(out var property))
-                        result.Properties[i] = property;
-                }
-                break;
-            }
-            default:
-                throw new ArgumentOutOfRangeException();
-        }
         
+        result.Collections = new IcV01Collection[result.Count];
+        for (var i = 0; i < result.Count; i++)
+        {
+            var optionContainer = stream.ReadIcV01Collection();
+            if (optionContainer.IsSome(out var container))
+                result.Collections[i] = container;
+        }
+
         return Option.Some(result);
     }
     
     public static XElement ToXElement(this IcV01Container container)
     {
         var xe = new XElement("container");
-        xe.SetAttributeValue("type", container.Type.ToString());
-
-        if (container.Collections.Length != 0)
+        
+        var optionHashResult = HashDatabases.Lookup(container.NameHash);
+        if (optionHashResult.IsSome(out var hashResult))
         {
-            foreach (var collection in container.Collections)
-            {
-                xe.Add(collection.ToXElement());
-            }
+            xe.SetAttributeValue("name", hashResult.Value);
         }
-        else if (container.Properties.Length != 0)
+        else
         {
-            foreach (var property in container.Properties)
+            xe.SetAttributeValue("id", $"{container.NameHash:X8}");
+        }
+
+        Array.Sort(container.Collections, (a, b) => a.Type == EIcV01CollectionType.Property ? -1 : 1);
+        foreach (var collection in container.Collections)
+        {
+            foreach (var cxe in collection.ToXElements())
             {
-                xe.Add(property.ToXElement());
+                xe.Add(cxe);
             }
         }
 

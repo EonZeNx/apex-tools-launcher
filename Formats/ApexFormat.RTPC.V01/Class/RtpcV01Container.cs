@@ -2,6 +2,7 @@
 using ApexFormat.RTPC.V01.Enum;
 using ApexToolsLauncher.Core.Extensions;
 using ApexToolsLauncher.Core.Hash;
+using ApexToolsLauncher.Core.Libraries;
 using Microsoft.VisualBasic;
 using RustyOptions;
 
@@ -69,47 +70,6 @@ public static class RtpcV01ContainerExtensions
         stream.Seek(originalPosition, SeekOrigin.Begin);
         return Option.Some(result);
     }
-
-    public static int SortNameThenId(XElement x, XElement y)
-    {
-        var a1 = (string?) x.Attribute("name");
-        var a2 = (string?) y.Attribute("name");
-        
-        if (!string.IsNullOrEmpty(a1) && !string.IsNullOrEmpty(a2))
-        { // a1 name, a2 name
-            return string.CompareOrdinal(a1, a2);
-        }
-        
-        if (!string.IsNullOrEmpty(a1) && string.IsNullOrEmpty(a2))
-        { // a1 hash?, a2 name
-            return -1;
-        }
-        
-        if (string.IsNullOrEmpty(a1) && !string.IsNullOrEmpty(a2))
-        { // a1 name, a2 hash?
-            return 1;
-        }
-        
-        a1 = (string?) x.Attribute("id");
-        a2 = (string?) y.Attribute("id");
-        
-        if (!string.IsNullOrEmpty(a1) && !string.IsNullOrEmpty(a2))
-        { // a1 hash, a2 hash
-            return string.CompareOrdinal(a1, a2);
-        }
-        
-        if (!string.IsNullOrEmpty(a1) && string.IsNullOrEmpty(a2))
-        { // a1 hash, a2 null
-            return -1;
-        }
-        
-        if (string.IsNullOrEmpty(a1) && !string.IsNullOrEmpty(a2))
-        { // a1 null, a2 hash
-            return 1;
-        }
-
-        return 0;
-    }
     
     public static XElement WriteXElement(this RtpcV01Container container)
     {
@@ -130,7 +90,7 @@ public static class RtpcV01ContainerExtensions
         {
             children[i] = container.Properties[i].WriteXElement();
         }
-        Array.Sort(children, SortNameThenId);
+        Array.Sort(children, XDocumentLibrary.SortNameThenId);
 
         foreach (var child in children)
         {

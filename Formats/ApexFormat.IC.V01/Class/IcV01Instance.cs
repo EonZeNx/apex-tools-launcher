@@ -10,15 +10,15 @@ namespace ApexFormat.IC.V01.Class;
 /// <summary>
 /// Structure:
 /// <br/>Count - <see cref="ushort"/>
-/// <br/>Containers - <see cref="IcV01Container"/>[]
+/// <br/>Containers - <see cref="IcV01Collection"/>[]
 /// </summary>
 public class IcV01Instance : ISizeOf
 {
     public byte Count = 0;
-    public IcV01Container[] Containers = [];
+    public IcV01Collection[] Collections = [];
     
     public byte PropertyCount = 0;
-    public EIcV01ContainerType PropertyType = EIcV01ContainerType.Property;
+    public EIcV01CollectionType PropertyType = EIcV01CollectionType.Property;
     public string Name = string.Empty;
 
     public static uint SizeOf()
@@ -41,18 +41,18 @@ public static class IcV01InstanceExtensions
             Count = stream.Read<byte>(),
         };
         
-        result.Containers = new IcV01Container[result.Count];
+        result.Collections = new IcV01Collection[result.Count];
         for (var i = 0; i < result.Count; i++)
         {
-            var optionContainer = stream.ReadIcV01Container();
+            var optionContainer = IcV01CollectionExtensions.ReadIcV01Collection(stream);
             if (optionContainer.IsSome(out var container))
-                result.Containers[i] = container;
+                result.Collections[i] = container;
         }
 
         if (stream.Position < stream.Length)
         {
             result.PropertyCount = stream.Read<byte>();
-            result.PropertyType = stream.Read<EIcV01ContainerType>();
+            result.PropertyType = stream.Read<EIcV01CollectionType>();
             
             var stringLength = stream.Read<ushort>();
             result.Name = stream.ReadStringOfLength(stringLength);
@@ -70,9 +70,12 @@ public static class IcV01InstanceExtensions
             xe.SetAttributeValue("name", instance.Name);
         }
 
-        foreach (var container in instance.Containers)
+        foreach (var collection in instance.Collections)
         {
-            xe.Add(container.ToXElement());
+            foreach (var cxe in collection.ToXElements())
+            {
+                xe.Add(cxe);
+            }
         }
 
         return xe;
