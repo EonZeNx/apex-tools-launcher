@@ -1,7 +1,5 @@
 ﻿using System.Text;
 using System.Buffers;
-using System.Buffers.Binary;
-using System.Numerics;
 using System.Runtime.CompilerServices;
 using ApexToolsLauncher.Core.Class;
 using CommunityToolkit.HighPerformance;
@@ -112,33 +110,17 @@ public static class StreamExtensions
     public static unsafe T ReadEndian<T>(this Stream stream, EEndian endian = EEndian.Little)
         where T : unmanaged
     {
-        int bytesOffset = 0;
-        var buffer = ArrayPool<byte>.Shared.Rent(sizeof(T));
+        T result;
 
-        var reverse = BitConverter.IsLittleEndian && endian != EEndian.Little ||
-                      !BitConverter.IsLittleEndian && endian == EEndian.Little;
-        try
+        var span = new Span<byte>(&result, sizeof(T));
+        stream.ReadExactly(span);
+
+        if (BitConverter.IsLittleEndian && endian != EEndian.Little ||
+            !BitConverter.IsLittleEndian && endian != EEndian.Big)
         {
-            do
-            {
-                var bytesRead = stream.Read(buffer, bytesOffset, sizeof(T) - bytesOffset);
-                if (bytesRead == 0)
-                {
-                    throw new EndOfStreamException("The stream didn't contain enough data to read the requested item.");
-                }
-
-                bytesOffset += bytesRead;
-            }
-            while (bytesOffset < sizeof(T));
-
-            if (reverse)
-                Array.Reverse(buffer);
-            
-            return Unsafe.ReadUnaligned<T>(ref buffer[0]);
+            span.Reverse();
         }
-        finally
-        {
-            ArrayPool<byte>.Shared.Return(buffer);
-        }
+
+        return result;
     }
 }
