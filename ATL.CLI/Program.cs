@@ -5,8 +5,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using ApexFormat.AAF.V01;
 using ApexFormat.ADF.V04;
+using ApexFormat.AVTX.V01;
 using ApexFormat.RTPC.V0104;
 using ApexFormat.RTPC.V01;
+using ApexFormat.RTPC.V03;
 using ApexFormat.SARC.V02;
 using ApexFormat.TAB.V02;
 using ATL.CLI.Console;
@@ -63,7 +65,9 @@ class Program
                     SarcV02Manager.CanProcess(inputPath) ||
                     AafV01Manager.CanProcess(inputPath) ||
                     AdfV04Manager.CanProcess(inputPath) ||
+                    AvtxV01Manager.CanProcess(inputPath) ||
                     RtpcV01Manager.CanProcess(inputPath) ||
+                    RtpcV03Manager.CanProcess(inputPath) ||
                     RtpcV0104Manager.CanProcess(inputPath)
                 ) {
                     supportedPaths.Add(inputPath);
@@ -188,10 +192,20 @@ class Program
             manager = new AdfV04Manager();
             message = $"{message} as ADFv04";
         }
+        else if (AvtxV01Manager.CanProcess(inPath))
+        {
+            manager = new AvtxV01Manager();
+            message = $"{message} as AVTXv01";
+        }
         else if (RtpcV01Manager.CanProcess(inPath))
         {
             manager = new RtpcV01Manager();
             message = $"{message} as RTPCv01";
+        }
+        else if (RtpcV03Manager.CanProcess(inPath))
+        {
+            manager = new RtpcV03Manager();
+            message = $"{message} as RTPCv03";
         }
         else if (RtpcV0104Manager.CanProcess(inPath))
         { // should be last

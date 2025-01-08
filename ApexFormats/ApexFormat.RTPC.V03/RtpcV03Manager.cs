@@ -1,16 +1,16 @@
 ﻿using System.Xml;
 using System.Xml.Linq;
-using ApexFormat.RTPC.V01.Class;
+using ApexFormat.RTPC.V03.Class;
 using ATL.Core.Class;
 using ATL.Core.Libraries;
 
-namespace ApexFormat.RTPC.V01;
+namespace ApexFormat.RTPC.V03;
 
-public class RtpcV01Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
+public class RtpcV03Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
 {
     public static bool CanProcess(Stream stream)
     {
-        return !stream.ReadRtpcV01Header().IsNone;
+        return !stream.ReadRtpcV03Header().IsNone;
     }
     
     public static bool CanProcess(string path)
@@ -31,17 +31,17 @@ public class RtpcV01Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
     
     public static int Decompress(Stream inBuffer, Stream outBuffer)
     {
-        var optionHeader = inBuffer.ReadRtpcV01Header();
+        var optionHeader = inBuffer.ReadRtpcV03Header();
         if (!optionHeader.IsSome(out var header))
             return -1;
         
-        var optionContainer = inBuffer.ReadRtpcV01Container();
+        var optionContainer = inBuffer.ReadRtpcV03Container();
         if (!optionContainer.IsSome(out var container))
             return -2;
 
         var outer = new XElement("entity");
         outer.SetAttributeValue("extension", "epe");
-        outer.SetAttributeValue("version", "1");
+        outer.SetAttributeValue("version", "3");
 
         var rootXElement = container.WriteXElement();
         outer.Add(rootXElement);

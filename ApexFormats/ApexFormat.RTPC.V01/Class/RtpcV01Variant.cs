@@ -1,10 +1,11 @@
 ﻿using System.Xml.Linq;
+using ApexFormat.RTPC.V01.Enum;
 using ATL.Core.Extensions;
 using ATL.Core.Hash;
 using CommunityToolkit.HighPerformance;
 using RustyOptions;
 
-namespace ApexFormat.RTPC.V01;
+namespace ApexFormat.RTPC.V01.Class;
 
 public class RtpcV01Variant : RtpcV01VariantHeader
 {
@@ -154,7 +155,7 @@ public static class RtpcV01VariantExtensions
             break;
         case ERtpcV01VariantType.ByteArray:
             var bytes = (byte[]) variant.DeferredData;
-            xe.SetValue(string.Join(",", bytes));
+            xe.SetValue(string.Join(",", bytes.Select(b => $"{b:X2}")));
             break;
         case ERtpcV01VariantType.ObjectId:
             var objectIdValue = (RtpcV01ObjectId) variant.DeferredData;

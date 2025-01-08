@@ -3,7 +3,7 @@ using ATL.Core.Class;
 using CommunityToolkit.HighPerformance;
 using RustyOptions;
 
-namespace ApexFormat.RTPC.V01;
+namespace ApexFormat.RTPC.V01.Class;
 
 /// <summary>
 /// <para>A container and its contents are separate</para>
