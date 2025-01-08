@@ -45,9 +45,6 @@ public partial class ProfilesTabPanel : MudComponentBase, IDisposable
         }
         
         ProfileConfig = ProfileConfigService.Get(GameId, ProfileId);
-
-        var profileId = AppStateService.GetLastProfileId(GameId);
-        ProfileConfig = ProfileConfigService.Get(GameId, profileId);
     }
     
     protected override async Task OnParametersSetAsync()

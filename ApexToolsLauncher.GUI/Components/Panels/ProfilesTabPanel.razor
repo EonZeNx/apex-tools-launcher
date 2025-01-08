@@ -12,22 +12,22 @@
     >
       @if (ProfileConfigs.Count == 0)
       {
-        <MudListItem Text="No mods found" Value="ConstantsLibrary.InvalidString"/>
+        <MudListItem Text="No profiles found" Value="ConstantsLibrary.InvalidString"/>
       }
       else
       {
-        foreach (var (modId, config) in ProfileConfigs)
+        foreach (var (profileId, config) in ProfileConfigs)
         {
           var icon = Icons.Material.Filled.RadioButtonUnchecked;
           var iconColour = Color.Inherit;
 
-          if (ProfileConfig.ModConfigs.ContainsKey(modId))
+          if (ProfileConfig.ModConfigs.ContainsKey(profileId))
           {
             icon = Icons.Material.Filled.RadioButtonChecked;
             iconColour = Color.Primary;
           }
 
-          <MudListItem Value="@modId">
+          <MudListItem Value="@profileId">
             <MudStack Row="@true" Class="align-center">
               <MudIcon Icon="@icon" Color="@iconColour" Size="Size.Small"/>
               <MudText Typo="Typo.body1">@(config.Title)</MudText>
@@ -41,8 +41,25 @@
   </MudItem>
 
   <MudItem xs="8" Class="pa-4 d-flex flex-column justify-space-between">
-    <MudStack Spacing="1">
-      <MudText Typo="Typo.h6">Description</MudText>
-    </MudStack>
+    <MudGrid>
+      <MudItem xs="6">
+        <MudTextField
+          Label="Rename"
+          Value="@ProfileConfig.Title"
+          Variant="Variant.Outlined"
+          Margin="Margin.Dense"
+        />
+      </MudItem>
+
+      <MudItem xs="3">
+        <MudIconButton
+          Icon="@Icons.Material.Filled.Refresh"
+        />
+      </MudItem>
+
+      <MudItem xs="3">
+        <MudButton>Confirm</MudButton>
+      </MudItem>
+    </MudGrid>
   </MudItem>
 </MudGrid>
