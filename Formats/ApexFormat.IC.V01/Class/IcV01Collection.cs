@@ -1,5 +1,7 @@
-﻿using ApexFormat.IC.V01.Enum;
+﻿using System.Xml.Linq;
+using ApexFormat.IC.V01.Enum;
 using ApexToolsLauncher.Core.Class;
+using ApexToolsLauncher.Core.Hash;
 using CommunityToolkit.HighPerformance;
 using RustyOptions;
 
@@ -47,5 +49,27 @@ public static class IcV01CollectionExtensions
         }
 
         return Option.Some(result);
+    }
+    
+    public static XElement ToXElement(this IcV01Collection collection)
+    {
+        var xe = new XElement("collection");
+        
+        var optionHashResult = HashDatabases.Lookup(collection.NameHash);
+        if (optionHashResult.IsSome(out var hashResult))
+        {
+            xe.SetAttributeValue("name", hashResult.Value);
+        }
+        else
+        {
+            xe.SetAttributeValue("id", $"{collection.NameHash:X8}");
+        }
+
+        foreach (var container in collection.Containers)
+        {
+            xe.Add(container.ToXElement());
+        }
+
+        return xe;
     }
 }

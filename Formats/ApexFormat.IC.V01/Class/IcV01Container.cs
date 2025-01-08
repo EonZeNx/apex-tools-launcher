@@ -1,4 +1,5 @@
-﻿using ApexFormat.IC.V01.Enum;
+﻿using System.Xml.Linq;
+using ApexFormat.IC.V01.Enum;
 using ApexToolsLauncher.Core.Class;
 using CommunityToolkit.HighPerformance;
 using RustyOptions;
@@ -71,5 +72,28 @@ public static class IcV01ContainerExtensions
         }
         
         return Option.Some(result);
+    }
+    
+    public static XElement ToXElement(this IcV01Container container)
+    {
+        var xe = new XElement("container");
+        xe.SetAttributeValue("type", container.Type.ToString());
+
+        if (container.Collections.Length != 0)
+        {
+            foreach (var collection in container.Collections)
+            {
+                xe.Add(collection.ToXElement());
+            }
+        }
+        else if (container.Properties.Length != 0)
+        {
+            foreach (var property in container.Properties)
+            {
+                xe.Add(property.ToXElement());
+            }
+        }
+
+        return xe;
     }
 }
