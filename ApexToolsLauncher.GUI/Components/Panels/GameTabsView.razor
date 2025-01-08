@@ -1,0 +1,22 @@
+@inherits MudComponentBase
+
+<ApexTabs
+  Elevation="2"
+  Rounded="true"
+  Centered="true"
+  Color="Color.Primary"
+  ApplyEffectsToContainer="true"
+  Class="@Class"
+  Style="@Style"
+  PanelStyle="height: 100%"
+>
+  <ModsTabPanel
+    GameId="@GameId"
+    ProfileId="@ProfileId"
+    Style="height: 100%"
+  />
+
+  <LaunchArgsTabPanel/>
+
+  <ProfilesTabPanel/>
+</ApexTabs>

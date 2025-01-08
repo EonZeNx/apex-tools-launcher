@@ -1,6 +1,6 @@
 using MudBlazor;
 
-namespace ApexToolsLauncher.GUI.Components;
+namespace ApexToolsLauncher.GUI.Components.Custom;
 
 public partial class ApexSwitch<T> : MudSwitch<T>
 {

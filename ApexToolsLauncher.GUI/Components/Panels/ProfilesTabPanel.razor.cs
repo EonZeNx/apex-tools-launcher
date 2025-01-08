@@ -1,12 +1,11 @@
 using ApexToolsLauncher.Core.Config.GUI;
 using ApexToolsLauncher.Core.Libraries;
-using ApexToolsLauncher.GUI.Services;
 using ApexToolsLauncher.GUI.Services.Mod;
 using Microsoft.AspNetCore.Components;
 
-namespace ApexToolsLauncher.GUI.Components;
+namespace ApexToolsLauncher.GUI.Components.Panels;
 
-public partial class LaunchArgumentCard : ComponentBase
+public partial class ProfilesTabPanel : ComponentBase
 {
     [Inject]
     protected IProfileConfigService? ProfileConfigService { get; set; }

@@ -4,7 +4,9 @@
 <MudCard>
   <MudCardHeader Class="pb-0">
     <CardHeaderContent>
-      <MudText Typo="Typo.body1" Style="font-weight: bold">@(LaunchOptionConfig.Title)</MudText>
+      <MudText Typo="Typo.body1" Style="font-weight: bold">
+        @(LaunchOptionConfig.Title)
+      </MudText>
     </CardHeaderContent>
     
     <CardHeaderActions>
@@ -13,6 +15,7 @@
         Color="Color.Primary"
         Value="@(ProfileConfig.LaunchArguments.ContainsKey(LaunchId))"
         ValueChanged="@OnLaunchOptionToggle"
+        Disabled="@(ConstantsLibrary.IsStringInvalid(ProfileId))"
       />
     </CardHeaderActions>
   </MudCardHeader>
