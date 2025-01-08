@@ -41,9 +41,11 @@
   </MudItem>
 
   <MudItem xs="8" Class="pa-4">
+    <ModVersionSelect GameId="@GameId" ModId="@ModId" Version="@SelectedVersion" VersionChanged="@OnVersionChanged"/>
+    
     <MudStack Spacing="1">
-      <MudText Typo="Typo.body1">Description</MudText>
-      <MudText Typo="Typo.body2">@(ModConfig.Description)</MudText>
+      <MudText Typo="Typo.h6">Description</MudText>
+      <MudText Typo="Typo.body1">@(ModConfig.Description)</MudText>
     </MudStack>
 
     @if (ModConfig.Versions.TryGetValue(SelectedVersion, out var modContentConfig))
