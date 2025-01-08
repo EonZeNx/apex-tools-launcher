@@ -8,47 +8,71 @@ public class HkSceneFile
     public HkSceneSection ClassNameSection = new();
     public HkSceneSection TypesSection = new();
     public HkSceneSection DataSection = new();
-    public HkClassName[] ClassNames = [];
+    public Dictionary<long, HkClassName> PositionClassNameMap = [];
 
     public void Read(Stream stream)
     {
-        var optionHeader = stream.ReadHkSceneHeader();
-        if (!optionHeader.IsSome(out var header))
-            return;
+        {
+            var optionHeader = stream.ReadHkSceneHeader();
+            if (!optionHeader.IsSome(out var header))
+                return;
+            Header = header;
+        }
 
-        Header = header;
-        
-        var optionClassNameSection = stream.ReadHkSceneSection();
-        if (!optionClassNameSection.IsSome(out var classNameSection))
-            return;
+        {
+            var optionClassNameSection = stream.ReadHkSceneSection();
+            if (!optionClassNameSection.IsSome(out var classNameSection))
+                return;
+            ClassNameSection = classNameSection;
+        }
 
-        ClassNameSection = classNameSection;
-        
-        var optionTypesSection = stream.ReadHkSceneSection();
-        if (!optionTypesSection.IsSome(out var typesSection))
-            return;
+        {
+            var optionTypesSection = stream.ReadHkSceneSection();
+            if (!optionTypesSection.IsSome(out var typesSection))
+                return;
+            TypesSection = typesSection;
+        }
 
-        TypesSection = typesSection;
-        
-        var optionDataSection = stream.ReadHkSceneSection();
-        if (!optionDataSection.IsSome(out var dataSection))
-            return;
-
-        DataSection = dataSection;
+        {
+            var optionDataSection = stream.ReadHkSceneSection();
+            if (!optionDataSection.IsSome(out var dataSection))
+                return;
+            DataSection = dataSection;
+        }
 
         stream.Seek(ClassNameSection.Offset, SeekOrigin.Begin);
-        var classNames = new List<HkClassName>();
         while (stream.Position + HkClassName.SizeOf() < ClassNameSection.Offset + ClassNameSection.DataEndOffset)
         {
             var optionClassName = stream.ReadHkClassName();
             if (!optionClassName.IsSome(out var className))
                 break;
-            
-            classNames.Add(className);
-        }
 
-        ClassNames = classNames.ToArray();
+            var classNamePosition = stream.Position - (className.Name.Length + 1) - ClassNameSection.Offset;
+            PositionClassNameMap.Add(classNamePosition, className);
+        }
         
-        // TODO: Data3 / PointerNameGenerator here
+        var data3Index = 0;
+        while (true)
+        {
+            var optionClass = stream.ReadDataExternalFromIndex(DataSection, data3Index += 1);
+            if (!optionClass.IsSome(out var dataClass))
+                break;
+
+            PointerNameGenerator.Add(dataClass.From);
+        }
+        
+        data3Index = 0;
+        while (true)
+        {
+            var optionClass = stream.ReadDataExternalFromIndex(DataSection, data3Index += 1);
+            if (!optionClass.IsSome(out var dataClass))
+                break;
+
+            if (!PositionClassNameMap.TryGetValue(dataClass.To, out var hkClassName))
+                continue;
+
+            var className = hkClassName.Name;
+            // TODO: descriptor
+        }
     }
 }
