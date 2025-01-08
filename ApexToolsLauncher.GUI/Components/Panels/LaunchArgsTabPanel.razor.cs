@@ -1,6 +1,7 @@
 using ApexToolsLauncher.Core.Config.GUI;
 using ApexToolsLauncher.Core.Libraries;
 using ApexToolsLauncher.GUI.Services.App;
+using ApexToolsLauncher.GUI.Services.Game;
 using ApexToolsLauncher.GUI.Services.Mod;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
@@ -13,10 +14,10 @@ public partial class LaunchArgsTabPanel : MudComponentBase, IDisposable
     protected IAppStateService? AppStateService { get; set; }
     
     [Inject]
-    protected IProfileConfigService? ProfileConfigService { get; set; }
+    protected IGameConfigService? GameConfigService { get; set; }
     
     [Inject]
-    protected IModConfigService? ModConfigService { get; set; }
+    protected IProfileConfigService? ProfileConfigService { get; set; }
     
     [Parameter]
     public string GameId { get; set; } = ConstantsLibrary.InvalidString;
@@ -27,10 +28,20 @@ public partial class LaunchArgsTabPanel : MudComponentBase, IDisposable
     [Parameter]
     public string LaunchId { get; set; } = ConstantsLibrary.InvalidString;
     
-    [Parameter]
     public LaunchOptionConfig LaunchOptionConfig { get; set; } = new();
     
+    
+    public GameConfig GameConfig { get; set; } = new();
     public ProfileConfig ProfileConfig { get; set; } = new();
+
+    protected void ListValueChanged(string? value)
+    {
+        if (value is null) return;
+
+        LaunchId = value;
+        ReloadData();
+        StateHasChanged();
+    }
     
     public void OnLaunchOptionToggle(bool isOn)
     {
@@ -69,10 +80,21 @@ public partial class LaunchArgsTabPanel : MudComponentBase, IDisposable
     protected void ReloadData()
     {
         if (AppStateService is null) return;
+        if (GameConfigService is null) return;
         if (ProfileConfigService is null) return;
-        if (ModConfigService is null) return;
         
+        GameConfig = GameConfigService.Get(GameId);
         ProfileConfig = ProfileConfigService.Get(GameId, ProfileId);
+        
+        if (!GameConfig.LaunchOptions.ContainsKey(LaunchId) && !ConstantsLibrary.IsStringInvalid(LaunchId))
+        {
+            LaunchId = ConstantsLibrary.InvalidString;
+        }
+        
+        if (GameConfig.LaunchOptions.TryGetValue(LaunchId, out var launchArgConfig))
+        {
+            LaunchOptionConfig = launchArgConfig;
+        }
     }
     
     protected override async Task OnParametersSetAsync()
@@ -85,11 +107,18 @@ public partial class LaunchArgsTabPanel : MudComponentBase, IDisposable
         await Task.Run(ReloadData);
         await InvokeAsync(StateHasChanged);
     }
+    
+    protected override void OnInitialized()
+    {
+        AppStateService?.RegisterOnReload(OnConfigReloaded);
+        GameConfigService?.RegisterOnReload(OnConfigReloaded);
+        ProfileConfigService?.RegisterOnReload(OnConfigReloaded);
+    }
 
     public void Dispose()
     {
         AppStateService?.UnregisterOnReload(OnConfigReloaded);
+        GameConfigService?.UnregisterOnReload(OnConfigReloaded);
         ProfileConfigService?.UnregisterOnReload(OnConfigReloaded);
-        ModConfigService?.UnregisterOnReload(OnConfigReloaded);
     }
 }

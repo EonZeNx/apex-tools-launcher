@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace ApexToolsLauncher.Core.Config.GUI;
 
-public enum ArgumentType
+public enum GameArgumentType
 {
     [JsonPropertyName("string")]
     String,
@@ -24,7 +24,7 @@ public class GameArgumentConfig : ArgumentConfig
     [JsonPropertyName("type")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     [JsonConverter(typeof(JsonStringEnumConverter))]
-    public ArgumentType Type { get; set; } = ArgumentType.String;
+    public GameArgumentType Type { get; set; } = GameArgumentType.String;
 
     
     [JsonIgnore]

@@ -40,7 +40,23 @@
     <MudDivider Vertical="true" FlexItem="true" />
   </MudItem>
 
-  <MudItem xs="8" Class="pa-4">
+  <MudItem xs="8" Class="pa-4 d-flex flex-column justify-space-between">
+    <MudStack Spacing="1">
+      <MudText Typo="Typo.h6">Description</MudText>
+      <MudText Typo="Typo.body1">@(ModConfig.Description)</MudText>
+
+      @if (ModConfig.Versions.TryGetValue(SelectedVersion, out var modContentConfig))
+      {
+        if (!string.IsNullOrEmpty(modContentConfig.Description))
+        {
+          <MudStack Spacing="1">
+            <MudText Typo="Typo.body1" Class="mt-4">Version</MudText>
+            <pre><MudText Typo="Typo.body2">@(modContentConfig.Description)</MudText></pre>
+          </MudStack>
+        }
+      }
+    </MudStack>
+
     <ModVersionSelect
       GameId="@GameId"
       ProfileId="@ProfileId"
@@ -48,21 +64,5 @@
       Version="@SelectedVersion"
       VersionChanged="@OnVersionChanged"
     />
-    
-    <MudStack Spacing="1">
-      <MudText Typo="Typo.h6">Description</MudText>
-      <MudText Typo="Typo.body1">@(ModConfig.Description)</MudText>
-    </MudStack>
-
-    @if (ModConfig.Versions.TryGetValue(SelectedVersion, out var modContentConfig))
-    {
-      if (!string.IsNullOrEmpty(modContentConfig.Description))
-      {
-        <MudStack Spacing="1">
-          <MudText Typo="Typo.body1" Class="mt-4">Version</MudText>
-          <pre><MudText Typo="Typo.body2">@(modContentConfig.Description)</MudText></pre>
-        </MudStack>
-      }
-    }
   </MudItem>
 </MudGrid>
