@@ -1,9 +1,16 @@
 ﻿using System.Text;
+using ApexToolsLauncher.Core.Extensions;
 
 namespace ApexToolsLauncher.Core.Hash;
 
 public static class JenkinsL3
 {
+    public static uint Jenkins(this string data, bool littleEndian = false)
+    {
+        var hash = Hash(Encoding.UTF8.GetBytes(data));
+        return littleEndian ? hash.ReverseEndian() : hash;
+    }
+    
     public static uint HashJenkins(this string data, int index = 0, uint seed = 0)
     {
         return Hash(Encoding.UTF8.GetBytes(data), index, seed);

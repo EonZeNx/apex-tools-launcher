@@ -152,24 +152,33 @@ public static class RtpcV01ContainerExtensions
             // filter children
             FilterBy(childContainer, filters);
         }
+
+        var primaryMatch = filters.FirstOrNone(f => f.MatchContainer(container));
+        if (primaryMatch.IsSome(out var primaryFilter))
+        {
+            // filter properties
+            var filteredProperties = container.Properties
+                .Where(p => primaryFilter.MatchProperty(p, true))
+                .ToArray();
+
+            container.Properties = filteredProperties;
+        }
+        else
+        {
+            container.Properties = [];
+        }
         
-        // filter self properties
-        var filteredProperties = container.Properties
-            .Where(p => filters
-                .Any(f => f.MatchProperty(p)))
-            .ToArray();
-
-        container.Properties = filteredProperties;
-        container.PropertyCount = (ushort) filteredProperties.Length;
-
-        // filter children
+        container.PropertyCount = (ushort) container.Properties.Length;
+        
+        // filter child containers
         var filteredContainers = container.Containers
-            .Where(c => filters
-                .Any(f => f.MatchContainer(c)))
+            .Where(c => c.PropertyCount != 0 || c.ContainerCount != 0)
             .ToArray();
         
-        container.Containers = filteredContainers.ToArray();
+        container.Containers = filteredContainers;
         container.ContainerCount = (ushort) filteredContainers.Length;
+        
+        
     }
 
     public static int CountContainers(this RtpcV01Container container)
@@ -179,14 +188,16 @@ public static class RtpcV01ContainerExtensions
 
     public static string PropertyString(this RtpcV01Container container, string propertyString, int depth = 0)
     {
+        const char indentChar = '\t';
+        propertyString += $"\n{new string(indentChar, depth)}>>> Container d{depth} <<<";
+        
         foreach (var property in container.Properties)
         {
-            propertyString += $"\n{new string('\t', depth)}- {property}";
+            propertyString += $"\n{new string(indentChar, depth)}- {property}";
         }
 
-        for (var i = 0; i < container.Containers.Length; i++)
+        foreach (var childContainer in container.Containers)
         {
-            var childContainer = container.Containers[i];
             propertyString += childContainer.PropertyString(propertyString, depth + 1);
         }
 
