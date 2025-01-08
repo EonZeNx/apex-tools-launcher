@@ -4,7 +4,7 @@ using ApexChain.AAFSARC;
 using ApexFormat.AAF.V01;
 using ApexFormat.ADF.V04;
 using ApexFormat.AVTX.V01;
-using ApexFormat.IRTPC.V14;
+using ApexFormat.IC.V01;
 using ApexFormat.RTPC.V01;
 using ApexFormat.RTPC.V03;
 using ApexFormat.SARC.V02;
@@ -71,10 +71,10 @@ public static class AtlOperate
             manager = new HkSceneManager();
             message = $"{message} as HkScene";
         }
-        else if (IrtpcV14Manager.CanProcess(inPath))
+        else if (IcV01Manager.CanProcess(inPath))
         { // should be last
-            manager = new IrtpcV14Manager();
-            message = $"{message} as RTPCv0104";
+            manager = new IcV01Manager();
+            message = $"{message} as ICv01";
         }
         // Scripts should not be run from here
         // else if (Path.GetExtension(inPath) == ".xml")

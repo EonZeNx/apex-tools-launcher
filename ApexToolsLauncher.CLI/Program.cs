@@ -6,7 +6,7 @@ using ApexChain.AAFSARC;
 using ApexFormat.AAF.V01;
 using ApexFormat.ADF.V04;
 using ApexFormat.AVTX.V01;
-using ApexFormat.IRTPC.V14;
+using ApexFormat.IC.V01;
 using ApexFormat.RTPC.V01;
 using ApexFormat.RTPC.V03;
 using ApexFormat.SARC.V02;
@@ -69,7 +69,7 @@ class Program
                     AvtxV01Manager.CanProcess(inputPath) ||
                     RtpcV01Manager.CanProcess(inputPath) ||
                     RtpcV03Manager.CanProcess(inputPath) ||
-                    IrtpcV14Manager.CanProcess(inputPath) ||
+                    IcV01Manager.CanProcess(inputPath) ||
                     HkSceneManager.CanProcess(inputPath) ||
                     Path.GetExtension(inputPath) == ".xml"
                 ) {
