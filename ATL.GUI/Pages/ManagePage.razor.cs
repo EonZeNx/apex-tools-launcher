@@ -11,6 +11,8 @@ public partial class ManagePage : MudComponentBase
     
     [Inject]
     protected LogService LogService { get; set; } = new();
+    
+    protected string GameId { get; set; } = "jc3";
 
     protected override Task OnParametersSetAsync()
     {
@@ -21,6 +23,8 @@ public partial class ManagePage : MudComponentBase
 
     protected void OnGameCardClicked(string gameId)
     {
+        GameId = gameId;
         LogService.Log($"{gameId} clicked");
+        StateHasChanged();
     }
 }
