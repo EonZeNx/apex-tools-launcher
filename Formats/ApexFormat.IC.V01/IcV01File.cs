@@ -100,13 +100,13 @@ public class IcV01File : ICanExtractPath, IExtractPathToPath, IExtractStreamToSt
         return xInstances.All(xi => instance.CanRepack(xi).IsOk(out _));
     }
 
-    public int RepackStreamToStream(Stream inStream, Stream outStream)
+    public Result<int, Exception> RepackStreamToStream(Stream inStream, Stream outStream)
     {
         var xe = XElement.Load(inStream);
         
         if (!string.Equals(xe.Name.LocalName, IcV01FileLibrary.XName))
         {
-            return -1;
+            return Result.Err<int>(new InvalidOperationException($"Element nane is {xe.Name.LocalName} not {IcV01FileLibrary.XName}"));
         }
 
         var optionExtension = xe.GetAttributeOrNone("extension");
@@ -119,24 +119,24 @@ public class IcV01File : ICanExtractPath, IExtractPathToPath, IExtractStreamToSt
         foreach (var xi in xInstanceArray)
         {
             var instanceResult = xi.Read<IcV01Instance>();
-            if (instanceResult.IsErr(out var exception))
+            if (instanceResult.IsErr(out _))
             {
-                return -2;
+                return instanceResult.Map(_ => -1);
             }
 
             outStream.Write(instanceResult.Unwrap());
         }
 
-        return 0;
+        return Result.OkExn(0);
     }
 
-    public int RepackPathToPath(string inPath, string outPath)
+    public Result<int, Exception> RepackPathToPath(string inPath, string outPath)
     {
         var xe = XElement.Load(inPath);
         
         if (!string.Equals(xe.Name.LocalName, IcV01FileLibrary.XName))
         {
-            return -1;
+            return Result.Err<int>(new InvalidOperationException($"Element nane is {xe.Name.LocalName} not {IcV01FileLibrary.XName}"));
         }
 
         var optionExtension = xe.GetAttributeOrNone("extension");
