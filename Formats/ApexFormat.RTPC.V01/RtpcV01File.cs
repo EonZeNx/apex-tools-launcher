@@ -1,8 +1,9 @@
 ﻿using System.Xml;
 using System.Xml.Linq;
-using ApexFormat.RTPC.V01.Class;
 using ApexToolsLauncher.Core.Class;
 using ApexToolsLauncher.Core.Libraries;
+using ApexFormat.RTPC.V01.Class;
+using ApexToolsLauncher.Core.Extensions;
 using RustyOptions;
 
 namespace ApexFormat.RTPC.V01;
@@ -74,7 +75,25 @@ public class RtpcV01File : ICanExtractPath, IExtractPathToPath, IExtractStreamTo
 
     public bool CanRepackPath(string path)
     {
-        return false;
+        if (!File.Exists(path))
+            return false;
+
+        XElement xe;
+        try
+        {
+            xe = XElement.Load(path);
+        }
+        catch (Exception e)
+        {
+            return false;
+        }
+        
+        var xContainers = xe.Elements(RtpcV01ContainerLibrary.XName).ToArray();
+        
+        if (xContainers.Length == 0) return false;
+
+        var container = new RtpcV01Container();
+        return container.CanRepack(xContainers[0]).IsOk(out _);
     }
 
     public Result<int, Exception> RepackPathToPath(string inPath, string outPath)
@@ -116,17 +135,27 @@ public class RtpcV01File : ICanExtractPath, IExtractPathToPath, IExtractStreamTo
             ExtractExtension = extension;
         }
 
-        // var xInstanceArray = xe.Elements(IcV01InstanceLibrary.XName).ToArray();
-        // foreach (var xi in xInstanceArray)
-        // {
-        //     var instanceResult = xi.Read<IcV01Instance>();
-        //     if (instanceResult.IsErr(out _))
-        //     {
-        //         return instanceResult.Map(_ => -1);
-        //     }
-        //
-        //     outStream.Write(instanceResult.Unwrap());
-        // }
+        RtpcV01HeaderLibrary.Write(outStream);
+
+        var xContainers = xe.Elements(RtpcV01ContainerLibrary.XName).ToArray();
+        foreach (var xc in xContainers)
+        {
+            var containerResult = xc.ToRtpcV01Container();
+            if (containerResult.IsErr(out _))
+            {
+                return containerResult.Map(_ => -1);
+            }
+
+            var container = containerResult.Unwrap();
+            var originalPosition = outStream.Position;
+
+            // todo: following calls may not be taking self sizeof into consideration
+            outStream.Seek(RtpcV01ContainerLibrary.SizeOf, SeekOrigin.Current);
+            outStream.WriteData(container);
+            
+            outStream.Seek(originalPosition, SeekOrigin.Begin);
+            outStream.Write(container);
+        }
 
         return Result.OkExn(0);
     }

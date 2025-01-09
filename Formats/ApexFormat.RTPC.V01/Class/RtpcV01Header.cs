@@ -58,4 +58,13 @@ public static class RtpcV01HeaderLibrary
 
         return Option.Some(result);
     }
+
+    public static Option<Exception> Write(Stream stream)
+    {
+        stream.Write(Magic);
+        stream.Write(MajorVersion);
+        stream.Write(MinorVersion);
+
+        return Option.None<Exception>();
+    }
 }

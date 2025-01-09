@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using System.Text;
 using System.Xml.Linq;
 using System.Xml.Schema;
 using ApexFormat.RTPC.V01.Enum;
@@ -153,6 +154,7 @@ public static class RtpcV01PropertyLibrary
                 result.DeferredData = values;
                 break;
             case ERtpcV01Variant.Unassigned:
+            case ERtpcV01Variant.Deprecated:
             case ERtpcV01Variant.Total:
             default:
                 throw new ArgumentOutOfRangeException();
@@ -160,6 +162,112 @@ public static class RtpcV01PropertyLibrary
 
         stream.Seek(originalPosition, SeekOrigin.Begin);
         return Option.Some(result);
+    }
+
+    public static Option<Exception> Write(this Stream stream, RtpcV01Property property)
+    {
+        stream.Write(property.NameHash);
+        stream.Write(property.Data);
+        stream.Write(property.Variant);
+
+        return Option<Exception>.None;
+    }
+    
+    public static Option<Exception> WriteData(this Stream stream, RtpcV01Property property)
+    {
+        if (property.Variant.IsPrimitive())
+        {
+            return Option<Exception>.None;
+        }
+
+        if (property.DeferredData is null)
+        {
+            return Option.Some<Exception>(new ArgumentNullException(nameof(property)));
+        }
+        
+        property.Data = BitConverter.GetBytes((uint) stream.Position);
+        stream.Align(property.Variant.Alignment());
+        
+        switch (property.Variant)
+        {
+            case ERtpcV01Variant.String:
+            {
+                var value = (string) property.DeferredData;
+                stream.Write(Encoding.UTF8.GetBytes(value));
+                stream.Write((byte) 0x00);
+                break;
+            }
+            case ERtpcV01Variant.Vector2:
+            case ERtpcV01Variant.Vector3:
+            case ERtpcV01Variant.Vector4:
+            {
+                var vector = (float[]) property.DeferredData;
+                foreach (var value in vector)
+                {
+                    stream.Write(value);
+                }
+                break;
+            }
+            case ERtpcV01Variant.Matrix3X3:
+            case ERtpcV01Variant.Matrix4X4:
+            case ERtpcV01Variant.Float32Array:
+            {
+                var vector = (float[]) property.DeferredData;
+                stream.Write((uint) vector.Length);
+                
+                foreach (var value in vector)
+                {
+                    stream.Write(value);
+                }
+                break;
+            }
+            case ERtpcV01Variant.UInteger32Array:
+            {
+                var vector = (uint[]) property.DeferredData;
+                stream.Write((uint) vector.Length);
+                
+                foreach (var value in vector)
+                {
+                    stream.Write(value);
+                }
+                break;
+            }
+            case ERtpcV01Variant.ByteArray:
+            {
+                var vector = (byte[]) property.DeferredData;
+                stream.Write((uint) vector.Length);
+                
+                foreach (var value in vector)
+                {
+                    stream.Write(value);
+                }
+                break;
+            }
+            case ERtpcV01Variant.ObjectId:
+            {
+                var oid = (RtpcV01ObjectId) property.DeferredData;
+                stream.Write(oid);
+                break;
+            }
+            case ERtpcV01Variant.Events:
+            {
+                var events = ((uint, uint)[]) property.DeferredData;
+                stream.Write((uint) events.Length);
+                
+                foreach (var value in events)
+                {
+                    stream.Write(value.Item1);
+                    stream.Write(value.Item2);
+                }
+                break;
+            }
+            case ERtpcV01Variant.Deprecated:
+            case ERtpcV01Variant.Total:
+            default:
+                return Option.Some<Exception>(new ArgumentOutOfRangeException());
+        }
+        
+        return Option<Exception>.None;
     }
 
     public static XElement ToXElement(this RtpcV01Property property)

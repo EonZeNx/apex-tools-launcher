@@ -80,6 +80,112 @@ public static class RtpcV01ContainerLibrary
         stream.Seek(originalPosition, SeekOrigin.Begin);
         return Option.Some(result);
     }
+
+    public static Option<Exception> Write(this Stream stream, RtpcV01Container container)
+    {
+        try
+        {
+            stream.Write(container.NameHash);
+            stream.Write(container.Offset);
+            stream.Write(container.PropertyCount);
+            stream.Write(container.ContainerCount);
+        }
+        catch (Exception e)
+        {
+            return Option.Some(e);
+        }
+        
+        return Option<Exception>.None;
+    }
+    
+    public static Option<Exception> WriteData(this Stream stream, RtpcV01Container container)
+    {
+        container.Offset = (uint) stream.Position;
+        var dataOffset = ByteExtensions.Align(container.Offset + container.PropertyCount * RtpcV01PropertyLibrary.SizeOf, 4) + container.ContainerCount * SizeOf;
+        
+        stream.Seek(dataOffset, SeekOrigin.Begin);
+
+        if (!container.Properties.Empty())
+        { // property data
+            foreach (var property in container.Properties)
+            {
+                stream.WriteData(property);
+            }
+            
+            stream.Align(4);
+        }
+        
+        if (!container.Containers.Empty())
+        { // container data
+            stream.Align(4);
+            
+            foreach (var childContainer in container.Containers)
+            {
+                stream.WriteData(childContainer);
+            }
+        }
+        
+        stream.Seek(container.Offset, SeekOrigin.Begin);
+        
+        if (!container.Properties.Empty())
+        { // properties
+            foreach (var property in container.Properties)
+            {
+                stream.Write(property);
+            }
+        }
+        
+        if (!container.Containers.Empty())
+        { // containers
+            stream.Align(4);
+            
+            foreach (var childContainer in container.Containers)
+            {
+                stream.Write(childContainer);
+            }
+        }
+        
+        return Option<Exception>.None;
+    }
+    
+    public static Result<RtpcV01Container, Exception> ToRtpcV01Container(this XElement xe)
+    {
+        if (!string.Equals(xe.Name.LocalName, XName))
+        {
+            return Result.Err<RtpcV01Container>(new InvalidOperationException($"Node {xe.Name.LocalName} does not equal {XName}"));
+        }
+        
+        var nameHashOption = xe.GetAttributeOrNone("name")
+            .Map(s => s.Jenkins())
+            .OrElse(() => xe.GetAttributeOrNone("id")
+                .Map(s => uint.Parse(s, NumberStyles.HexNumber)));
+        
+        if (!nameHashOption.IsSome(out var nameHash))
+        {
+            return Result.Err<RtpcV01Container>(new InvalidOperationException("both name and id attributes are both missing"));
+        }
+
+        var container = new RtpcV01Container
+        {
+            NameHash = nameHash,
+            Properties = (from pxe in xe.Elements(RtpcV01PropertyLibrary.XName)
+                    let property = new RtpcV01Property()
+                    let result = property.FromXElement(pxe)
+                    where result.IsOk(out _)
+                    select property
+                ).ToArray(),
+            Containers = (from cxe in xe.Elements(XName)
+                    let result = cxe.ToRtpcV01Container()
+                    where result.IsOk(out _)
+                    select result.Unwrap()
+                ).ToArray()
+        };
+
+        container.PropertyCount = (ushort) container.Properties.Length;
+        container.ContainerCount = (ushort) container.Containers.Length;
+
+        return Result.OkExn(container);
+    }
     
     public static XElement ToXElement(this RtpcV01Container container)
     {
@@ -100,7 +206,7 @@ public static class RtpcV01ContainerLibrary
         {
             children[i] = container.Properties[i].ToXElement();
         }
-        Array.Sort(children, XDocumentLibrary.SortNameThenId);
+        // Array.Sort(children, XDocumentLibrary.SortNameThenId);
 
         foreach (var child in children)
         {
@@ -115,42 +221,23 @@ public static class RtpcV01ContainerLibrary
         return xe;
     }
     
-    public static Result<bool, Exception> FromXElement(this RtpcV01Container container, XElement xe)
+    public static Result<bool, Exception> CanRepack(this RtpcV01Container container, XElement xe)
     {
-        if (!string.Equals(xe.Name.LocalName, XName))
+        try
         {
-            return Result.Err<bool>(new System.Xml.XmlException($"Node {xe.Name.LocalName} does not equal {XName}"));
-        }
+            var result = xe.ToRtpcV01Container();
 
-        var nameHashOption = xe.GetAttributeOrNone("name")
-            .Map(s => s.Jenkins())
-            .OrElse(() => xe.GetAttributeOrNone("id")
-                .Map(s => uint.Parse(s, NumberStyles.HexNumber)));
-        
-        if (!nameHashOption.IsSome(out var nameHash))
+            if (result.Err().IsSome(out var e))
+            {
+                return Result.Err<bool>(e);
+            }
+            
+            return Result.OkExn(true);
+        }
+        catch (Exception e)
         {
-            return Result.Err<bool>(new InvalidOperationException("both name and id attributes are both missing"));
+            return Result.Err<bool>(e);
         }
-
-        container.NameHash = nameHash;
-
-        container.Properties = (from pxe in xe.Elements(RtpcV01PropertyLibrary.XName)
-                let property = new RtpcV01Property()
-                let result = property.FromXElement(pxe)
-                where result.IsOk(out _)
-                select property
-            ).ToArray();
-        container.PropertyCount = (ushort) container.Properties.Length;
-
-        container.Containers = (from pxe in xe.Elements(XName)
-                let childContainer = new RtpcV01Container()
-                let result = childContainer.FromXElement(pxe)
-                where result.IsOk(out _)
-                select childContainer
-            ).ToArray();
-        container.ContainerCount = (ushort) container.Containers.Length;
-        
-        return Result.OkExn(true);
     }
     
     public static void FilterBy(this RtpcV01Container container, IRtpcV01Filter[] filters)

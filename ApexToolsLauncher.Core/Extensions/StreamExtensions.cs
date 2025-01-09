@@ -9,6 +9,8 @@ namespace ApexToolsLauncher.Core.Extensions;
 
 public static class StreamExtensions
 {
+    public static void Align(this Stream stream, int align) => stream.Align((uint) align);
+    
     public static void Align(this Stream stream, uint align)
     {
         stream.Seek(ByteExtensions.Align(stream.Position, align), SeekOrigin.Begin);
