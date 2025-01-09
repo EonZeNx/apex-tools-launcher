@@ -79,12 +79,56 @@ public class RtpcV01File : ICanExtractPath, IExtractPathToPath, IExtractStreamTo
 
     public Result<int, Exception> RepackPathToPath(string inPath, string outPath)
     {
-        return Result.Err<int>(new NotImplementedException());
+        var xe = XElement.Load(inPath);
+        
+        if (!string.Equals(xe.Name.LocalName, RtpcV01FileLibrary.XName))
+        {
+            return Result.Err<int>(new InvalidOperationException($"Element name is {xe.Name.LocalName} not {RtpcV01FileLibrary.XName}"));
+        }
+
+        var optionExtension = xe.GetAttributeOrNone("extension");
+        if (optionExtension.IsSome(out var extension))
+        {
+            ExtractExtension = extension;
+        }
+        
+        var fileName = Path.GetFileNameWithoutExtension(inPath);
+        var repackFilePath = Path.Join(outPath, $"{fileName}.{ExtractExtension}");
+        
+        using var inStream = new FileStream(inPath, FileMode.Open);
+        using var outStream = new FileStream(repackFilePath, FileMode.Create);
+        
+        return RepackStreamToStream(inStream, outStream);
     }
 
     public Result<int, Exception> RepackStreamToStream(Stream inStream, Stream outStream)
     {
-        return Result.Err<int>(new NotImplementedException());
+        var xe = XElement.Load(inStream);
+        
+        if (!string.Equals(xe.Name.LocalName, RtpcV01FileLibrary.XName))
+        {
+            return Result.Err<int>(new InvalidOperationException($"Element name is {xe.Name.LocalName} not {RtpcV01FileLibrary.XName}"));
+        }
+
+        var optionExtension = xe.GetAttributeOrNone("extension");
+        if (optionExtension.IsSome(out var extension))
+        {
+            ExtractExtension = extension;
+        }
+
+        // var xInstanceArray = xe.Elements(IcV01InstanceLibrary.XName).ToArray();
+        // foreach (var xi in xInstanceArray)
+        // {
+        //     var instanceResult = xi.Read<IcV01Instance>();
+        //     if (instanceResult.IsErr(out _))
+        //     {
+        //         return instanceResult.Map(_ => -1);
+        //     }
+        //
+        //     outStream.Write(instanceResult.Unwrap());
+        // }
+
+        return Result.OkExn(0);
     }
 }
 

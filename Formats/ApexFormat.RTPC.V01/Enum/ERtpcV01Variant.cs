@@ -25,7 +25,7 @@ public enum ERtpcV01Variant : byte
 
 public static class RtpcV01VariantLibrary
 {
-    public static readonly Dictionary<ERtpcV01Variant, bool> VariantPrimitive = new()
+    public static readonly Dictionary<ERtpcV01Variant, bool> PrimitiveMap = new()
     {
         { ERtpcV01Variant.Unassigned,       true },
         { ERtpcV01Variant.UInteger32,       true },
@@ -45,7 +45,7 @@ public static class RtpcV01VariantLibrary
         { ERtpcV01Variant.Total,            true },
     };
     
-    public static readonly Dictionary<ERtpcV01Variant, string> VariantXmlString = new()
+    public static readonly Dictionary<ERtpcV01Variant, string> XNameMap = new()
     {
         { ERtpcV01Variant.Unassigned,       "unassigned" },
         { ERtpcV01Variant.UInteger32,       "int" },
@@ -64,6 +64,8 @@ public static class RtpcV01VariantLibrary
         { ERtpcV01Variant.Events,           "events" },
         { ERtpcV01Variant.Total,            "total" },
     };
+
+    public static Dictionary<string, ERtpcV01Variant> FromXNameMap = XNameMap.ToDictionary(kvp => kvp.Value, kvp => kvp.Key);
     
     public static readonly Dictionary<ERtpcV01Variant, int> VariantAlignment = new()
     {
@@ -94,12 +96,17 @@ public static class RtpcV01VariantLibrary
     
     public static bool IsPrimitive(this ERtpcV01Variant variant)
     {
-        return VariantPrimitive.GetValueOrDefault(variant, true);
+        return PrimitiveMap.GetValueOrDefault(variant, true);
     }
     
-    public static string XmlString(this ERtpcV01Variant variant)
+    public static string ToXName(this ERtpcV01Variant variant)
     {
-        return VariantXmlString.GetValueOrDefault(variant, "failed");
+        return XNameMap.GetValueOrDefault(variant, "failed");
+    }
+    
+    public static ERtpcV01Variant FromXName(string xmlString)
+    {
+        return FromXNameMap.GetValueOrDefault(xmlString, ERtpcV01Variant.Unassigned);
     }
     
     public static int Alignment(this ERtpcV01Variant variant)

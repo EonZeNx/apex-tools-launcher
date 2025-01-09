@@ -1,4 +1,5 @@
-﻿using System.Xml.Linq;
+﻿using System.Globalization;
+using System.Xml.Linq;
 using ApexToolsLauncher.Core.Extensions;
 using ApexToolsLauncher.Core.Hash;
 using ApexToolsLauncher.Core.Libraries;
@@ -37,6 +38,8 @@ public static class RtpcV01ContainerLibrary
                               + sizeof(uint) // Offset
                               + sizeof(ushort) // PropertyCount
                               + sizeof(ushort); // ContainerCount
+
+    public const string XName = "object";
     
     public static Option<RtpcV01Container> ReadRtpcV01Container(this Stream stream)
     {
@@ -80,7 +83,7 @@ public static class RtpcV01ContainerLibrary
     
     public static XElement ToXElement(this RtpcV01Container container)
     {
-        var xe = new XElement("object");
+        var xe = new XElement(XName);
 
         var optionHashResult = HashDatabases.Lookup(container.NameHash, EHashType.FilePath);
         if (optionHashResult.IsSome(out var hashResult))
@@ -95,7 +98,7 @@ public static class RtpcV01ContainerLibrary
         var children = new XElement[container.PropertyCount];
         for (var i = 0; i < container.PropertyCount; i++)
         {
-            children[i] = container.Properties[i].WriteXElement();
+            children[i] = container.Properties[i].ToXElement();
         }
         Array.Sort(children, XDocumentLibrary.SortNameThenId);
 
@@ -110,6 +113,44 @@ public static class RtpcV01ContainerLibrary
         }
         
         return xe;
+    }
+    
+    public static Result<bool, Exception> FromXElement(this RtpcV01Container container, XElement xe)
+    {
+        if (!string.Equals(xe.Name.LocalName, XName))
+        {
+            return Result.Err<bool>(new System.Xml.XmlException($"Node {xe.Name.LocalName} does not equal {XName}"));
+        }
+
+        var nameHashOption = xe.GetAttributeOrNone("name")
+            .Map(s => s.Jenkins())
+            .OrElse(() => xe.GetAttributeOrNone("id")
+                .Map(s => uint.Parse(s, NumberStyles.HexNumber)));
+        
+        if (!nameHashOption.IsSome(out var nameHash))
+        {
+            return Result.Err<bool>(new InvalidOperationException("both name and id attributes are both missing"));
+        }
+
+        container.NameHash = nameHash;
+
+        container.Properties = (from pxe in xe.Elements(RtpcV01PropertyLibrary.XName)
+                let property = new RtpcV01Property()
+                let result = property.FromXElement(pxe)
+                where result.IsOk(out _)
+                select property
+            ).ToArray();
+        container.PropertyCount = (ushort) container.Properties.Length;
+
+        container.Containers = (from pxe in xe.Elements(XName)
+                let childContainer = new RtpcV01Container()
+                let result = childContainer.FromXElement(pxe)
+                where result.IsOk(out _)
+                select childContainer
+            ).ToArray();
+        container.ContainerCount = (ushort) container.Containers.Length;
+        
+        return Result.OkExn(true);
     }
     
     public static void FilterBy(this RtpcV01Container container, IRtpcV01Filter[] filters)

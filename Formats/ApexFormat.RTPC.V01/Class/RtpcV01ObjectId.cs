@@ -32,12 +32,9 @@ public static class RtpcV01ObjectIdLibrary
         return oid;
     }
     
-    public static ulong ToUInt64(this RtpcV01ObjectId oid)
+    public static ulong ToUInt64(this RtpcV01ObjectId oid, bool reverse = false)
     {
-        var result = (ulong) oid.First << 0x10;
-        result = oid.Second | result << 0x10;
-        result = oid.Third | result << 0x10;
-        result = oid.Data | result << 0x10;
+        var result = oid.Data | ((oid.Third | (oid.Second | ((ulong) oid.First) << 16) << 16) << 16);
         
         return result;
     }

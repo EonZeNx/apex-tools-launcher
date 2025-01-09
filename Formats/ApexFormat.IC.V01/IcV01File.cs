@@ -106,7 +106,7 @@ public class IcV01File : ICanExtractPath, IExtractPathToPath, IExtractStreamToSt
         
         if (!string.Equals(xe.Name.LocalName, IcV01FileLibrary.XName))
         {
-            return Result.Err<int>(new InvalidOperationException($"Element nane is {xe.Name.LocalName} not {IcV01FileLibrary.XName}"));
+            return Result.Err<int>(new InvalidOperationException($"Element name is {xe.Name.LocalName} not {IcV01FileLibrary.XName}"));
         }
 
         var optionExtension = xe.GetAttributeOrNone("extension");
@@ -136,7 +136,7 @@ public class IcV01File : ICanExtractPath, IExtractPathToPath, IExtractStreamToSt
         
         if (!string.Equals(xe.Name.LocalName, IcV01FileLibrary.XName))
         {
-            return Result.Err<int>(new InvalidOperationException($"Element nane is {xe.Name.LocalName} not {IcV01FileLibrary.XName}"));
+            return Result.Err<int>(new InvalidOperationException($"Element name is {xe.Name.LocalName} not {IcV01FileLibrary.XName}"));
         }
 
         var optionExtension = xe.GetAttributeOrNone("extension");

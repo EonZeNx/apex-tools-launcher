@@ -1,5 +1,4 @@
-﻿using ApexToolsLauncher.Core.Class;
-using ApexToolsLauncher.Core.Extensions;
+﻿using ApexToolsLauncher.Core.Extensions;
 using CommunityToolkit.HighPerformance;
 using RustyOptions;
 
@@ -11,18 +10,11 @@ namespace ApexFormat.RTPC.V01.Class;
 /// <br/>MajorVersion - <see cref="ushort"/>
 /// <br/>MinorVersion - <see cref="ushort"/>
 /// </summary>
-public class RtpcV01Header : ISizeOf
+public class RtpcV01Header
 {
     public uint Magic = RtpcV01HeaderLibrary.Magic;
     public ushort MajorVersion = RtpcV01HeaderLibrary.MajorVersion;
     public ushort MinorVersion = RtpcV01HeaderLibrary.MinorVersion;
-
-    public static uint SizeOf()
-    {
-        return sizeof(uint) + // Magic
-               sizeof(ushort) + // MajorVersion
-               sizeof(ushort); // MinorVersion
-    }
 }
 
 public static class RtpcV01HeaderLibrary

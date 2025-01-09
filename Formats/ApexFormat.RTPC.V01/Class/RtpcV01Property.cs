@@ -1,7 +1,10 @@
-﻿using System.Xml.Linq;
+﻿using System.Globalization;
+using System.Xml.Linq;
+using System.Xml.Schema;
 using ApexFormat.RTPC.V01.Enum;
 using ApexToolsLauncher.Core.Extensions;
 using ApexToolsLauncher.Core.Hash;
+using ApexToolsLauncher.Core.Libraries;
 using CommunityToolkit.HighPerformance;
 using RustyOptions;
 
@@ -83,6 +86,8 @@ public static class RtpcV01PropertyLibrary
                               + 4 // Data
                               + sizeof(ERtpcV01Variant);  // VariantType
     
+    public const string XName = "value";
+    
     public static Option<RtpcV01Property> ReadRtpcV01Property(this Stream stream)
     {
         if (!stream.CouldRead(SizeOf))
@@ -157,9 +162,9 @@ public static class RtpcV01PropertyLibrary
         return Option.Some(result);
     }
 
-    public static XElement WriteXElement(this RtpcV01Property property)
+    public static XElement ToXElement(this RtpcV01Property property)
     {
-        var xe = new XElement("value");
+        var xe = new XElement(XName);
         
         var optionHashResult = HashDatabases.Lookup(property.NameHash, EHashType.FilePath);
         if (optionHashResult.IsSome(out var hashResult))
@@ -171,7 +176,7 @@ public static class RtpcV01PropertyLibrary
             xe.SetAttributeValue("id", $"{property.NameHash:X8}");
         }
         
-        xe.SetAttributeValue("type", property.Variant.XmlString());
+        xe.SetAttributeValue("type", property.Variant.ToXName());
 
         if (property.Variant.IsPrimitive())
         {
@@ -238,6 +243,166 @@ public static class RtpcV01PropertyLibrary
         return xe;
     }
 
+    public static Result<bool, Exception> FromXElement(this RtpcV01Property property, XElement xe)
+    {
+        const StringSplitOptions defaultStringSplitOptions = StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries;
+        
+        if (!string.Equals(xe.Name.LocalName, XName))
+        {
+            return Result.Err<bool>(new System.Xml.XmlException($"Node {xe.Name.LocalName} does not equal {XName}"));
+        }
+        
+        var nameHashOption = xe.GetAttributeOrNone("name")
+            .Map(s => s.Jenkins())
+            .OrElse(() => xe.GetAttributeOrNone("id")
+                .Map(s => uint.Parse(s, NumberStyles.HexNumber)));
+        
+        if (!nameHashOption.IsSome(out var nameHash))
+        {
+            return Result.Err<bool>(new InvalidOperationException("both name and id attributes are both missing"));
+        }
+
+        property.NameHash = nameHash;
+        
+        if (!xe.GetAttributeOrNone("type").IsSome(out var typeAttribute))
+        {
+            return Result.Err<bool>(new InvalidOperationException("type attribute missing"));
+        }
+
+        property.Variant = RtpcV01VariantLibrary.FromXName(typeAttribute);
+        
+        switch (property.Variant)
+        {
+            case ERtpcV01Variant.Unassigned:
+            case ERtpcV01Variant.UInteger32:
+            {
+                if (!uint.TryParse(xe.Value, out var result))
+                {
+                    return Result.Err<bool>(new XmlSchemaException($"{xe.Value} is not a valid {property.Variant.ToXName()}"));
+                }
+                
+                property.DeferredData = result;
+                return Result.OkExn(true);
+            }
+            case ERtpcV01Variant.Float32:
+            {
+                if (!float.TryParse(xe.Value, out var result))
+                {
+                    return Result.Err<bool>(new XmlSchemaException($"{xe.Value} is not a valid {property.Variant.ToXName()}"));
+                }
+                
+                property.DeferredData = result;
+                return Result.OkExn(true);
+            }
+            case ERtpcV01Variant.String:
+            {
+                property.DeferredData = xe.Value;
+                return Result.OkExn(true);
+            }
+            case ERtpcV01Variant.Vector2:
+            {
+                var strValues = xe.Value.Split(",", defaultStringSplitOptions);
+                property.DeferredData = strValues.Length == 2
+                    ? Array.ConvertAll(strValues, float.Parse) : new float[2];
+                
+                return Result.OkExn(true);
+            }
+            case ERtpcV01Variant.Vector3:
+            {
+                var strValues = xe.Value.Split(",", defaultStringSplitOptions);
+                property.DeferredData = strValues.Length == 3
+                    ? Array.ConvertAll(strValues, float.Parse) : new float[3];
+                
+                return Result.OkExn(true);
+            }
+            case ERtpcV01Variant.Vector4:
+            {
+                var strValues = xe.Value.Split(",", defaultStringSplitOptions);
+                property.DeferredData = strValues.Length == 4
+                    ? Array.ConvertAll(strValues, float.Parse) : new float[4];
+                
+                return Result.OkExn(true);
+            }
+            case ERtpcV01Variant.Float32Array:
+            {
+                var strValues = xe.Value.Split(",", defaultStringSplitOptions);
+                property.DeferredData = strValues.Length != 0
+                    ? Array.ConvertAll(strValues, float.Parse) : [];
+                
+                return Result.OkExn(true);
+            }
+            case ERtpcV01Variant.Matrix3X3:
+            {
+                var strValues = xe.Value.Split(",", defaultStringSplitOptions);
+                property.DeferredData = strValues.Length == 9
+                    ? Array.ConvertAll(strValues, float.Parse) : new float[9];
+                
+                return Result.OkExn(true);
+            }
+            case ERtpcV01Variant.Matrix4X4:
+            {
+                var strValues = xe.Value.Split(",", defaultStringSplitOptions);
+                property.DeferredData = strValues.Length == 16
+                    ? Array.ConvertAll(strValues, float.Parse) : new float[16];
+                
+                return Result.OkExn(true);
+            }
+            case ERtpcV01Variant.UInteger32Array:
+            {
+                var strValues = xe.Value.Split(",", defaultStringSplitOptions);
+                property.DeferredData = strValues.Length != 0
+                    ? Array.ConvertAll(strValues, uint.Parse) : [];
+                
+                return Result.OkExn(true);
+            }
+            case ERtpcV01Variant.ByteArray:
+            {
+                var strValues = xe.Value.Split(",", defaultStringSplitOptions);
+                property.DeferredData = strValues.Length != 0
+                    ? Array.ConvertAll(strValues, MathLibrary.HexToByte) : [];
+                
+                return Result.OkExn(true);
+            }
+            case ERtpcV01Variant.Deprecated:
+            {
+                return Result.Err<bool>(new ArgumentOutOfRangeException());
+            }
+            case ERtpcV01Variant.ObjectId:
+            {
+                property.DeferredData = RtpcV01ObjectIdLibrary.FromString(xe.Value);
+                
+                return Result.OkExn(true);
+            }
+            case ERtpcV01Variant.Events:
+            {
+                if (string.IsNullOrEmpty(xe.Value))
+                {
+                    property.DeferredData = Array.Empty<(uint, uint)>();
+                    return Result.OkExn(true);
+                }
+
+                property.DeferredData = xe.Value.Split(", ", defaultStringSplitOptions)
+                    .Select(eStr => eStr.Split("=", defaultStringSplitOptions)
+                        .Select(MathLibrary.HexToUInt)
+                        .ToArray())
+                    .Select(e => (e[0], e[1]))
+                    .ToArray();
+                
+                break;
+            }
+            case ERtpcV01Variant.Total:
+            {
+                return Result.Err<bool>(new ArgumentOutOfRangeException());
+            }
+            default:
+            {
+                return Result.Err<bool>(new ArgumentOutOfRangeException());
+            }
+        }
+        
+        return Result.OkExn(true);
+    }
+    
     public static uint AsUInt(this RtpcV01Property header)
     {
         if (header.Variant != ERtpcV01Variant.UInteger32)
