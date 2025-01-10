@@ -1,8 +1,9 @@
 ﻿using System.Xml;
 using System.Xml.Linq;
-using ApexFormat.RTPC.V01.Class;
 using ApexToolsLauncher.Core.Class;
 using ApexToolsLauncher.Core.Libraries;
+using ApexFormat.RTPC.V01.Class;
+using ApexToolsLauncher.Core.Extensions;
 using RustyOptions;
 
 namespace ApexFormat.RTPC.V01;
@@ -10,6 +11,8 @@ namespace ApexFormat.RTPC.V01;
 public class RtpcV01File : ICanExtractPath, IExtractPathToPath, IExtractStreamToStream, ICanRepackPath, IRepackPathToPath, IRepackStreamToStream
 {
     protected string ExtractExtension { get; set; } = "epe";
+    
+    protected Dictionary<string, uint> StringMap { get; set; } = new();
     
     public bool CanExtractPath(string path)
     {
@@ -74,17 +77,88 @@ public class RtpcV01File : ICanExtractPath, IExtractPathToPath, IExtractStreamTo
 
     public bool CanRepackPath(string path)
     {
-        return false;
+        if (!File.Exists(path))
+            return false;
+
+        XElement xe;
+        try
+        {
+            xe = XElement.Load(path);
+        }
+        catch (Exception e)
+        {
+            return false;
+        }
+        
+        var xContainers = xe.Elements(RtpcV01ContainerLibrary.XName).ToArray();
+        
+        if (xContainers.Length == 0) return false;
+
+        var container = new RtpcV01Container();
+        return container.CanRepack(xContainers[0]).IsOk(out _);
     }
 
     public Result<int, Exception> RepackPathToPath(string inPath, string outPath)
     {
-        return Result.Err<int>(new NotImplementedException());
+        var xe = XElement.Load(inPath);
+        
+        if (!string.Equals(xe.Name.LocalName, RtpcV01FileLibrary.XName))
+        {
+            return Result.Err<int>(new InvalidOperationException($"Element name is {xe.Name.LocalName} not {RtpcV01FileLibrary.XName}"));
+        }
+
+        var optionExtension = xe.GetAttributeOrNone("extension");
+        if (optionExtension.IsSome(out var extension))
+        {
+            ExtractExtension = extension;
+        }
+        
+        var fileName = Path.GetFileNameWithoutExtension(inPath);
+        var repackFilePath = Path.Join(outPath, $"{fileName}.{ExtractExtension}");
+        
+        using var inStream = new FileStream(inPath, FileMode.Open);
+        using var outStream = new FileStream(repackFilePath, FileMode.Create);
+        
+        return RepackStreamToStream(inStream, outStream);
     }
 
     public Result<int, Exception> RepackStreamToStream(Stream inStream, Stream outStream)
     {
-        return Result.Err<int>(new NotImplementedException());
+        var xe = XElement.Load(inStream);
+        
+        if (!string.Equals(xe.Name.LocalName, RtpcV01FileLibrary.XName))
+        {
+            return Result.Err<int>(new InvalidOperationException($"Element name is {xe.Name.LocalName} not {RtpcV01FileLibrary.XName}"));
+        }
+
+        var optionExtension = xe.GetAttributeOrNone("extension");
+        if (optionExtension.IsSome(out var extension))
+        {
+            ExtractExtension = extension;
+        }
+
+        RtpcV01HeaderLibrary.Write(outStream);
+
+        var xContainers = xe.Elements(RtpcV01ContainerLibrary.XName).ToArray();
+        foreach (var xc in xContainers)
+        {
+            var containerResult = xc.ToRtpcV01Container();
+            if (containerResult.IsErr(out _))
+            {
+                return containerResult.Map(_ => -1);
+            }
+
+            var container = containerResult.Unwrap();
+            var originalOffset = outStream.Position;
+            
+            outStream.Seek(RtpcV01ContainerLibrary.SizeOf, SeekOrigin.Current);
+            outStream.WriteData(container, StringMap);
+            
+            outStream.Seek(originalOffset, SeekOrigin.Begin);
+            outStream.Write(container);
+        }
+
+        return Result.OkExn(0);
     }
 }
 
