@@ -26,12 +26,13 @@ public class RtpcV01Property
 
     public override string ToString()
     {
-        var valueStr = $"{NameHash:X08} ({Variant})";
+        var title = $"{NameHash:X08} ({Variant})";
         if (DeferredData is null)
         {
-            return valueStr;
+            return title;
         }
         
+        var valueStr = string.Empty;
         switch (Variant)
         {
             case ERtpcV01Variant.UInteger32:
@@ -72,12 +73,11 @@ public class RtpcV01Property
             case ERtpcV01Variant.Unassigned:
             case ERtpcV01Variant.Deprecated:
             case ERtpcV01Variant.Total:
-                break;
             default:
-                throw new ArgumentOutOfRangeException();
+                break;
         }
         
-        return valueStr + $" \"{valueStr}\"";
+        return title + $" \"{valueStr}\"";
     }
 }
 
@@ -173,10 +173,30 @@ public static class RtpcV01PropertyLibrary
         return Option<Exception>.None;
     }
     
-    public static Option<Exception> WriteData(this Stream stream, RtpcV01Property property)
+    public static Option<Exception> WriteData(this Stream stream, RtpcV01Property property, Dictionary<string, uint> stringMap)
     {
         if (property.Variant.IsPrimitive())
         {
+            property.DeferredData ??= BitConverter.GetBytes((uint)0);
+            
+            switch (property.Variant)
+            {
+                case ERtpcV01Variant.Unassigned:
+                case ERtpcV01Variant.UInteger32:
+                case ERtpcV01Variant.Total:
+                {
+                    property.Data = BitConverter.GetBytes((uint) property.DeferredData);
+                    break;
+                }
+                case ERtpcV01Variant.Float32:
+                {
+                    property.Data = BitConverter.GetBytes((float) property.DeferredData);
+                    break;
+                }
+                default:
+                    return Option.Some<Exception>(new ArgumentOutOfRangeException());
+            }
+            
             return Option<Exception>.None;
         }
 
@@ -185,14 +205,22 @@ public static class RtpcV01PropertyLibrary
             return Option.Some<Exception>(new ArgumentNullException(nameof(property)));
         }
         
-        property.Data = BitConverter.GetBytes((uint) stream.Position);
         stream.Align(property.Variant.Alignment());
+        property.Data = BitConverter.GetBytes((uint) stream.Position);
         
         switch (property.Variant)
         {
             case ERtpcV01Variant.String:
             {
                 var value = (string) property.DeferredData;
+                if (stringMap.TryGetValue(value, out var stringOffset))
+                {
+                    property.Data = BitConverter.GetBytes(stringOffset);
+                    break;
+                }
+
+                stringMap.Add(value, (uint) stream.Position);
+
                 stream.Write(Encoding.UTF8.GetBytes(value));
                 stream.Write((byte) 0x00);
                 break;
@@ -200,24 +228,24 @@ public static class RtpcV01PropertyLibrary
             case ERtpcV01Variant.Vector2:
             case ERtpcV01Variant.Vector3:
             case ERtpcV01Variant.Vector4:
+            case ERtpcV01Variant.Matrix3X3:
+            case ERtpcV01Variant.Matrix4X4:
             {
                 var vector = (float[]) property.DeferredData;
-                foreach (var value in vector)
+                foreach (var v in vector)
                 {
-                    stream.Write(value);
+                    stream.Write(v);
                 }
                 break;
             }
-            case ERtpcV01Variant.Matrix3X3:
-            case ERtpcV01Variant.Matrix4X4:
             case ERtpcV01Variant.Float32Array:
             {
                 var vector = (float[]) property.DeferredData;
                 stream.Write((uint) vector.Length);
                 
-                foreach (var value in vector)
+                foreach (var v in vector)
                 {
-                    stream.Write(value);
+                    stream.Write(v);
                 }
                 break;
             }
@@ -226,9 +254,9 @@ public static class RtpcV01PropertyLibrary
                 var vector = (uint[]) property.DeferredData;
                 stream.Write((uint) vector.Length);
                 
-                foreach (var value in vector)
+                foreach (var v in vector)
                 {
-                    stream.Write(value);
+                    stream.Write(v);
                 }
                 break;
             }
@@ -237,9 +265,9 @@ public static class RtpcV01PropertyLibrary
                 var vector = (byte[]) property.DeferredData;
                 stream.Write((uint) vector.Length);
                 
-                foreach (var value in vector)
+                foreach (var v in vector)
                 {
-                    stream.Write(value);
+                    stream.Write(v);
                 }
                 break;
             }
@@ -254,10 +282,10 @@ public static class RtpcV01PropertyLibrary
                 var events = ((uint, uint)[]) property.DeferredData;
                 stream.Write((uint) events.Length);
                 
-                foreach (var value in events)
+                foreach (var v in events)
                 {
-                    stream.Write(value.Item1);
-                    stream.Write(value.Item2);
+                    stream.Write(v.Item1);
+                    stream.Write(v.Item2);
                 }
                 break;
             }
@@ -274,7 +302,8 @@ public static class RtpcV01PropertyLibrary
     {
         var xe = new XElement(XName);
         
-        var optionHashResult = HashDatabases.Lookup(property.NameHash, EHashType.FilePath);
+        // var optionHashResult = HashDatabases.Lookup(property.NameHash, EHashType.FilePath);
+        var optionHashResult = Option.None<HashLookupResult>();
         if (optionHashResult.IsSome(out var hashResult))
         {
             xe.SetAttributeValue("name", hashResult.Value);

@@ -12,6 +12,8 @@ public class RtpcV01File : ICanExtractPath, IExtractPathToPath, IExtractStreamTo
 {
     protected string ExtractExtension { get; set; } = "epe";
     
+    protected Dictionary<string, uint> StringMap { get; set; } = new();
+    
     public bool CanExtractPath(string path)
     {
         if (!File.Exists(path))
@@ -147,13 +149,12 @@ public class RtpcV01File : ICanExtractPath, IExtractPathToPath, IExtractStreamTo
             }
 
             var container = containerResult.Unwrap();
-            var originalPosition = outStream.Position;
-
-            // todo: following calls may not be taking self sizeof into consideration
-            outStream.Seek(RtpcV01ContainerLibrary.SizeOf, SeekOrigin.Current);
-            outStream.WriteData(container);
+            var originalOffset = outStream.Position;
             
-            outStream.Seek(originalPosition, SeekOrigin.Begin);
+            outStream.Seek(RtpcV01ContainerLibrary.SizeOf, SeekOrigin.Current);
+            outStream.WriteData(container, StringMap);
+            
+            outStream.Seek(originalOffset, SeekOrigin.Begin);
             outStream.Write(container);
         }
 

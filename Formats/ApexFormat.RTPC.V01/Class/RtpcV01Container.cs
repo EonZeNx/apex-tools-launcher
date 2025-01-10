@@ -25,7 +25,7 @@ public class RtpcV01Container
     public ushort ContainerCount = 0;
     public RtpcV01Property[] Properties = [];
     public RtpcV01Container[] Containers = [];
-
+    
     public override string ToString()
     {
         return $"{NameHash:X08} ({PropertyCount}p / {ContainerCount}c)";
@@ -98,18 +98,29 @@ public static class RtpcV01ContainerLibrary
         return Option<Exception>.None;
     }
     
-    public static Option<Exception> WriteData(this Stream stream, RtpcV01Container container)
+    public static Option<Exception> WriteData(this Stream stream, RtpcV01Container container, Dictionary<string, uint> stringMap)
     {
         container.Offset = (uint) stream.Position;
-        var dataOffset = ByteExtensions.Align(container.Offset + container.PropertyCount * RtpcV01PropertyLibrary.SizeOf, 4) + container.ContainerCount * SizeOf;
+        var containerHeaderOffset = ByteExtensions.Align(container.Offset + container.PropertyCount * RtpcV01PropertyLibrary.SizeOf, 4);
+        var dataOffset = containerHeaderOffset + container.ContainerCount * SizeOf;
         
-        stream.Seek(dataOffset, SeekOrigin.Begin);
-
         if (!container.Properties.Empty())
         { // property data
+            stream.Seek(dataOffset, SeekOrigin.Begin);
+            
             foreach (var property in container.Properties)
             {
-                stream.WriteData(property);
+                stream.WriteData(property, stringMap);
+            }
+            
+            stream.Align(4);
+            dataOffset = stream.Position;
+            
+            stream.Seek(container.Offset, SeekOrigin.Begin);
+            
+            foreach (var property in container.Properties)
+            {
+                stream.Write(property);
             }
             
             stream.Align(4);
@@ -117,26 +128,16 @@ public static class RtpcV01ContainerLibrary
         
         if (!container.Containers.Empty())
         { // container data
-            stream.Align(4);
+            stream.Seek(dataOffset, SeekOrigin.Begin);
             
             foreach (var childContainer in container.Containers)
             {
-                stream.WriteData(childContainer);
+                stream.WriteData(childContainer, stringMap);
             }
-        }
-        
-        stream.Seek(container.Offset, SeekOrigin.Begin);
-        
-        if (!container.Properties.Empty())
-        { // properties
-            foreach (var property in container.Properties)
-            {
-                stream.Write(property);
-            }
-        }
-        
-        if (!container.Containers.Empty())
-        { // containers
+            
+            dataOffset = stream.Position;
+            
+            stream.Seek(containerHeaderOffset, SeekOrigin.Begin);
             stream.Align(4);
             
             foreach (var childContainer in container.Containers)
@@ -144,6 +145,8 @@ public static class RtpcV01ContainerLibrary
                 stream.Write(childContainer);
             }
         }
+        
+        stream.Seek(dataOffset, SeekOrigin.Begin);
         
         return Option<Exception>.None;
     }
