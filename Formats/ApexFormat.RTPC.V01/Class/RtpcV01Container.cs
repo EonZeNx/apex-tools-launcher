@@ -1,4 +1,5 @@
-﻿using System.Xml.Linq;
+﻿using System.Globalization;
+using System.Xml.Linq;
 using ApexToolsLauncher.Core.Extensions;
 using ApexToolsLauncher.Core.Hash;
 using ApexToolsLauncher.Core.Libraries;
@@ -13,7 +14,7 @@ namespace ApexFormat.RTPC.V01.Class;
 /// <br/>Offset - <see cref="uint"/>
 /// <br/>PropertyCount - <see cref="ushort"/>
 /// <br/>ContainerCount - <see cref="ushort"/>
-/// <br/>Properties - <see cref="RtpcV01Variant"/>[]
+/// <br/>Properties - <see cref="RtpcV01Property"/>[]
 /// <br/>Containers - <see cref="RtpcV01Container"/>[]
 /// </summary>
 public class RtpcV01Container
@@ -22,12 +23,12 @@ public class RtpcV01Container
     public uint Offset = 0;
     public ushort PropertyCount = 0;
     public ushort ContainerCount = 0;
-    public RtpcV01Variant[] Properties = [];
+    public RtpcV01Property[] Properties = [];
     public RtpcV01Container[] Containers = [];
-
+    
     public override string ToString()
     {
-        return $"{PropertyCount} properties, {ContainerCount} containers";
+        return $"{NameHash:X08} ({PropertyCount}p / {ContainerCount}c)";
     }
 }
 
@@ -37,6 +38,8 @@ public static class RtpcV01ContainerLibrary
                               + sizeof(uint) // Offset
                               + sizeof(ushort) // PropertyCount
                               + sizeof(ushort); // ContainerCount
+
+    public const string XName = "object";
     
     public static Option<RtpcV01Container> ReadRtpcV01Container(this Stream stream)
     {
@@ -53,7 +56,7 @@ public static class RtpcV01ContainerLibrary
             ContainerCount = stream.Read<ushort>(),
         };
         
-        result.Properties = new RtpcV01Variant[result.PropertyCount];
+        result.Properties = new RtpcV01Property[result.PropertyCount];
         result.Containers = new RtpcV01Container[result.ContainerCount];
         
         var originalPosition = stream.Position;
@@ -61,7 +64,7 @@ public static class RtpcV01ContainerLibrary
         
         for (var i = 0; i < result.PropertyCount; i++)
         {
-            var optionVariant = stream.ReadRtpcV01Variant();
+            var optionVariant = stream.ReadRtpcV01Property();
             if (optionVariant.IsSome(out var variant))
                 result.Properties[i] = variant;
         }
@@ -77,10 +80,119 @@ public static class RtpcV01ContainerLibrary
         stream.Seek(originalPosition, SeekOrigin.Begin);
         return Option.Some(result);
     }
+
+    public static Option<Exception> Write(this Stream stream, RtpcV01Container container)
+    {
+        try
+        {
+            stream.Write(container.NameHash);
+            stream.Write(container.Offset);
+            stream.Write(container.PropertyCount);
+            stream.Write(container.ContainerCount);
+        }
+        catch (Exception e)
+        {
+            return Option.Some(e);
+        }
+        
+        return Option<Exception>.None;
+    }
+    
+    public static Option<Exception> WriteData(this Stream stream, RtpcV01Container container, Dictionary<string, uint> stringMap)
+    {
+        container.Offset = (uint) stream.Position;
+        var containerHeaderOffset = ByteExtensions.Align(container.Offset + container.PropertyCount * RtpcV01PropertyLibrary.SizeOf, 4);
+        var dataOffset = containerHeaderOffset + container.ContainerCount * SizeOf;
+        
+        if (!container.Properties.Empty())
+        { // property data
+            stream.Seek(dataOffset, SeekOrigin.Begin);
+            
+            foreach (var property in container.Properties)
+            {
+                stream.WriteData(property, stringMap);
+            }
+            
+            stream.Align(4);
+            dataOffset = stream.Position;
+            
+            stream.Seek(container.Offset, SeekOrigin.Begin);
+            
+            foreach (var property in container.Properties)
+            {
+                stream.Write(property);
+            }
+            
+            stream.Align(4);
+        }
+        
+        if (!container.Containers.Empty())
+        { // container data
+            stream.Seek(dataOffset, SeekOrigin.Begin);
+            
+            foreach (var childContainer in container.Containers)
+            {
+                stream.WriteData(childContainer, stringMap);
+            }
+            
+            dataOffset = stream.Position;
+            
+            stream.Seek(containerHeaderOffset, SeekOrigin.Begin);
+            stream.Align(4);
+            
+            foreach (var childContainer in container.Containers)
+            {
+                stream.Write(childContainer);
+            }
+        }
+        
+        stream.Seek(dataOffset, SeekOrigin.Begin);
+        
+        return Option<Exception>.None;
+    }
+    
+    public static Result<RtpcV01Container, Exception> ToRtpcV01Container(this XElement xe)
+    {
+        if (!string.Equals(xe.Name.LocalName, XName))
+        {
+            return Result.Err<RtpcV01Container>(new InvalidOperationException($"Node {xe.Name.LocalName} does not equal {XName}"));
+        }
+        
+        var nameHashOption = xe.GetAttributeOrNone("name")
+            .Map(s => s.Jenkins())
+            .OrElse(() => xe.GetAttributeOrNone("id")
+                .Map(s => uint.Parse(s, NumberStyles.HexNumber)));
+        
+        if (!nameHashOption.IsSome(out var nameHash))
+        {
+            return Result.Err<RtpcV01Container>(new InvalidOperationException("both name and id attributes are both missing"));
+        }
+
+        var container = new RtpcV01Container
+        {
+            NameHash = nameHash,
+            Properties = (from pxe in xe.Elements(RtpcV01PropertyLibrary.XName)
+                    let property = new RtpcV01Property()
+                    let result = property.FromXElement(pxe)
+                    where result.IsOk(out _)
+                    select property
+                ).ToArray(),
+            Containers = (from cxe in xe.Elements(XName)
+                    let result = cxe.ToRtpcV01Container()
+                    where result.IsOk(out _)
+                    select result.Unwrap()
+                ).ToArray()
+        };
+
+        container.PropertyCount = (ushort) container.Properties.Length;
+        container.ContainerCount = (ushort) container.Containers.Length;
+
+        return Result.OkExn(container);
+    }
     
     public static XElement ToXElement(this RtpcV01Container container)
     {
-        var xe = new XElement("object");
+        var xe = new XElement(XName);
 
         var optionHashResult = HashDatabases.Lookup(container.NameHash, EHashType.FilePath);
         if (optionHashResult.IsSome(out var hashResult))
@@ -92,24 +204,50 @@ public static class RtpcV01ContainerLibrary
             xe.SetAttributeValue("id", $"{container.NameHash:X8}");
         }
 
-        var children = new XElement[container.PropertyCount];
+        var xProperties = new XElement[container.PropertyCount];
         for (var i = 0; i < container.PropertyCount; i++)
         {
-            children[i] = container.Properties[i].WriteXElement();
-        }
-        Array.Sort(children, XDocumentLibrary.SortNameThenId);
-
-        foreach (var child in children)
-        {
-            xe.Add(child);
+            xProperties[i] = container.Properties[i].ToXElement();
         }
         
-        foreach (var childContainer in container.Containers)
+        Array.Sort(xProperties, XDocumentLibrary.SortNameThenId);
+        foreach (var xProperty in xProperties)
         {
-            xe.Add(childContainer.ToXElement());
+            xe.Add(xProperty);
+        }
+        
+        var xContainers = new XElement[container.ContainerCount];
+        for (var i = 0; i < container.ContainerCount; i++)
+        {
+            xContainers[i] = container.Containers[i].ToXElement();
+        }
+        
+        Array.Sort(xContainers, XDocumentLibrary.SortNameThenId);
+        foreach (var xContainer in xContainers)
+        {
+            xe.Add(xContainer);
         }
         
         return xe;
+    }
+    
+    public static Result<bool, Exception> CanRepack(this RtpcV01Container container, XElement xe)
+    {
+        try
+        {
+            var result = xe.ToRtpcV01Container();
+
+            if (result.Err().IsSome(out var e))
+            {
+                return Result.Err<bool>(e);
+            }
+            
+            return Result.OkExn(true);
+        }
+        catch (Exception e)
+        {
+            return Result.Err<bool>(e);
+        }
     }
     
     public static void FilterBy(this RtpcV01Container container, IRtpcV01Filter[] filters)

@@ -1,6 +1,6 @@
 ﻿namespace ApexFormat.IC.V01.Enum;
 
-public enum EIcVariantV01 : byte
+public enum EIcV01Variant : byte
 {
     Unassigned =        0x00,
     UInteger32 =        0x01,
@@ -20,62 +20,62 @@ public enum EIcVariantV01 : byte
     Total =             0x0F
 }
 
-public static class EIcV01VariantExtensions
+public static class IcV01VariantLibrary
 {
-    public static Dictionary<EIcVariantV01, string> VariantToXmlString = new()
+    public static readonly Dictionary<EIcV01Variant, bool> PrimitiveMap = new()
     {
-        { EIcVariantV01.Unassigned,       "unassigned" },
-        { EIcVariantV01.UInteger32,       "int" },
-        { EIcVariantV01.Float32,          "float" },
-        { EIcVariantV01.String,           "string" },
-        { EIcVariantV01.Vector2,          "vec2" },
-        { EIcVariantV01.Vector3,          "vec3" },
-        { EIcVariantV01.Vector4,          "vec4" },
-        { EIcVariantV01.Matrix3X3,        "mat3x3" },
-        { EIcVariantV01.Matrix3X4,        "mat3x4" },
-        { EIcVariantV01.UInteger32Array,  "int[]" },
-        { EIcVariantV01.Float32Array,     "float[]" },
-        { EIcVariantV01.ByteArray,        "byte[]" },
-        { EIcVariantV01.Deprecated,       "dep" },
-        { EIcVariantV01.ObjectId,         "oid" },
-        { EIcVariantV01.Events,           "events" },
-        { EIcVariantV01.Total,            "total" },
+        { EIcV01Variant.Unassigned,       true },
+        { EIcV01Variant.UInteger32,       true },
+        { EIcV01Variant.Float32,          true },
+        { EIcV01Variant.String,           false },
+        { EIcV01Variant.Vector2,          false },
+        { EIcV01Variant.Vector3,          false },
+        { EIcV01Variant.Vector4,          false },
+        { EIcV01Variant.Matrix3X3,        false },
+        { EIcV01Variant.Matrix3X4,        false },
+        { EIcV01Variant.UInteger32Array,  false },
+        { EIcV01Variant.Float32Array,     false },
+        { EIcV01Variant.ByteArray,        false },
+        { EIcV01Variant.Deprecated,       false },
+        { EIcV01Variant.ObjectId,         false },
+        { EIcV01Variant.Events,           false },
+        { EIcV01Variant.Total,            true },
+    };
+    
+    public static Dictionary<EIcV01Variant, string> XNameMap = new()
+    {
+        { EIcV01Variant.Unassigned,       "unassigned" },
+        { EIcV01Variant.UInteger32,       "int" },
+        { EIcV01Variant.Float32,          "float" },
+        { EIcV01Variant.String,           "string" },
+        { EIcV01Variant.Vector2,          "vec2" },
+        { EIcV01Variant.Vector3,          "vec3" },
+        { EIcV01Variant.Vector4,          "vec4" },
+        { EIcV01Variant.Matrix3X3,        "mat3x3" },
+        { EIcV01Variant.Matrix3X4,        "mat3x4" },
+        { EIcV01Variant.UInteger32Array,  "int[]" },
+        { EIcV01Variant.Float32Array,     "float[]" },
+        { EIcV01Variant.ByteArray,        "byte[]" },
+        { EIcV01Variant.Deprecated,       "dep" },
+        { EIcV01Variant.ObjectId,         "oid" },
+        { EIcV01Variant.Events,           "events" },
+        { EIcV01Variant.Total,            "total" },
     };
 
-    public static Dictionary<string, EIcVariantV01> XmlStringToVariant = VariantToXmlString.ToDictionary(kvp => kvp.Value, kvp => kvp.Key);
-    
-    public static readonly Dictionary<EIcVariantV01, bool> VariantPrimitive = new()
-    {
-        { EIcVariantV01.Unassigned,       true },
-        { EIcVariantV01.UInteger32,       true },
-        { EIcVariantV01.Float32,          true },
-        { EIcVariantV01.String,           false },
-        { EIcVariantV01.Vector2,          false },
-        { EIcVariantV01.Vector3,          false },
-        { EIcVariantV01.Vector4,          false },
-        { EIcVariantV01.Matrix3X3,        false },
-        { EIcVariantV01.Matrix3X4,        false },
-        { EIcVariantV01.UInteger32Array,  false },
-        { EIcVariantV01.Float32Array,     false },
-        { EIcVariantV01.ByteArray,        false },
-        { EIcVariantV01.Deprecated,       false },
-        { EIcVariantV01.ObjectId,         false },
-        { EIcVariantV01.Events,           false },
-        { EIcVariantV01.Total,            true },
-    };
+    public static Dictionary<string, EIcV01Variant> FromXNameMap = XNameMap.ToDictionary(kvp => kvp.Value, kvp => kvp.Key);
 
-    public static string ToXmlString(this EIcVariantV01 variantV01)
+    public static string ToXName(this EIcV01Variant variant)
     {
-        return VariantToXmlString.GetValueOrDefault(variantV01, "failed");
+        return XNameMap.GetValueOrDefault(variant, "failed");
     }
     
-    public static EIcVariantV01 ToEIcVariantV01(this string xmlString)
+    public static EIcV01Variant FromXName(string xmlString)
     {
-        return XmlStringToVariant.GetValueOrDefault(xmlString, EIcVariantV01.Unassigned);
+        return FromXNameMap.GetValueOrDefault(xmlString, EIcV01Variant.Unassigned);
     }
     
-    public static bool IsPrimitive(this EIcVariantV01 variantType)
+    public static bool IsPrimitive(this EIcV01Variant variantType)
     {
-        return VariantPrimitive.GetValueOrDefault(variantType, true);
+        return PrimitiveMap.GetValueOrDefault(variantType, true);
     }
 }
