@@ -204,21 +204,28 @@ public static class RtpcV01ContainerLibrary
             xe.SetAttributeValue("id", $"{container.NameHash:X8}");
         }
 
-        var children = new XElement[container.PropertyCount];
+        var xProperties = new XElement[container.PropertyCount];
         for (var i = 0; i < container.PropertyCount; i++)
         {
-            children[i] = container.Properties[i].ToXElement();
-        }
-        // Array.Sort(children, XDocumentLibrary.SortNameThenId);
-
-        foreach (var child in children)
-        {
-            xe.Add(child);
+            xProperties[i] = container.Properties[i].ToXElement();
         }
         
-        foreach (var childContainer in container.Containers)
+        Array.Sort(xProperties, XDocumentLibrary.SortNameThenId);
+        foreach (var xProperty in xProperties)
         {
-            xe.Add(childContainer.ToXElement());
+            xe.Add(xProperty);
+        }
+        
+        var xContainers = new XElement[container.ContainerCount];
+        for (var i = 0; i < container.ContainerCount; i++)
+        {
+            xContainers[i] = container.Containers[i].ToXElement();
+        }
+        
+        Array.Sort(xContainers, XDocumentLibrary.SortNameThenId);
+        foreach (var xContainer in xContainers)
+        {
+            xe.Add(xContainer);
         }
         
         return xe;

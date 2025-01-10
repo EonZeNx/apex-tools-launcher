@@ -302,8 +302,7 @@ public static class RtpcV01PropertyLibrary
     {
         var xe = new XElement(XName);
         
-        // var optionHashResult = HashDatabases.Lookup(property.NameHash, EHashType.FilePath);
-        var optionHashResult = Option.None<HashLookupResult>();
+        var optionHashResult = HashDatabases.Lookup(property.NameHash, EHashType.FilePath);
         if (optionHashResult.IsSome(out var hashResult))
         {
             xe.SetAttributeValue("name", hashResult.Value);
