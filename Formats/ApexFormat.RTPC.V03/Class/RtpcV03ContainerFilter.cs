@@ -6,8 +6,8 @@ namespace ApexFormat.RTPC.V03.Class;
 public interface IRtpcV03Filter
 {
     public bool MatchContainer(RtpcV03Container container);
-    public bool MatchProperty(RtpcV03Variant property, bool subMatch = false);
-    public bool SubMatchProperty(RtpcV03Variant property);
+    public bool MatchProperty(RtpcV03Property property, bool subMatch = false);
+    public bool SubMatchProperty(RtpcV03Property property);
 }
 
 public class RtpcV03Filter : IRtpcV03Filter
@@ -28,7 +28,7 @@ public class RtpcV03Filter : IRtpcV03Filter
         return container.Properties.Any(p => MatchProperty(p));
     }
 
-    public virtual bool MatchProperty(RtpcV03Variant property, bool subMatch = false)
+    public virtual bool MatchProperty(RtpcV03Property property, bool subMatch = false)
     {
         var result = NameHash == property.NameHash;
         if (!result && subMatch)
@@ -39,7 +39,7 @@ public class RtpcV03Filter : IRtpcV03Filter
         return result;
     }
 
-    public virtual bool SubMatchProperty(RtpcV03Variant property)
+    public virtual bool SubMatchProperty(RtpcV03Property property)
     {
         return SubFilters.Any(f => f.MatchProperty(property));
     }
@@ -70,11 +70,11 @@ public class RtpcV03FilterString : IRtpcV03Filter
         return container.Properties.Any(property => MatchProperty(property));
     }
 
-    public virtual bool MatchProperty(RtpcV03Variant property, bool subMatch = false)
+    public virtual bool MatchProperty(RtpcV03Property property, bool subMatch = false)
     {
         if (NameHash == property.NameHash &&
             property.DeferredData is not null &&
-            property.VariantType == ERtpcV03VariantType.String)
+            property.Variant == ERtpcV03Variant.String)
         {
             var deferredData = ((string) property.DeferredData).Trim();
             if (deferredData.Equals(Value)) return true;
@@ -88,7 +88,7 @@ public class RtpcV03FilterString : IRtpcV03Filter
         return false;
     }
 
-    public virtual bool SubMatchProperty(RtpcV03Variant property)
+    public virtual bool SubMatchProperty(RtpcV03Property property)
     {
         return SubFilters.Any(f => f.MatchProperty(property));
     }

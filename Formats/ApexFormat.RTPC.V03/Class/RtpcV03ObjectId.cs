@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
 using CommunityToolkit.HighPerformance;
+using RustyOptions;
 
 namespace ApexFormat.RTPC.V03.Class;
 
@@ -46,11 +47,18 @@ public static class RtpcV03ObjectIdLibrary
         return oid;
     }
     
-    public static RtpcV03ObjectId ReadRtpcV01ObjectId(this Stream stream)
+    public static RtpcV03ObjectId ReadRtpcV03ObjectId(this Stream stream)
     {
         var value = stream.Read<ulong>();
         var oid = FromUInt64(value);
         
         return oid;
+    }
+
+    public static Option<Exception> Write(this Stream stream, RtpcV03ObjectId oid)
+    {
+        stream.Write(oid.ToUInt64());
+        
+        return Option<Exception>.None;
     }
 }
