@@ -8,6 +8,7 @@ using ApexFormat.IC.V01;
 using ApexFormat.RTPC.V01;
 using ApexFormat.RTPC.V03;
 using ApexFormat.SARC.V02;
+using ApexFormat.SARC.V03;
 using ApexFormat.TAB.V02;
 using ApexToolsLauncher.Core.Class;
 using RustyOptions;
@@ -33,6 +34,10 @@ public static class AtlOperate
         if (SarcV02Manager.CanProcess(path))
         {
             manager = new SarcV02Manager();
+        }
+        if (SarcV03Manager.CanProcess(path))
+        {
+            manager = new SarcV03Manager();
         }
         if (AafV01Manager.CanProcess(path))
         {

@@ -10,6 +10,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\ApexFormat.SARC.V03\ApexFormat.SARC.V03.csproj" />
       <ProjectReference Include="..\ApexToolsLauncher.Core\ApexToolsLauncher.Core.csproj" />
       <ProjectReference Include="..\ApexChains\ApexChain.AAFSARC\ApexChain.AAFSARC.csproj" />
       <ProjectReference Include="..\Formats\ApexFormat.AAF.V01\ApexFormat.AAF.V01.csproj" />
