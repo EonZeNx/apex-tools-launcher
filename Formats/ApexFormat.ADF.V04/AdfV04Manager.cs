@@ -52,11 +52,7 @@ public class AdfV04Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
         outer.Add(rootXElement);
         
         var xd = new XDocument(XDocumentLibrary.ProjectComment(), outer);
-        using var xw = XmlWriter.Create(outBuffer, new XmlWriterSettings
-        {
-            Indent = true,
-            IndentChars = "\t"
-        });
+        using var xw = XmlWriter.Create(outBuffer, XDocumentLibrary.XmlWriterSettings);
         
         Console.WriteLine(xd.ToString());
         xd.Save(xw);

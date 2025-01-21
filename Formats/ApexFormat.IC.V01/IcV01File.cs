@@ -53,11 +53,7 @@ public class IcV01File : ICanExtractPath, IExtractPathToPath, IExtractStreamToSt
         }
         
         var xd = new XDocument(XDocumentLibrary.ProjectComment(), outer);
-        using var xw = XmlWriter.Create(outStream, new XmlWriterSettings
-        {
-            Indent = true,
-            IndentChars = "  "
-        });
+        using var xw = XmlWriter.Create(outStream, XDocumentLibrary.XmlWriterSettings);
         xd.Save(xw);
 
         return Result.OkExn(0);

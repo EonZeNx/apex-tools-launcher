@@ -65,11 +65,7 @@ public class RtpcV01File : ICanExtractPath, IExtractPathToPath, IExtractStreamTo
         outer.Add(rootXElement);
         
         var xd = new XDocument(XDocumentLibrary.ProjectComment(), outer);
-        using var xw = XmlWriter.Create(outStream, new XmlWriterSettings
-        {
-            Indent = true,
-            IndentChars = "\t"
-        });
+        using var xw = XmlWriter.Create(outStream, XDocumentLibrary.XmlWriterSettings);
         xd.Save(xw);
 
         return Result.OkExn(0);

@@ -83,11 +83,7 @@ public class SarcV02File : ICanExtractPath, IExtractPathToPath, IExtractStreamTo
         using var xmlFile = new FileStream(xmlFilePath, FileMode.Create);
         
         var xd = new XDocument(XDocumentLibrary.ProjectComment(), outer);
-        using var xw = XmlWriter.Create(xmlFile, new XmlWriterSettings
-        {
-            Indent = true,
-            IndentChars = "\t"
-        });
+        using var xw = XmlWriter.Create(xmlFile, XDocumentLibrary.XmlWriterSettings);
         xd.Save(xw);
 
         return Result.OkExn(true);
