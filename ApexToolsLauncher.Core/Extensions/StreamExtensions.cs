@@ -136,6 +136,7 @@ public static class StreamExtensions
         return stream.Position + size <= stream.Length;
     }
     
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Result<T, Exception> ReadResult<T>(this Stream stream, EEndian endian = EEndian.Little)
         where T : unmanaged
     {
