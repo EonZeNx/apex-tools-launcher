@@ -81,6 +81,6 @@ public class AdfV04Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
 
     public string GetProcessorName()
     {
-        return "ADF v04";
+        return AdfV04FileLibrary.VersionName;
     }
 }

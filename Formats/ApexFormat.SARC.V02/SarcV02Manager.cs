@@ -47,6 +47,6 @@ public class SarcV02Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
 
     public string GetProcessorName()
     {
-        return $"SARC v{SarcV02FileLibrary.Version:D2}";
+        return SarcV02FileLibrary.VersionName;
     }
 }

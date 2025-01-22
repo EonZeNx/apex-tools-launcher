@@ -1,8 +1,5 @@
-﻿using System.Xml;
-using System.Xml.Linq;
-using ApexFormat.RTPC.V03.Class;
+﻿using ApexFormat.RTPC.V03.Class;
 using ApexToolsLauncher.Core.Class;
-using ApexToolsLauncher.Core.Libraries;
 
 namespace ApexFormat.RTPC.V03;
 
@@ -40,6 +37,6 @@ public class RtpcV03Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
 
     public string GetProcessorName()
     {
-        return $"RTPC v{RtpcV03FileLibrary.Version:D2}";
+        return RtpcV03FileLibrary.VersionName;
     }
 }

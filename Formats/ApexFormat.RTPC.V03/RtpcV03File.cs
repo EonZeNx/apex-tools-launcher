@@ -1,5 +1,4 @@
 ﻿using System.Xml;
-using System.Xml.Linq;
 using ApexFormat.RTPC.V03.Class;
 using ApexToolsLauncher.Core.Class;
 using ApexToolsLauncher.Core.Libraries;

@@ -40,6 +40,6 @@ public class AafV01Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
 
     public string GetProcessorName()
     {
-        return "AAF v01";
+        return AafV01FileLibrary.VersionName;
     }
 }
