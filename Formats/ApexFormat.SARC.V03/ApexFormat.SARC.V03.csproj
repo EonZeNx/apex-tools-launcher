@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ApexToolsLauncher.Core\ApexToolsLauncher.Core.csproj" />
+    <ProjectReference Include="..\..\ApexToolsLauncher.Core\ApexToolsLauncher.Core.csproj" />
   </ItemGroup>
 
 </Project>
