@@ -19,9 +19,9 @@ public class SarcV03Entry
     public uint Size = 0;
     public uint Unk0 = 0;
     public uint Unk1 = 0;
-    
-    public string Path = string.Empty;
-    
+
+    public string Path { get; set; } = string.Empty;
+
     public bool LocalData => DataOffset != 0 && Size != 0;
 }
 

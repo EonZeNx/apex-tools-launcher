@@ -62,18 +62,18 @@ public class SarcV02File : ICanExtractPath, IExtractPathToPath, IExtractStreamTo
         return result;
     }
     
-    public Result<bool, Exception> WriteEntryFile(string outPath, SarcV02ArchiveEntry[] entries)
+    public Result<bool, Exception> WriteEntryFile(string outPath, SarcV02Entry[] entries)
     {
         var root = new XElement("files");
-        foreach (var archiveEntry in entries)
+        foreach (var entry in entries)
         {
-            var entry = XElementBuilder.Create("file")
-                .WithAttribute("size", archiveEntry.Size.ToString())
-                .WithAttribute("ref", (archiveEntry.DataOffset == 0).ToString())
-                .WithContent(archiveEntry.FilePath)
+            var xEntry = XElementBuilder.Create("file")
+                .WithAttribute("size", entry.Size.ToString())
+                .WithAttribute("ref", (!entry.LocalData).ToString())
+                .WithContent(entry.FilePath)
                 .Build();;
             
-            root.Add(entry);
+            root.Add(xEntry);
         }
 
         var xmlFilePath = Path.Join(outPath, "@files.xml");
@@ -92,48 +92,48 @@ public class SarcV02File : ICanExtractPath, IExtractPathToPath, IExtractStreamTo
         return Result.OkExn(true);
     }
 
-    public static Option<SarcV02ArchiveEntry[]> ParseFileEntries(Stream stream)
+    public static Option<SarcV02Entry[]> ParseFileEntries(Stream stream)
     {
         if (stream.Length == 0)
-            return Option<SarcV02ArchiveEntry[]>.None;
+            return Option<SarcV02Entry[]>.None;
 
         var optionHeader = stream.ReadSarcV02Header();
         if (!optionHeader.IsSome(out var header))
-            return Option<SarcV02ArchiveEntry[]>.None;
+            return Option<SarcV02Entry[]>.None;
         
-        var archiveEntries = new List<SarcV02ArchiveEntry>();
+        var entries = new List<SarcV02Entry>();
 
         var startPosition = stream.Position;
         while (true)
         {
-            var optionArchiveEntry = stream.ReadSarcV02ArchiveEntry();
-            if (!optionArchiveEntry.IsSome(out var archiveEntry))
+            var optionEntry = stream.ReadSarcV02Entry();
+            if (!optionEntry.IsSome(out var entry))
                 continue;
             
-            archiveEntries.Add(archiveEntry);
+            entries.Add(entry);
             if (header.Size - (stream.Position - startPosition) <= 15)
             {
                 break;
             }
         }
 
-        return Option.Create(archiveEntries.ToArray());
+        return Option.Create(entries.ToArray());
     }
     
-    public static Result<bool, Exception> ReadFileEntry(Stream inBuffer, SarcV02ArchiveEntry archiveEntry, Stream outBuffer)
+    public static Result<bool, Exception> ReadFileEntry(Stream inBuffer, SarcV02Entry entry, Stream outBuffer)
     {
-        if (archiveEntry.DataOffset == 0 || archiveEntry.Size == 0)
+        if (entry.DataOffset == 0 || entry.Size == 0)
         {
             return Result.Err<bool>(new InvalidOperationException("Invalid data offset or size"));
         }
         
-        if (archiveEntry.DataOffset + archiveEntry.Size > inBuffer.Length)
+        if (entry.DataOffset + entry.Size > inBuffer.Length)
         {
             return Result.Err<bool>(new InvalidOperationException("Invalid data offset or size"));
         }
 
-        inBuffer.Seek(archiveEntry.DataOffset, SeekOrigin.Begin);
-        inBuffer.CopyToLimit(outBuffer, (int) archiveEntry.Size);
+        inBuffer.Seek(entry.DataOffset, SeekOrigin.Begin);
+        inBuffer.CopyToLimit(outBuffer, (int) entry.Size);
 
         return Result.OkExn(true);
     }
@@ -153,20 +153,20 @@ public class SarcV02File : ICanExtractPath, IExtractPathToPath, IExtractStreamTo
 
         for (var i = 0; i < fileEntries.Length; i += 1)
         {
-            var archiveEntry = fileEntries[i];
-            if (archiveEntry.DataOffset == 0)
+            var entry = fileEntries[i];
+            if (entry.DataOffset == 0)
                 continue;
             
-            var directoryPath = Path.Join(outPath, Path.GetDirectoryName(archiveEntry.FilePath));
+            var directoryPath = Path.Join(outPath, Path.GetDirectoryName(entry.FilePath));
             if (!Directory.Exists(directoryPath))
             {
                 Directory.CreateDirectory(directoryPath);
             }
             
-            var filePath = Path.Join(directoryPath, Path.GetFileName(archiveEntry.FilePath));
+            var filePath = Path.Join(directoryPath, Path.GetFileName(entry.FilePath));
             using var outBuffer = new FileStream(filePath, FileMode.Create);
 
-            var fileEntryResult = ReadFileEntry(inStream, archiveEntry, outBuffer);
+            var fileEntryResult = ReadFileEntry(inStream, entry, outBuffer);
             if (fileEntryResult.IsErr(out var ex))
             {
                 return Result.Err<int>(ex ?? new InvalidOperationException("Failed to extract file entry"));
