@@ -4,6 +4,7 @@ using ApexFormat.SARC.V02.Class;
 using ApexToolsLauncher.Core.Class;
 using ApexToolsLauncher.Core.Extensions;
 using ApexToolsLauncher.Core.Libraries;
+using ApexToolsLauncher.Core.Libraries.XBuilder;
 using RustyOptions;
 
 namespace ApexFormat.SARC.V02;
@@ -63,26 +64,27 @@ public class SarcV02File : ICanExtractPath, IExtractPathToPath, IExtractStreamTo
     
     public Result<bool, Exception> WriteEntryFile(string outPath, SarcV02ArchiveEntry[] entries)
     {
-        var outer = new XElement(SarcV02FileLibrary.XName);
-        outer.SetAttributeValue("extension", ExtractExtension);
-        outer.SetAttributeValue("version", SarcV02FileLibrary.Version);
-        
         var root = new XElement("files");
         foreach (var archiveEntry in entries)
         {
-            var entry = new XElement("file");
-            entry.SetAttributeValue("size", archiveEntry.Size);
-            entry.SetAttributeValue("ref", archiveEntry.DataOffset == 0);
-            entry.SetValue(archiveEntry.FilePath);
+            var entry = XElementBuilder.Create("file")
+                .WithAttribute("size", archiveEntry.Size.ToString())
+                .WithAttribute("ref", (archiveEntry.DataOffset == 0).ToString())
+                .WithContent(archiveEntry.FilePath);
             
             root.Add(entry);
         }
-        outer.Add(root);
 
         var xmlFilePath = Path.Join(outPath, "@files.xml");
         using var xmlFile = new FileStream(xmlFilePath, FileMode.Create);
         
-        var xd = new XDocument(XDocumentLibrary.ProjectComment(), outer);
+        var xd = XProjectBuilder.CreateXProjectBuilder()
+            .WithType(SarcV02FileLibrary.XName)
+            .WithVersion(SarcV02FileLibrary.Version.ToString())
+            .WithExtension(ExtractExtension)
+            .WithRoot(root)
+            .Build();
+        
         using var xw = XmlWriter.Create(xmlFile, XDocumentLibrary.XmlWriterSettings);
         xd.Save(xw);
 
@@ -192,6 +194,8 @@ public class SarcV02File : ICanExtractPath, IExtractPathToPath, IExtractStreamTo
 
 public static class SarcV02FileLibrary
 {
-    public const string XName = "archive";
+    public const string XName = "sarc";
     public const int Version = 2;
+
+    public static string VersionName = $"{XName.ToUpper()} v{Version:D2}";
 }

@@ -1,8 +1,8 @@
 using System.Xml;
-using System.Xml.Linq;
 using ApexFormat.ADF.V04.Class;
 using ApexToolsLauncher.Core.Class;
 using ApexToolsLauncher.Core.Libraries;
+using ApexToolsLauncher.Core.Libraries.XBuilder;
 
 namespace ApexFormat.ADF.V04;
 
@@ -42,16 +42,18 @@ public class AdfV04Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
         file.ReadStringHashes(inBuffer);
         var localStringTable = file.ReadStringTable(inBuffer);
         file.ReadTypes(inBuffer, localStringTable);
-        // TODO: Add types from other places
+        // todo: add types from other places
         
-        var outer = new XElement("adf");
-        outer.SetAttributeValue("extension", "adf");
-        outer.SetAttributeValue("version", "4");
+        var root = file.WriteXInstances(inBuffer, localStringTable);
+        
+        // todo: extract extension
+        var xd = XProjectBuilder.CreateXProjectBuilder()
+            .WithType(AdfV04FileLibrary.XName)
+            .WithVersion(AdfV04FileLibrary.Version.ToString())
+            .WithExtension("adf")
+            .WithRoot(root)
+            .Build();
 
-        var rootXElement = file.WriteXInstances(inBuffer, localStringTable);
-        outer.Add(rootXElement);
-        
-        var xd = new XDocument(XDocumentLibrary.ProjectComment(), outer);
         using var xw = XmlWriter.Create(outBuffer, XDocumentLibrary.XmlWriterSettings);
         
         Console.WriteLine(xd.ToString());

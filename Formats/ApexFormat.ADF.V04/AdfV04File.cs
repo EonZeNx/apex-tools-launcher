@@ -629,3 +629,11 @@ public class AdfV04File
         return xeInstances;
     }
 }
+
+public static class AdfV04FileLibrary
+{
+    public const string XName = "adf";
+    public const int Version = 4;
+
+    public static string VersionName = $"{XName.ToUpper()} v{Version:D2}";
+}

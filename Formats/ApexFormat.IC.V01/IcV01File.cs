@@ -3,6 +3,7 @@ using System.Xml.Linq;
 using ApexFormat.IC.V01.Class;
 using ApexToolsLauncher.Core.Class;
 using ApexToolsLauncher.Core.Libraries;
+using ApexToolsLauncher.Core.Libraries.XBuilder;
 using RustyOptions;
 
 namespace ApexFormat.IC.V01;
@@ -43,16 +44,18 @@ public class IcV01File : ICanExtractPath, IExtractPathToPath, IExtractStreamToSt
             
             instances.Add(instance);
         }
-        
-        var outer = new XElement(IcV01FileLibrary.XName);
-        outer.SetAttributeValue("extension", ExtractExtension);
 
-        foreach (var instance in instances)
-        {
-            outer.Add(instance.ToXElement());
-        }
+        var root = XElementBuilder.Create("instances")
+            .WithChildren(instances, inst => inst.ToXElement())
+            .Build();
         
-        var xd = new XDocument(XDocumentLibrary.ProjectComment(), outer);
+        var xd = XProjectBuilder.CreateXProjectBuilder()
+            .WithType(IcV01FileLibrary.XName)
+            .WithVersion(IcV01FileLibrary.Version.ToString())
+            .WithExtension(ExtractExtension)
+            .WithRoot(root)
+            .Build();
+        
         using var xw = XmlWriter.Create(outStream, XDocumentLibrary.XmlWriterSettings);
         xd.Save(xw);
 
@@ -153,6 +156,8 @@ public class IcV01File : ICanExtractPath, IExtractPathToPath, IExtractStreamToSt
 
 public static class IcV01FileLibrary
 {
-    public const string XName = "instances";
+    public const string XName = "ic";
     public const int Version = 1;
+
+    public static string VersionName = $"{XName.ToUpper()} v{Version:D2}";
 }
