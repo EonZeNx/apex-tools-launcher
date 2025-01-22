@@ -70,7 +70,8 @@ public class SarcV02File : ICanExtractPath, IExtractPathToPath, IExtractStreamTo
             var entry = XElementBuilder.Create("file")
                 .WithAttribute("size", archiveEntry.Size.ToString())
                 .WithAttribute("ref", (archiveEntry.DataOffset == 0).ToString())
-                .WithContent(archiveEntry.FilePath);
+                .WithContent(archiveEntry.FilePath)
+                .Build();;
             
             root.Add(entry);
         }
