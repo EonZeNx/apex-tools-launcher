@@ -55,7 +55,7 @@ public static class AdfV04MemberExtensions
 {
     public static Option<AdfV04Member> ReadAdfV04Member(this Stream stream)
     {
-        if (stream.Length - stream.Position < AdfV04Header.SizeOf())
+        if (stream.Length - stream.Position < AdfV04HeaderLibrary.SizeOf)
         {
             return Option<AdfV04Member>.None;
         }

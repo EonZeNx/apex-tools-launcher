@@ -6,18 +6,46 @@ using RustyOptions;
 namespace ApexFormat.ADF.V04.Class;
 
 /// <summary>
-/// Structure:
-/// <br/>Type - <see cref="EAdfV04Type"/>
-/// <br/>Size - <see cref="uint"/>
-/// <br/>Alignment - <see cref="uint"/>
-/// <br/>TypeHash - <see cref="uint"/>
-/// <br/>NameIndex - <see cref="ulong"/>
-/// <br/>Flags - <see cref="ushort"/>
-/// <br/>ScalarType - <see cref="EAdfV04ScalarType"/>
-/// <br/>ScalarTypeHash - <see cref="uint"/>
-/// <br/>BitCountOrArrayLength - <see cref="uint"/>
-/// <br/>MemberCountOrDataAlign - <see cref="uint"/>
-/// <br/>Members - <see cref="AdfV04Member"/>[]
+/// <remarks>
+///  <list type="table">
+///    <listheader>
+///      <term>Property</term><description>Type</description>
+///    </listheader>
+///    <item>
+///      <term><c>Type</c></term><description><see cref="EAdfV04Type"/></description>
+///    </item>
+///    <item>
+///      <term><c>Size</c></term><description><see cref="uint"/></description>
+///    </item>
+///    <item>
+///      <term><c>Alignment</c></term><description><see cref="uint"/></description>
+///    </item>
+///    <item>
+///      <term><c>TypeHash</c></term><description><see cref="uint"/></description>
+///    </item>
+///    <item>
+///      <term><c>NameIndex</c></term><description><see cref="ulong"/></description>
+///    </item>
+///    <item>
+///      <term><c>Flags</c></term><description><see cref="ushort"/></description>
+///    </item>
+///    <item>
+///      <term><c>ScalarType</c></term><description><see cref="EAdfV04ScalarType"/></description>
+///    </item>
+///    <item>
+///      <term><c>ScalarTypeHash</c></term><description><see cref="uint"/></description>
+///    </item>
+///    <item>
+///      <term><c>BitCountOrArrayLength</c></term><description><see cref="uint"/></description>
+///    </item>
+///    <item>
+///      <term><c>MemberCountOrDataAlign</c></term><description><see cref="uint"/></description>
+///    </item>
+///    <item>
+///      <term><c>Members</c></term><description><see cref="AdfV04Member"/>[]</description>
+///    </item>
+///  </list>
+/// </remarks>
 /// </summary>
 public class AdfV04Type : ISizeOf
 {
@@ -58,7 +86,7 @@ public static class AdfV04TypeExtensions
 {
     public static Option<AdfV04Type> ReadAdfV04Type(this Stream stream)
     {
-        if (stream.Length - stream.Position < AdfV04Header.SizeOf())
+        if (stream.Length - stream.Position < AdfV04HeaderLibrary.SizeOf)
         {
             return Option<AdfV04Type>.None;
         }

@@ -17,8 +17,7 @@ public enum EAdfV04Type : uint
 
 public static class AdfV04TypeExtensions 
 {
-    public static readonly Dictionary<EAdfV04Type, string> EnumToXString = Enum.GetValues(typeof(EAdfV04Type))
-        .Cast<EAdfV04Type>()
+    public static readonly Dictionary<EAdfV04Type, string> EnumToXString = Enum.GetValues<EAdfV04Type>()
         .ToDictionary(cc => cc, cc => cc.ToString().ToLower());
 
     public static readonly Dictionary<string, EAdfV04Type> XStringToEnum =

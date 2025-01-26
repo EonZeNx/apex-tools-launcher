@@ -58,13 +58,13 @@ public class AdfV04File
     
     public void AddBuiltInTypes()
     {
-        AddBuiltInType(EAdfV04Type.Scalar, EAdfV04ScalarType.Signed, sizeof(byte), "uint8");
+        AddBuiltInType(EAdfV04Type.Scalar, EAdfV04ScalarType.Unsigned, sizeof(byte), "uint8");
         AddBuiltInType(EAdfV04Type.Scalar, EAdfV04ScalarType.Signed, sizeof(sbyte), "int8");
-        AddBuiltInType(EAdfV04Type.Scalar, EAdfV04ScalarType.Signed, sizeof(ushort), "uint16");
+        AddBuiltInType(EAdfV04Type.Scalar, EAdfV04ScalarType.Unsigned, sizeof(ushort), "uint16");
         AddBuiltInType(EAdfV04Type.Scalar, EAdfV04ScalarType.Signed, sizeof(short), "int16");
-        AddBuiltInType(EAdfV04Type.Scalar, EAdfV04ScalarType.Signed, sizeof(uint), "uint32");
+        AddBuiltInType(EAdfV04Type.Scalar, EAdfV04ScalarType.Unsigned, sizeof(uint), "uint32");
         AddBuiltInType(EAdfV04Type.Scalar, EAdfV04ScalarType.Signed, sizeof(int), "int32");
-        AddBuiltInType(EAdfV04Type.Scalar, EAdfV04ScalarType.Signed, sizeof(ulong), "uint64");
+        AddBuiltInType(EAdfV04Type.Scalar, EAdfV04ScalarType.Unsigned, sizeof(ulong), "uint64");
         AddBuiltInType(EAdfV04Type.Scalar, EAdfV04ScalarType.Signed, sizeof(long), "int64");
         AddBuiltInType(EAdfV04Type.Scalar, EAdfV04ScalarType.Float, sizeof(float), "float");
         AddBuiltInType(EAdfV04Type.Scalar, EAdfV04ScalarType.Float, sizeof(double), "double");
