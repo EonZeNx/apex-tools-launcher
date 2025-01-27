@@ -64,7 +64,7 @@ public class SarcV02File : ICanExtractPath, IExtractPathToPath, IExtractStreamTo
     
     public Result<bool, Exception> WriteEntryFile(string outPath, SarcV02Entry[] entries)
     {
-        var root = new XElement("files");
+        var xChildren = new List<XElement>();
         foreach (var entry in entries)
         {
             var xEntry = XElementBuilder.Create("file")
@@ -73,7 +73,7 @@ public class SarcV02File : ICanExtractPath, IExtractPathToPath, IExtractStreamTo
                 .WithContent(entry.FilePath)
                 .Build();;
             
-            root.Add(xEntry);
+            xChildren.Add(xEntry);
         }
 
         var xmlFilePath = Path.Join(outPath, "@files.xml");
@@ -83,7 +83,7 @@ public class SarcV02File : ICanExtractPath, IExtractPathToPath, IExtractStreamTo
             .WithType(SarcV02FileLibrary.XName)
             .WithVersion(SarcV02FileLibrary.Version.ToString())
             .WithExtension(ExtractExtension)
-            .WithRoot(root)
+            .WithChildren(xChildren)
             .Build();
         
         using var xw = XmlWriter.Create(xmlFile, XDocumentLibrary.XmlWriterSettings);

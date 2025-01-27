@@ -3,7 +3,7 @@ using RustyOptions;
 
 namespace ApexToolsLauncher.Core.Libraries.XBuilder;
 
-public class XDocumentBuilder()
+public class XDocumentBuilder
 {
     public Option<XElement> Root = Option<XElement>.None;
     

@@ -58,12 +58,11 @@ public class RtpcV01File : ICanExtractPath, IExtractPathToPath, IExtractStreamTo
         if (!optionContainer.IsSome(out var container))
             return Result.Err<int>(new InvalidOperationException($"Failed to extract {nameof(RtpcV01Container)}"));
 
-        var root = container.ToXElement();
         var xd = XProjectBuilder.CreateXProjectBuilder()
             .WithType(RtpcV01FileLibrary.XName)
             .WithVersion(RtpcV01FileLibrary.Version.ToString())
             .WithExtension(ExtractExtension)
-            .WithRoot(root)
+            .WithChild(container.ToXElement())
             .Build();
 
         using var xw = XmlWriter.Create(outStream, XDocumentLibrary.XmlWriterSettings);

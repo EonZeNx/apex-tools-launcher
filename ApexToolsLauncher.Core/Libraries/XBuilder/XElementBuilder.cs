@@ -15,12 +15,19 @@ public class XElementBuilder(string name)
         return this;
     }
 
-    public XElementBuilder WithAttributeOption(string name, Option<string> option)
+    public XElementBuilder WithAttribute(string name, Option<string> option)
     {
         if (option.IsSome(out var value))
         {
             Element.SetAttributeValue(name, value);
         }
+        
+        return this;
+    }
+
+    public XElementBuilder WithAttribute(string name, Func<Option<string>> condition)
+    {
+        WithAttribute(name, condition.Invoke());
         
         return this;
     }
@@ -37,10 +44,28 @@ public class XElementBuilder(string name)
         return this;
     }
 
+    public XElementBuilder WithChild(Option<XElement> child)
+    {
+        if (child.IsSome(out var value))
+        {
+            Element.Add(value);
+        }
+        
+        return this;
+    }
+
     public XElementBuilder WithChildren(IEnumerable<XElement> children)
     {
         foreach (var child in children)
-            Element.Add(child);
+            WithChild(child);
+        
+        return this;
+    }
+
+    public XElementBuilder WithChildren(IEnumerable<Option<XElement>> children)
+    {
+        foreach (var child in children)
+            WithChild(child);
         
         return this;
     }
@@ -48,7 +73,15 @@ public class XElementBuilder(string name)
     public XElementBuilder WithChildren<T>(IEnumerable<T> children, Func<T, XElement> func)
     {
         foreach (var child in children)
-            Element.Add(func(child));
+            WithChild(func(child));
+        
+        return this;
+    }
+
+    public XElementBuilder WithChildren<T>(IEnumerable<T> children, Func<T, Option<XElement>> func)
+    {
+        foreach (var child in children)
+            WithChild(func(child));
         
         return this;
     }

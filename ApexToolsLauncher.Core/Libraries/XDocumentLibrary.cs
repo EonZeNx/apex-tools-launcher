@@ -6,6 +6,8 @@ namespace ApexToolsLauncher.Core.Libraries;
 
 public static class XDocumentLibrary
 {
+    public static readonly string[] InvalidXmlCharacters = ["<", ">", "&", "\'", "\"", "#", "\0"];
+
     public static readonly XmlWriterSettings XmlWriterSettings = new()
     {
         Indent = true,

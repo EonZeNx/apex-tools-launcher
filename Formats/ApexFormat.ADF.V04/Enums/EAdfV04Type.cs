@@ -15,21 +15,33 @@ public enum EAdfV04Type : uint
     Deferred     = 0xA,
 }
 
-public static class AdfV04TypeExtensions 
+public static class AdfV04TypeLibrary 
 {
-    public static readonly Dictionary<EAdfV04Type, string> EnumToXString = Enum.GetValues<EAdfV04Type>()
-        .ToDictionary(cc => cc, cc => cc.ToString().ToLower());
-
-    public static readonly Dictionary<string, EAdfV04Type> XStringToEnum =
-        EnumToXString.ToDictionary(kvp => kvp.Value, kvp => kvp.Key);
     
-    public static EAdfV04Type ToAdfV04Type(this string str)
+    public static readonly Dictionary<EAdfV04Type, string> XNameMap = new()
     {
-        return XStringToEnum.GetValueOrDefault(str, EAdfV04Type.Scalar);
+        { EAdfV04Type.Scalar,      "scalar" },
+        { EAdfV04Type.Struct,      "struct" },
+        { EAdfV04Type.Pointer,     "pointer" },
+        { EAdfV04Type.Array,       "array" },
+        { EAdfV04Type.InlineArray, "inlineArray" },
+        { EAdfV04Type.String,      "string" },
+        { EAdfV04Type.Recursive,   "recursive" },
+        { EAdfV04Type.Bitfield,    "bitfield" },
+        { EAdfV04Type.Enum,        "enum" },
+        { EAdfV04Type.StringHash,  "stringHash" },
+        { EAdfV04Type.Deferred,    "deferred" },
+    };
+    
+    public static Dictionary<string, EAdfV04Type> FromXNameMap = XNameMap.ToDictionary(kvp => kvp.Value, kvp => kvp.Key);
+    
+    public static string ToXName(this EAdfV04Type adfType)
+    {
+        return XNameMap.GetValueOrDefault(adfType, "failed");
     }
     
-    public static string ToXString(this EAdfV04Type variableType)
+    public static EAdfV04Type FromXName(string xmlString)
     {
-        return EnumToXString.GetValueOrDefault(variableType, "unknown");
+        return FromXNameMap.GetValueOrDefault(xmlString, EAdfV04Type.Scalar);
     }
 }

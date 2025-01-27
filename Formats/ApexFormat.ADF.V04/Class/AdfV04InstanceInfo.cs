@@ -18,7 +18,7 @@ public static class AdfV04InstanceInfoExtensions
 {
     public static Option<AdfV04InstanceInfo> ReadAdfV04InstanceInfo(this Stream stream)
     {
-        if (stream.Length - stream.Position < AdfV04Instance.SizeOf())
+        if (stream.Length - stream.Position < AdfV04InstanceLibrary.SizeOf)
         {
             return Option<AdfV04InstanceInfo>.None;
         }

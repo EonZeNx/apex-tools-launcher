@@ -44,16 +44,12 @@ public class IcV01File : ICanExtractPath, IExtractPathToPath, IExtractStreamToSt
             
             instances.Add(instance);
         }
-
-        var root = XElementBuilder.Create("instances")
-            .WithChildren(instances, inst => inst.ToXElement())
-            .Build();
         
         var xd = XProjectBuilder.CreateXProjectBuilder()
             .WithType(IcV01FileLibrary.XName)
             .WithVersion(IcV01FileLibrary.Version.ToString())
             .WithExtension(ExtractExtension)
-            .WithRoot(root)
+            .WithChildren(instances, inst => inst.ToXElement())
             .Build();
         
         using var xw = XmlWriter.Create(outStream, XDocumentLibrary.XmlWriterSettings);
@@ -159,5 +155,5 @@ public static class IcV01FileLibrary
     public const string XName = "ic";
     public const int Version = 1;
 
-    public static string VersionName = $"{XName.ToUpper()} v{Version:D2}";
+    public static readonly string VersionName = $"{XName.ToUpper()} v{Version:D2}";
 }
