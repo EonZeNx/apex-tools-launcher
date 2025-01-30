@@ -205,7 +205,7 @@ public static class RtpcV01PropertyLibrary
             return Option.Some<Exception>(new ArgumentNullException(nameof(property)));
         }
         
-        stream.Align(property.Variant.Alignment());
+        stream.AlignWrite(property.Variant.Alignment());
         property.Data = BitConverter.GetBytes((uint) stream.Position);
         
         switch (property.Variant)

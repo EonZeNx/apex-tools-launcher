@@ -65,7 +65,6 @@ public static class AdfV04InstanceLibrary
         var xe = XElementBuilder.Create("instance")
             .WithAttribute("name", instance.Name.RemoveAll(XDocumentLibrary.InvalidXmlCharacters))
             .WithAttribute("type", adfType.Name.RemoveAll(XDocumentLibrary.InvalidXmlCharacters))
-            .WithAttribute("type-hash", $"{adfType.TypeHash:X08}")
             .Build();
 
         foreach (var member in adfType.Members)
@@ -119,13 +118,14 @@ public static class AdfV04InstanceLibrary
         var xe = new XElement(adfType.Type.ToXName());
         xe.SetAttributeValue("name", name);
         xe.SetAttributeValue("type", adfType.SafeName);
-        xe.SetAttributeValue("type-hash", adfType.TypeHash);
         
         foreach (var member in adfType.Members)
         {
             var optionMemberType = types.FirstOrNone(t => t.TypeHash == member.TypeHash);
             if (!optionMemberType.IsSome(out var memberType))
                 return Option.None<XElement>();
+            
+            stream.AlignRead(member.Alignment);
             
             var optionXMember = instance.DataToXElement(stream, memberType, member.SafeName, types);
             if (!optionXMember.IsSome(out var xMember))
@@ -142,11 +142,13 @@ public static class AdfV04InstanceLibrary
         var xe = new XElement(adfType.Type.ToXName());
         xe.SetAttributeValue("name", name);
         xe.SetAttributeValue("type", adfType.SafeName);
-        xe.SetAttributeValue("type-hash", adfType.TypeHash);
+        
+        if (adfType.BitCountOrArrayLength == 0)
+            return Option.Some(xe);
         
         uint arrayOffset = 0;
         uint flags = 0;
-        uint count = 0;
+        var count = adfType.BitCountOrArrayLength;
         uint unk = 0;
         
         if (adfType.Type == EAdfV04Type.Array)
@@ -156,37 +158,25 @@ public static class AdfV04InstanceLibrary
             count = stream.Read<uint>();
             unk = stream.Read<uint>();
         }
-        else if (adfType.Type == EAdfV04Type.InlineArray)
-        {
-            arrayOffset = 0;
-            flags = 0;
-            count = adfType.MemberCountOrDataAlign;
-            unk = 0;
-        }
+        
+        if (arrayOffset == 0 || count == 0)
+            return Option.Some(xe);
         
         var optionSubType = types.FirstOrNone(t => t.TypeHash == adfType.ScalarTypeHash);
         if (!optionSubType.IsSome(out var subtype))
             return Option.Some(xe);
 
-        if (adfType.Type == EAdfV04Type.Array)
-        {
-            stream.Seek(instance.PayloadOffset + arrayOffset, SeekOrigin.Begin);
-        }
-        
+        var absoluteOffset = instance.PayloadOffset + arrayOffset;
         for (var i = 0; i < count; i += 1)
         {
-            stream.Seek(subtype.Size * i, SeekOrigin.Current);
+            stream.Seek(absoluteOffset + subtype.Size * i, SeekOrigin.Begin);
 
-            var optionXChild = Option<XElement>.None;
-            switch (subtype.Type)
+            var optionXChild = subtype.Type switch
             {
-                case EAdfV04Type.Scalar:
-                    optionXChild = instance.ToXScalar(stream, subtype, name);
-                    break;
-                case EAdfV04Type.Struct:
-                    optionXChild = instance.ToXStruct(stream, subtype, string.Empty, types);
-                    break;
-            }
+                EAdfV04Type.Scalar => instance.ToXScalar(stream, subtype, name),
+                EAdfV04Type.Struct => instance.ToXStruct(stream, subtype, string.Empty, types),
+                _ => Option<XElement>.None
+            };
 
             if (!optionXChild.IsSome(out var xChild))
                 return Option.None<XElement>();

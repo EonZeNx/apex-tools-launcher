@@ -69,7 +69,7 @@ public static class RtpcV01ContainerLibrary
                 result.Properties[i] = variant;
         }
 
-        stream.Align(4);
+        stream.AlignWrite(4);
         for (var i = 0; i < result.ContainerCount; i++)
         {
             var optionContainer = stream.ReadRtpcV01Container();
@@ -113,7 +113,7 @@ public static class RtpcV01ContainerLibrary
                 stream.WriteData(property, stringMap);
             }
             
-            stream.Align(4);
+            stream.AlignWrite(4);
             dataOffset = stream.Position;
             
             stream.Seek(container.Offset, SeekOrigin.Begin);
@@ -123,7 +123,7 @@ public static class RtpcV01ContainerLibrary
                 stream.Write(property);
             }
             
-            stream.Align(4);
+            stream.AlignWrite(4);
         }
         
         if (!container.Containers.Empty())
@@ -138,7 +138,7 @@ public static class RtpcV01ContainerLibrary
             dataOffset = stream.Position;
             
             stream.Seek(containerHeaderOffset, SeekOrigin.Begin);
-            stream.Align(4);
+            stream.AlignWrite(4);
             
             foreach (var childContainer in container.Containers)
             {

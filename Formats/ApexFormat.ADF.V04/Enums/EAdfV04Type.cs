@@ -24,7 +24,7 @@ public static class AdfV04TypeLibrary
         { EAdfV04Type.Struct,      "struct" },
         { EAdfV04Type.Pointer,     "pointer" },
         { EAdfV04Type.Array,       "array" },
-        { EAdfV04Type.InlineArray, "inlineArray" },
+        { EAdfV04Type.InlineArray, "iarray" },
         { EAdfV04Type.String,      "string" },
         { EAdfV04Type.Recursive,   "recursive" },
         { EAdfV04Type.Bitfield,    "bitfield" },

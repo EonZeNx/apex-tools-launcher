@@ -9,9 +9,9 @@ namespace ApexToolsLauncher.Core.Extensions;
 
 public static class StreamExtensions
 {
-    public static void Align(this Stream stream, int align, byte fill = 0x50) => stream.Align((uint) align, fill);
+    public static void AlignWrite(this Stream stream, int align, byte fill = 0x50) => stream.AlignWrite((uint) align, fill);
     
-    public static void Align(this Stream stream, uint align, byte fill = 0x50)
+    public static void AlignWrite(this Stream stream, uint align, byte fill = 0x50)
     {
         var position = stream.Position;
         var alignment = ByteExtensions.Align(stream.Position, align);
@@ -21,6 +21,17 @@ public static class StreamExtensions
         Array.Fill(bytes, fill);
         
         stream.Write(bytes);
+    }
+    
+    public static void AlignRead(this Stream stream, int align) => stream.AlignRead((uint) align);
+    
+    public static void AlignRead(this Stream stream, uint align)
+    {
+        var position = stream.Position;
+        var alignment = ByteExtensions.Align(stream.Position, align);
+        var relativeAlignment = alignment - position;
+        
+        stream.Seek(relativeAlignment, SeekOrigin.Current);
     }
     
     public static string ReadStringZ(this Stream stream, int maxLength = 2048)

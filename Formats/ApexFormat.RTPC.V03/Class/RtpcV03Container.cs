@@ -63,7 +63,7 @@ public static class RtpcV03ContainerLibrary
                 result.Properties[i] = variant;
         }
 
-        stream.Align(4);
+        stream.AlignWrite(4);
         for (var i = 0; i < result.ContainerCount; i++)
         {
             var optionContainer = stream.ReadRtpcV03Container();

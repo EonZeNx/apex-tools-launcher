@@ -6,14 +6,6 @@ using RustyOptions;
 
 namespace ApexFormat.ADF.V04.Class;
 
-public static class AdfV04HeaderConstants
-{
-    public const uint Magic = 0x41444620; // "ADF "
-    public const uint Version = 0x04;
-    public const uint Unknown01 = 32;
-    public const uint Unknown02 = 32;
-}
-
 /// <summary>
 /// <remarks>
 ///  <list type="table">
@@ -76,8 +68,8 @@ public static class AdfV04HeaderConstants
 /// </summary>
 public class AdfV04Header
 {
-    public uint Magic = AdfV04HeaderConstants.Magic;
-    public uint Version = AdfV04HeaderConstants.Version;
+    public uint Magic = AdfV04HeaderLibrary.Magic;
+    public uint Version = AdfV04HeaderLibrary.Version;
     public uint InstanceCount = 0;
     public uint InstanceOffset = 0;
     public uint TypeCount = 0;
@@ -90,8 +82,8 @@ public class AdfV04Header
     public uint MetaDataOffset = 0;
     public EAdfV04HeaderFlags Flags = EAdfV04HeaderFlags.Default;
     public uint IncludedLibraries = 0;
-    public uint Unknown01 = AdfV04HeaderConstants.Unknown01;
-    public uint Unknown02 = AdfV04HeaderConstants.Unknown02;
+    public uint Unknown01 = AdfV04HeaderLibrary.Unknown01;
+    public uint Unknown02 = AdfV04HeaderLibrary.Unknown02;
     public string Comment = string.Empty;
 }
 
@@ -122,7 +114,7 @@ public static class AdfV04HeaderLibrary
     
     public static Option<AdfV04Header> ReadAdfV04Header(this Stream stream)
     {
-        if (stream.Length - stream.Position < SizeOf)
+        if (!stream.CouldRead(SizeOf))
         {
             return Option<AdfV04Header>.None;
         }
@@ -148,12 +140,12 @@ public static class AdfV04HeaderLibrary
             Comment = stream.ReadStringZ(),
         };
         
-        if (result.Magic != AdfV04HeaderConstants.Magic)
+        if (result.Magic != Magic)
         {
             return Option<AdfV04Header>.None;
         }
 
-        if (result.Version != AdfV04HeaderConstants.Version)
+        if (result.Version != Version)
         {
             return Option<AdfV04Header>.None;
         }
