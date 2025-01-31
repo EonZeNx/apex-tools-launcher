@@ -6,38 +6,70 @@ using RustyOptions;
 
 namespace ApexFormat.ADF.V04.Class;
 
-public static class AdfV04HeaderConstants
-{
-    public const uint Magic = 0x41444620; // "ADF "
-    public const uint Version = 0x04;
-    public const uint Unknown01 = 32;
-    public const uint Unknown02 = 32;
-}
-
 /// <summary>
-/// Structure:
-/// <br/>Magic - <see cref="uint"/>
-/// <br/>Version - <see cref="uint"/>
-/// <br/>InstanceCount - <see cref="string"/>
-/// <br/>InstanceOffset - <see cref="uint"/>
-/// <br/>TypeCount - <see cref="uint"/>
-/// <br/>TypeOffset - <see cref="uint"/>
-/// <br/>StringHashCount - <see cref="uint"/>
-/// <br/>StringHashOffset - <see cref="uint"/>
-/// <br/>StringTableCount - <see cref="uint"/>
-/// <br/>StringTableOffset - <see cref="uint"/>
-/// <br/>FileSize - <see cref="uint"/>
-/// <br/>MetaDataOffset - <see cref="uint"/>
-/// <br/>Flags - <see cref="EAdfV04HeaderFlags"/>
-/// <br/>IncludedLibraries - <see cref="uint"/>
-/// <br/>Unknown01 - <see cref="uint"/>
-/// <br/>Unknown02 - <see cref="uint"/>
-/// <br/>Comment - <see cref="string"/>
+/// <remarks>
+///  <list type="table">
+///    <listheader>
+///      <term>Property</term><description>Type</description>
+///    </listheader>
+///    <item>
+///      <term><c>Magic</c></term><description><see cref="uint"/></description>
+///    </item>
+///    <item>
+///      <term><c>Version</c></term><description><see cref="uint"/></description>
+///    </item>
+///    <item>
+///      <term><c>InstanceCount</c></term><description><see cref="uint"/></description>
+///    </item>
+///    <item>
+///      <term><c>InstanceOffset</c></term><description><see cref="uint"/></description>
+///    </item>
+///    <item>
+///      <term><c>TypeCount</c></term><description><see cref="uint"/></description>
+///    </item>
+///    <item>
+///      <term><c>TypeOffset</c></term><description><see cref="uint"/></description>
+///    </item>
+///    <item>
+///      <term><c>StringHashCount</c></term><description><see cref="uint"/></description>
+///    </item>
+///    <item>
+///      <term><c>StringHashOffset</c></term><description><see cref="uint"/></description>
+///    </item>
+///    <item>
+///      <term><c>StringTableCount</c></term><description><see cref="uint"/></description>
+///    </item>
+///    <item>
+///      <term><c>StringTableOffset</c></term><description><see cref="uint"/></description>
+///    </item>
+///    <item>
+///      <term><c>FileSize</c></term><description><see cref="uint"/></description>
+///    </item>
+///    <item>
+///      <term><c>MetaDataOffset</c></term><description><see cref="uint"/></description>
+///    </item>
+///    <item>
+///      <term><c>Flags</c></term><description><see cref="EAdfV04HeaderFlags"/></description>
+///    </item>
+///    <item>
+///      <term><c>IncludedLibraries</c></term><description><see cref="uint"/></description>
+///    </item>
+///    <item>
+///      <term><c>Unknown01</c></term><description><see cref="uint"/></description>
+///    </item>
+///    <item>
+///      <term><c>Unknown02</c></term><description><see cref="uint"/></description>
+///    </item>
+///    <item>
+///      <term><c>Comment</c></term><description><see cref="string"/></description>
+///    </item>
+///  </list>
+/// </remarks>
 /// </summary>
-public class AdfV04Header : ISizeOf
+public class AdfV04Header
 {
-    public uint Magic = AdfV04HeaderConstants.Magic;
-    public uint Version = AdfV04HeaderConstants.Version;
+    public uint Magic = AdfV04HeaderLibrary.Magic;
+    public uint Version = AdfV04HeaderLibrary.Version;
     public uint InstanceCount = 0;
     public uint InstanceOffset = 0;
     public uint TypeCount = 0;
@@ -50,37 +82,39 @@ public class AdfV04Header : ISizeOf
     public uint MetaDataOffset = 0;
     public EAdfV04HeaderFlags Flags = EAdfV04HeaderFlags.Default;
     public uint IncludedLibraries = 0;
-    public uint Unknown01 = AdfV04HeaderConstants.Unknown01;
-    public uint Unknown02 = AdfV04HeaderConstants.Unknown02;
+    public uint Unknown01 = AdfV04HeaderLibrary.Unknown01;
+    public uint Unknown02 = AdfV04HeaderLibrary.Unknown02;
     public string Comment = string.Empty;
-
-    public static uint SizeOf()
-    {
-        return sizeof(uint) + // Magic
-               sizeof(uint) + // Version
-               sizeof(uint) + // InstanceCount
-               sizeof(uint) + // FirstInstanceOffset
-               sizeof(uint) + // TypeCount
-               sizeof(uint) + // TypeOffset
-               sizeof(uint) + // StringHashCount
-               sizeof(uint) + // StringHashOffset
-               sizeof(uint) + // StringTableCount
-               sizeof(uint) + // StringTableOffset
-               sizeof(uint) + // FileSize
-               sizeof(uint) + // MetaDataOffset
-               sizeof(EAdfV04HeaderFlags) + // Flags
-               sizeof(uint) + // IncludedLibraries
-               sizeof(uint) + // Unknown01
-               sizeof(uint) + // Unknown02
-               sizeof(byte); // Min string length
-    }
 }
 
-public static class AdfV04HeaderExtensions
+public static class AdfV04HeaderLibrary
 {
+    public const uint SizeOf = sizeof(uint) // Magic
+                               + sizeof(uint) // Version
+                               + sizeof(uint) // InstanceCount
+                               + sizeof(uint) // FirstInstanceOffset
+                               + sizeof(uint) // TypeCount
+                               + sizeof(uint) // TypeOffset
+                               + sizeof(uint) // StringHashCount
+                               + sizeof(uint) // StringHashOffset
+                               + sizeof(uint) // StringTableCount
+                               + sizeof(uint) // StringTableOffset
+                               + sizeof(uint) // FileSize
+                               + sizeof(uint) // MetaDataOffset
+                               + sizeof(EAdfV04HeaderFlags) // Flags
+                               + sizeof(uint) // IncludedLibraries
+                               + sizeof(uint) // Unknown01
+                               + sizeof(uint) // Unknown02
+                               + sizeof(byte); // Min string length
+    
+    public const uint Magic = 0x41444620; // "ADF "
+    public const uint Version = 0x04;
+    public const uint Unknown01 = 32;
+    public const uint Unknown02 = 32;
+    
     public static Option<AdfV04Header> ReadAdfV04Header(this Stream stream)
     {
-        if (stream.Length - stream.Position < AdfV04Header.SizeOf())
+        if (!stream.CouldRead(SizeOf))
         {
             return Option<AdfV04Header>.None;
         }
@@ -106,12 +140,12 @@ public static class AdfV04HeaderExtensions
             Comment = stream.ReadStringZ(),
         };
         
-        if (result.Magic != AdfV04HeaderConstants.Magic)
+        if (result.Magic != Magic)
         {
             return Option<AdfV04Header>.None;
         }
 
-        if (result.Version != AdfV04HeaderConstants.Version)
+        if (result.Version != Version)
         {
             return Option<AdfV04Header>.None;
         }

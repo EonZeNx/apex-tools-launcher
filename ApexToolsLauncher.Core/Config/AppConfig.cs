@@ -4,7 +4,7 @@ using ApexToolsLauncher.Core.Config.CLI;
 namespace ApexToolsLauncher.Core.Config;
 
 public class AppConfig
-{ // TODO: Update relative paths to absolute
+{ // todo: update relative paths to absolute
     [JsonPropertyName("log_path")]
     public string LogPath { get; set; } = Path.Join(AppDomain.CurrentDomain.BaseDirectory, "logs");
     

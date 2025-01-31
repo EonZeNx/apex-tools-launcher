@@ -12,7 +12,7 @@ namespace ApexFormat.RTPC.V03.Class;
 /// <br/>Offset - <see cref="uint"/>
 /// <br/>PropertyCount - <see cref="ushort"/>
 /// <br/>ContainerCount - <see cref="ushort"/>
-/// <br/>Properties - <see cref="RtpcV03Variant"/>[]
+/// <br/>Properties - <see cref="RtpcV03Property"/>[]
 /// <br/>Containers - <see cref="RtpcV03Container"/>[]
 /// <br/>AssignedPropertyCount - <see cref="uint"/>
 /// </summary>
@@ -23,7 +23,7 @@ public class RtpcV03Container
     public ushort PropertyCount = 0;
     public ushort ContainerCount = 0;
     
-    public RtpcV03Variant[] Properties = [];
+    public RtpcV03Property[] Properties = [];
     public RtpcV03Container[] Containers = [];
     public uint AssignedPropertyCount = 0;
 }
@@ -50,7 +50,7 @@ public static class RtpcV03ContainerLibrary
             ContainerCount = stream.Read<ushort>(),
         };
         
-        result.Properties = new RtpcV03Variant[result.PropertyCount];
+        result.Properties = new RtpcV03Property[result.PropertyCount];
         result.Containers = new RtpcV03Container[result.ContainerCount];
         
         var originalPosition = stream.Position;
@@ -63,7 +63,7 @@ public static class RtpcV03ContainerLibrary
                 result.Properties[i] = variant;
         }
 
-        stream.Align(4);
+        stream.AlignWrite(4);
         for (var i = 0; i < result.ContainerCount; i++)
         {
             var optionContainer = stream.ReadRtpcV03Container();
@@ -135,7 +135,7 @@ public static class RtpcV03ContainerLibrary
         var children = new XElement[container.PropertyCount];
         for (var i = 0; i < container.PropertyCount; i++)
         {
-            children[i] = container.Properties[i].WriteXElement();
+            children[i] = container.Properties[i].ToXElement();
         }
         Array.Sort(children, SortNameThenId);
 
