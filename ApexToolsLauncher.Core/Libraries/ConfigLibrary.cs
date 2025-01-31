@@ -16,7 +16,7 @@ public static class ConfigLibrary
     public static string GetModConfigPath(string gameId) => Path.Join(GetBasePath(), AppConfig.ModsPath, gameId);
     public static string GetModTargetPath(string modId, string targetVersion) => Path.Join(modId, targetVersion);
     
-    // TODO: Move IO to relevant services
+    // todo: move IO to relevant services
     public static Option<AppConfig> LoadAppConfig()
     {
         var configPath = GetAppConfigPath();

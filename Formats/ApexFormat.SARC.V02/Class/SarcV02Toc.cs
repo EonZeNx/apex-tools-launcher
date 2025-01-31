@@ -11,7 +11,7 @@ namespace ApexFormat.SARC.V02.Class;
 /// </summary>
 public class SarcV02Toc
 {
-    public SarcV02ArchiveEntry[] ArchiveEntries = [];
+    public SarcV02Entry[] Entries = [];
 }
 
 public static class SarcV02TocLibrary
@@ -20,10 +20,10 @@ public static class SarcV02TocLibrary
     {
         var result = new SarcV02Toc();
         
-        var archiveEntries = new List<SarcV02ArchiveEntry>();
+        var archiveEntries = new List<SarcV02Entry>();
         while (true)
         {
-            var optionArchiveEntry = stream.ReadSarcV02ArchiveEntry();
+            var optionArchiveEntry = stream.ReadSarcV02Entry();
             if (!optionArchiveEntry.IsSome(out var archiveEntry))
                 break;
             
@@ -34,7 +34,7 @@ public static class SarcV02TocLibrary
             }
         }
         
-        result.ArchiveEntries = archiveEntries.ToArray();
+        result.Entries = archiveEntries.ToArray();
 
         return Option.Some(result);
     }

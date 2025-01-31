@@ -1,4 +1,7 @@
-﻿using ApexToolsLauncher.Core.Class;
+﻿using System.Xml.Linq;
+using ApexToolsLauncher.Core.Class;
+using ApexToolsLauncher.Core.Extensions;
+using ApexToolsLauncher.Core.Libraries.XBuilder;
 using CommunityToolkit.HighPerformance;
 using RustyOptions;
 
@@ -14,7 +17,7 @@ namespace ApexFormat.ADF.V04.Class;
 /// <br/>Flags - <see cref="uint"/>
 /// <br/>DefaultValue - <see cref="ulong"/>
 /// </summary>
-public class AdfV04Member : ISizeOf
+public class AdfV04Member
 {
     public ulong NameIndex         = 0;
     public uint TypeHash           = 0;
@@ -23,7 +26,8 @@ public class AdfV04Member : ISizeOf
     public uint Flags              = 0;
     public ulong DefaultValue      = 0;
 
-    public string Name { get; set; } = "EMPTY";
+    public string Name { get; set; } = string.Empty;
+    public string SafeName => Name.Trim().Trim((char) 0x00);
 
     public uint Offset {
         get => OffsetAndBitOffset & 0xFFFFFF; // Get the lower 24 bits
@@ -39,23 +43,22 @@ public class AdfV04Member : ISizeOf
     {
         return $"'{Name}' i: {NameIndex} type: {TypeHash}";
     }
-
-    public static uint SizeOf()
-    {
-        return sizeof(ulong) + // NameIndex
-               sizeof(uint) + // TypeHash
-               sizeof(uint) + // Align
-               sizeof(uint) + // OffsetAndBitOffset
-               sizeof(uint) + // Flags
-               sizeof(ulong); // DefaultValue
-    }
 }
 
-public static class AdfV04MemberExtensions
+public static class AdfV04MemberLibrary
 {
+    public const uint SizeOf = sizeof(ulong) // NameIndex
+                               + sizeof(uint) // TypeHash
+                               + sizeof(uint) // Align
+                               + sizeof(uint) // OffsetAndBitOffset
+                               + sizeof(uint) // Flags
+                               + sizeof(ulong); // DefaultValue
+    
+    public const string XName = "member";
+    
     public static Option<AdfV04Member> ReadAdfV04Member(this Stream stream)
     {
-        if (stream.Length - stream.Position < AdfV04Header.SizeOf())
+        if (!stream.CouldRead(SizeOf))
         {
             return Option<AdfV04Member>.None;
         }
@@ -71,5 +74,30 @@ public static class AdfV04MemberExtensions
         };
 
         return Option.Some(result);
+    }
+
+    public static XElement ToXElement(this AdfV04Member member)
+    {
+        var xe = XElementBuilder.Create(XName)
+            .WithAttribute("nameIndex", member.NameIndex.ToString())
+            .WithAttribute("name",
+                () => !string.IsNullOrEmpty(member.SafeName)
+                    ? Option.Some(member.SafeName) : Option.None<string>())
+            .WithAttribute("typeHash", member.TypeHash.ToString())
+            .WithAttribute("alignment", member.Alignment.ToString())
+            .WithAttribute("offsetAndBitOffset", member.OffsetAndBitOffset.ToString())
+            .WithAttribute("flags", member.Flags.ToString())
+            .WithAttribute("defaultValue", member.DefaultValue.ToString())
+            .Build();
+        
+        return xe;
+    }
+
+    public static void TryFindName(this AdfV04Member member, string[] stringTable)
+    {
+        if ((uint) member.NameIndex >= stringTable.Length)
+            return;
+        
+        member.Name = stringTable[member.NameIndex];
     }
 }

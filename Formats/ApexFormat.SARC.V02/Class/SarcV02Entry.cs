@@ -11,11 +11,13 @@ namespace ApexFormat.SARC.V02.Class;
 /// <br/>DataOffset - <see cref="uint"/>
 /// <br/>Size - <see cref="uint"/>
 /// </summary>
-public class SarcV02ArchiveEntry
+public class SarcV02Entry
 {
-    public string FilePath = ""; // length prefix, min size = uint
+    public string FilePath = string.Empty; // length prefix, min size = uint
     public uint DataOffset = 0;
     public uint Size = 0;
+    
+    public bool LocalData => DataOffset != 0 && Size != 0;
 }
 
 public static class SarcV02ArchiveEntryExtensions
@@ -26,14 +28,14 @@ public static class SarcV02ArchiveEntryExtensions
     
     public const uint FilePathAlignment = 0x04;
     
-    public static Option<SarcV02ArchiveEntry> ReadSarcV02ArchiveEntry(this Stream stream)
+    public static Option<SarcV02Entry> ReadSarcV02Entry(this Stream stream)
     {
         if (!stream.CouldRead(SizeOf))
         {
-            return Option<SarcV02ArchiveEntry>.None;
+            return Option<SarcV02Entry>.None;
         }
         
-        var result = new SarcV02ArchiveEntry
+        var result = new SarcV02Entry
         {
             FilePath = stream.ReadStringLengthPrefix().Replace("\0", ""),
             DataOffset = stream.Read<uint>(),

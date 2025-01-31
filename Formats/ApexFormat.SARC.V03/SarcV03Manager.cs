@@ -1,13 +1,13 @@
-using ApexFormat.SARC.V02.Class;
+using ApexFormat.SARC.V03.Class;
 using ApexToolsLauncher.Core.Class;
 
-namespace ApexFormat.SARC.V02;
+namespace ApexFormat.SARC.V03;
 
-public class SarcV02Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
+public class SarcV03Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
 {
     public static bool CanProcess(Stream stream)
     {
-        return !stream.ReadSarcV02Header().IsNone;
+        return !stream.ReadSarcV03Header().IsNone;
     }
     
     public static bool CanProcess(string path)
@@ -28,7 +28,7 @@ public class SarcV02Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
 
     public int ProcessBasic(string inFilePath, string outDirectory)
     {
-        var file = new SarcV02File();
+        var file = new SarcV03File();
 
         var result = -1;
         if (file.CanExtractPath(inFilePath))
@@ -47,6 +47,6 @@ public class SarcV02Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
 
     public string GetProcessorName()
     {
-        return SarcV02FileLibrary.VersionName;
+        return SarcV03FileLibrary.VersionName;
     }
 }

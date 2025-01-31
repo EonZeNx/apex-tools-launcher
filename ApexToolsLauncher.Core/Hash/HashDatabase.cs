@@ -151,7 +151,7 @@ public class HashDatabase
         using var command = DbConnection.CreateCommand();
         command.Transaction = transaction;
         command.CommandType = CommandType.Text;
-        // TODO: Batch in 5 - 10 at a time?
+        // todo: batch in 5 - 10 at a time?
         // Ref: https://github.com/morelinq/MoreLINQ/blob/master/MoreLinq/Batch.cs
         command.CommandText = $"INSERT OR IGNORE INTO '{hashTable}' (Hash, Value)" +
                               $"VALUES (@hash, @value)";

@@ -1,8 +1,8 @@
 ﻿using System.Xml;
-using System.Xml.Linq;
 using ApexFormat.RTPC.V03.Class;
 using ApexToolsLauncher.Core.Class;
 using ApexToolsLauncher.Core.Libraries;
+using ApexToolsLauncher.Core.Libraries.XBuilder;
 using RustyOptions;
 
 namespace ApexFormat.RTPC.V03;
@@ -54,19 +54,14 @@ public class RtpcV03File : ICanExtractPath, IExtractPathToPath, IExtractStreamTo
         if (!optionContainer.IsSome(out var container))
             return Result.Err<int>(new InvalidOperationException($"Failed to extract {nameof(RtpcV03Container)}"));
 
-        var outer = new XElement(RtpcV03FileLibrary.XName);
-        outer.SetAttributeValue("extension", ExtractExtension);
-        outer.SetAttributeValue("version", RtpcV03FileLibrary.Version);
+        var xd = XProjectBuilder.Create()
+            .WithType(RtpcV03FileLibrary.XName)
+            .WithVersion(RtpcV03FileLibrary.Version.ToString())
+            .WithExtension(ExtractExtension)
+            .WithChild(container.ToXElement())
+            .Build();
 
-        var rootXElement = container.ToXElement();
-        outer.Add(rootXElement);
-        
-        var xd = new XDocument(XDocumentLibrary.ProjectComment(), outer);
-        using var xw = XmlWriter.Create(outStream, new XmlWriterSettings
-        {
-            Indent = true,
-            IndentChars = "\t"
-        });
+        using var xw = XmlWriter.Create(outStream, XDocumentLibrary.XmlWriterSettings);
         xd.Save(xw);
 
         return Result.OkExn(0);
@@ -90,6 +85,8 @@ public class RtpcV03File : ICanExtractPath, IExtractPathToPath, IExtractStreamTo
 
 public static class RtpcV03FileLibrary
 {
-    public const string XName = "entity";
+    public const string XName = "rtpc";
     public const int Version = 3;
+
+    public static string VersionName = $"{XName.ToUpper()} v{Version:D2}";
 }

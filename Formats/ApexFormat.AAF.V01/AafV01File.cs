@@ -108,5 +108,8 @@ public class AafV01File : ICanExtractPath, IExtractPathToPath, IExtractStreamToS
 
 public static class AafV01FileLibrary
 {
+    public const string XName = "aaf";
     public const int Version = 1;
+
+    public static string VersionName = $"{XName.ToUpper()} v{Version:D2}";
 }
