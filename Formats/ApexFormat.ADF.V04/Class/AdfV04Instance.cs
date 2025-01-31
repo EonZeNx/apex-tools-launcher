@@ -58,9 +58,7 @@ public static class AdfV04InstanceLibrary
     public static Option<XElement> ToXElement(this AdfV04Instance instance, Stream stream, AdfV04Type[] types)
     {
         if (!types.FirstOrNone(t => t.TypeHash == instance.TypeHash).IsSome(out var adfType))
-        {
-            return Option.None<XElement>();
-        }
+            return Option<XElement>.None;
         
         var xe = XElementBuilder.Create("instance")
             .WithAttribute("name", instance.Name.RemoveAll(XDocumentLibrary.InvalidXmlCharacters))
@@ -70,76 +68,68 @@ public static class AdfV04InstanceLibrary
         foreach (var member in adfType.Members)
         {
             if (!types.FirstOrNone(t => t.TypeHash == member.TypeHash).IsSome(out var memberType))
-                return Option.None<XElement>();
+                return Option.Create(xe);
             
             var optionXMember = instance.DataToXElement(stream, memberType, member.SafeName, types);
             if (!optionXMember.IsSome(out var xMember))
-                return Option.None<XElement>();
+                return Option.Create(xe);
             
             xe.Add(xMember);
         }
 
-        return Option.Some(xe);
+        return Option.Create(xe);
     }
     
     public static Option<XElement> DataToXElement(this AdfV04Instance instance, Stream stream, AdfV04Type adfType, string name, AdfV04Type[] types)
     {
-        var optionXMember = Option.None<XElement>();
-        switch (adfType.Type)
+        var optionXMember = adfType.Type switch
         {
-            case EAdfV04Type.Scalar:
-                optionXMember = instance.ScalarToXElement(stream, adfType, name);
-                break;
-            case EAdfV04Type.Struct:
-                optionXMember = instance.ToXStruct(stream, adfType, name, types);
-                break;
-            case EAdfV04Type.Pointer:
-                break;
-            case EAdfV04Type.Array:
-                optionXMember = instance.ArrayToXElement(stream, adfType, name, types);
-                break;
-            case EAdfV04Type.InlineArray:
-                optionXMember = instance.ToXInlineArray(stream, adfType, name, types);
-                break;
-            case EAdfV04Type.String:
-            case EAdfV04Type.Recursive:
-            case EAdfV04Type.Bitfield:
-            case EAdfV04Type.Enum:
-            case EAdfV04Type.StringHash:
-            case EAdfV04Type.Deferred:
-                break;
-            default:
-                return Option.None<XElement>();
-        }
+            EAdfV04Type.Scalar =>       instance.ScalarToXElement(stream, adfType, name),
+            EAdfV04Type.Struct =>       instance.StructToXElement(stream, adfType, name, types),
+            EAdfV04Type.Pointer =>      instance.PointerToXElement(stream, adfType, name, types),
+            EAdfV04Type.Array =>        instance.ArrayToXElement(stream, adfType, name, types),
+            EAdfV04Type.InlineArray =>  instance.InlineArrayToXElement(stream, adfType, name, types),
+            EAdfV04Type.String =>       instance.StringToXElement(stream, adfType, name),
+            EAdfV04Type.Recursive =>    Option<XElement>.None,
+            EAdfV04Type.Bitfield =>     Option<XElement>.None,
+            EAdfV04Type.Enum =>         instance.EnumToXElement(stream, adfType, name),
+            EAdfV04Type.StringHash =>   instance.StringHashToXElement(stream, adfType, name),
+            EAdfV04Type.Deferred =>     instance.PointerToXElement(stream, adfType, name, types),
+            _ =>                        Option<XElement>.None
+        };
 
         return optionXMember;
     }
     
-    public static Option<XElement> ToXStruct(this AdfV04Instance instance, Stream stream, AdfV04Type adfType, string name, AdfV04Type[] types)
+    public static Option<XElement> StructToXElement(this AdfV04Instance instance, Stream stream, AdfV04Type adfType, string name, AdfV04Type[] types)
     {
         var xe = new XElement(adfType.Type.ToXName());
         xe.SetAttributeValue("name", name);
         xe.SetAttributeValue("type", adfType.SafeName);
         
+        stream.AlignRead(adfType.Alignment);
+        
         foreach (var member in adfType.Members)
         {
             var optionMemberType = types.FirstOrNone(t => t.TypeHash == member.TypeHash);
             if (!optionMemberType.IsSome(out var memberType))
-                return Option.None<XElement>();
+                return Option.Create(xe);
             
             stream.AlignRead(member.Alignment);
             
             var optionXMember = instance.DataToXElement(stream, memberType, member.SafeName, types);
             if (!optionXMember.IsSome(out var xMember))
-                return Option.None<XElement>();
+                return Option.Create(xe);
             
             xe.Add(xMember);
         }
+        
+        stream.AlignRead(adfType.Alignment);
 
-        return Option.Some(xe);
+        return Option.Create(xe);
     }
 
-    public static Option<XElement> ToXInlineArray(this AdfV04Instance instance, Stream stream, AdfV04Type adfType, string name, AdfV04Type[] types)
+    public static Option<XElement> InlineArrayToXElement(this AdfV04Instance instance, Stream stream, AdfV04Type adfType, string name, AdfV04Type[] types)
     {
         var xe = new XElement(adfType.Type.ToXName());
         xe.SetAttributeValue("name", name);
@@ -147,8 +137,10 @@ public static class AdfV04InstanceLibrary
         
         var optionSubType = types.FirstOrNone(t => t.TypeHash == adfType.ScalarTypeHash);
         if (!optionSubType.IsSome(out var subtype))
-            return Option.Some(xe);
+            return Option.Create(xe);
 
+        stream.AlignRead(adfType.Alignment);
+        
         for (var i = 0; i < adfType.BitCountOrArrayLength; i += 1)
         {
             if (i != 0)
@@ -158,12 +150,12 @@ public static class AdfV04InstanceLibrary
             
             var optionResult = ScalarToContent(stream, subtype);
             if (!optionResult.IsSome(out var result))
-                return Option.Some(xe);
+                return Option.Create(xe);
         
             xe.Add(result.ToString());
         }
 
-        return Option.Some(xe);
+        return Option.Create(xe);
     }
     
     public static Option<XElement> ArrayToXElement(this AdfV04Instance instance, Stream stream, AdfV04Type adfType, string name, AdfV04Type[] types)
@@ -178,11 +170,11 @@ public static class AdfV04InstanceLibrary
         var unk = stream.Read<uint>();
         
         if (arrayOffset == 0 || count == 0 || instance.PayloadOffset + arrayOffset > stream.Length)
-            return Option.Some(xe);
+            return Option.Create(xe);
         
         var optionSubType = types.FirstOrNone(t => t.TypeHash == adfType.ScalarTypeHash);
         if (!optionSubType.IsSome(out var subtype))
-            return Option.Some(xe);
+            return Option.Create(xe);
 
         var position = stream.Position;
         var absoluteOffset = instance.PayloadOffset + arrayOffset;
@@ -193,23 +185,19 @@ public static class AdfV04InstanceLibrary
             var optionXChild = subtype.Type switch
             {
                 EAdfV04Type.Scalar => instance.ScalarToXElement(stream, subtype, name),
-                EAdfV04Type.Struct => instance.ToXStruct(stream, subtype, string.Empty, types),
+                EAdfV04Type.Struct => instance.StructToXElement(stream, subtype, i.ToString(), types),
                 _ => Option<XElement>.None
             };
 
             if (!optionXChild.IsSome(out var xChild))
-                return Option.None<XElement>();
+                return Option<XElement>.None;
             
             xe.Add(xChild);
-            if (subtype.Type == EAdfV04Type.Scalar && i != 0)
-            {
-                xe.Add(" ");
-            }
         }
         
         stream.Seek(position, SeekOrigin.Begin);
 
-        return Option.Some(xe);
+        return Option.Create(xe);
     }
     
     public static Option<XElement> ScalarToXElement(this AdfV04Instance instance, Stream stream, AdfV04Type adfType, string name)
@@ -220,15 +208,17 @@ public static class AdfV04InstanceLibrary
 
         var optionResult = ScalarToContent(stream, adfType);
         if (!optionResult.IsSome(out var result))
-            return Option.None<XElement>();
+            return Option<XElement>.None;
         
         xe.Add(result.ToString());
 
-        return Option.Some(xe);
+        return Option.Create(xe);
     }
 
     public static Option<object> ScalarToContent(Stream stream, AdfV04Type adfType)
     {
+        stream.AlignRead(adfType.Alignment);
+        
         switch (adfType.ScalarType)
         {
             case EAdfV04ScalarType.Signed:
@@ -261,6 +251,82 @@ public static class AdfV04InstanceLibrary
         }
         
         return Option.Some<object>("FAILED");
+    }
+
+    public static Option<XElement> StringToXElement(this AdfV04Instance instance, Stream stream, AdfV04Type adfType, string name)
+    {
+        var xe = new XElement("string");
+        xe.SetAttributeValue("name", name);
+        xe.SetAttributeValue("type", adfType.SafeName);
+        
+        var stringOffset = stream.Read<uint>();
+        var unk0 = stream.Read<uint>();
+        if (stringOffset == 0 || instance.PayloadOffset + stringOffset > stream.Length)
+            return Option.Create(xe);
+        
+        var position = stream.Position;
+        var absoluteOffset = instance.PayloadOffset + stringOffset;
+        stream.Seek(absoluteOffset, SeekOrigin.Begin);
+        
+        var value = stream.ReadStringZ();
+        xe.Add(value.RemoveAll(XDocumentLibrary.InvalidXmlCharacters));
+        
+        stream.Seek(position, SeekOrigin.Begin);
+
+        return Option.Create(xe);
+    }
+    
+    public static Option<XElement> EnumToXElement(this AdfV04Instance instance, Stream stream, AdfV04Type adfType, string name)
+    {
+        var xe = new XElement("enum");
+        xe.SetAttributeValue("name", name);
+        xe.SetAttributeValue("type", adfType.SafeName);
+        
+        var value = stream.Read<uint>();
+        xe.Add(value);
+
+        return Option.Create(xe);
+    }
+    
+    public static Option<XElement> StringHashToXElement(this AdfV04Instance instance, Stream stream, AdfV04Type adfType, string name)
+    {
+        var xe = new XElement("hash");
+        xe.SetAttributeValue("name", name);
+        xe.SetAttributeValue("type", adfType.SafeName);
+        
+        var stringHash = stream.Read<uint>();
+        xe.Add($"{stringHash:X08}");
+
+        return Option.Create(xe);
+    }
+
+    public static Option<XElement> PointerToXElement(this AdfV04Instance instance, Stream stream, AdfV04Type adfType, string name, AdfV04Type[] types)
+    {
+        var xe = new XElement(adfType.Type.ToXName());
+        xe.SetAttributeValue("name", name);
+        xe.SetAttributeValue("type", adfType.SafeName);
+        
+        var dataOffset = stream.Read<uint>();
+        
+        var position = stream.Position;
+        var absoluteOffset = instance.PayloadOffset + dataOffset;
+        stream.Seek(absoluteOffset, SeekOrigin.Begin);
+        
+        var typeHash = adfType.Type == EAdfV04Type.Pointer ? adfType.ScalarTypeHash : stream.Read<uint>();
+        
+        var optionSubType = types.FirstOrNone(t => t.TypeHash == typeHash);
+        if (!optionSubType.IsSome(out var subtype))
+            return Option.Create(xe);
+        
+        var optionXMember = instance.DataToXElement(stream, subtype, subtype.SafeName, types);
+        if (!optionXMember.IsSome(out var xMember))
+            return Option<XElement>.None;
+        
+        xe.Add(xMember);
+        
+        stream.Seek(position, SeekOrigin.Begin);
+
+        return Option.Create(xe);
     }
 
     public static void TryFindName(this AdfV04Instance instance, string[] stringTable)

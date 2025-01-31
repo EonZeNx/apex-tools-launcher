@@ -96,8 +96,8 @@ public class AdfV04File : ICanExtractPath, IExtractPathToPath, IExtractStreamToS
             .WithVersion(AdfV04FileLibrary.Version.ToString())
             .WithExtension(ExtractExtension)
             .WithChild(xInstances)
-            .WithChild(xStringHashes)
-            .WithChild(xStringTable)
+            // .WithChild(xStringHashes)
+            // .WithChild(xStringTable)
             .WithChild(xTypes)
             .Build();
 
@@ -282,12 +282,14 @@ public class AdfV04File : ICanExtractPath, IExtractPathToPath, IExtractStreamToS
         stream.Seek(header.InstanceOffset, SeekOrigin.Begin);
         for (var i = 0; i < header.InstanceCount; i += 1)
         {
+            stream.Seek(header.InstanceOffset + AdfV04InstanceLibrary.SizeOf * i, SeekOrigin.Begin);
+            
             var optionInstance = stream.ReadAdfV04Instance();
             if (!optionInstance.IsSome(out var instance))
-                return Option.None<XElement>();
+                return Option.Create(xe);
 
             if (instance.PayloadOffset == 0 || instance.PayloadSize == 0)
-                return Option.None<XElement>();
+                return Option.Create(xe);
             
             stream.Seek(instance.PayloadOffset, SeekOrigin.Begin);
 
@@ -295,12 +297,12 @@ public class AdfV04File : ICanExtractPath, IExtractPathToPath, IExtractStreamToS
             
             var optionXInstance = instance.ToXElement(stream, types);
             if (!optionXInstance.IsSome(out var xInstance))
-                return Option.None<XElement>();
+                return Option.Create(xe);
             
             xe.Add(xInstance);
         }
         
-        return Option.Some(xe);
+        return Option.Create(xe);
     }
 }
 
