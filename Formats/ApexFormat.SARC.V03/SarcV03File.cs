@@ -69,7 +69,7 @@ public class SarcV03File : ICanExtractPath, IExtractPathToPath, IExtractStreamTo
         var xmlFilePath = Path.Join(outPath, "@files.xml");
         using var xmlFile = new FileStream(xmlFilePath, FileMode.Create);
 
-        var xd = XProjectBuilder.CreateXProjectBuilder()
+        var xd = XProjectBuilder.Create()
             .WithType(SarcV03FileLibrary.XName)
             .WithVersion(SarcV03FileLibrary.Version.ToString())
             .WithExtension(ExtractExtension)

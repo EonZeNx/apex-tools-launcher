@@ -91,7 +91,7 @@ public class AdfV04File : ICanExtractPath, IExtractPathToPath, IExtractStreamToS
             .WithChildren(types, t => t.ToXElement())
             .Build();
         
-        var xd = XProjectBuilder.CreateXProjectBuilder()
+        var xd = XProjectBuilder.Create()
             .WithType(AdfV04FileLibrary.XName)
             .WithVersion(AdfV04FileLibrary.Version.ToString())
             .WithExtension(ExtractExtension)
@@ -295,7 +295,7 @@ public class AdfV04File : ICanExtractPath, IExtractPathToPath, IExtractStreamToS
 
             instance.TryFindName(stringTable);
             
-            var optionXInstance = instance.ToXElement(stream, types);
+            var optionXInstance = instance.ToXElement(stream, types, stringHashes);
             if (!optionXInstance.IsSome(out var xInstance))
                 return Option.Create(xe);
             

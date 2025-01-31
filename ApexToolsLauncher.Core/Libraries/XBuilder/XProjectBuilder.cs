@@ -8,23 +8,23 @@ public class XProjectBuilder
     public Option<string> Type = Option<string>.None;
     public Option<string> Version = Option<string>.None;
     public Option<string> Extension = Option<string>.None;
-    public List<XElement> Children = [];
+    public readonly List<XElement> Children = [];
     
-    public static XProjectBuilder CreateXProjectBuilder() => new();
+    public static XProjectBuilder Create() => new();
     
-    public virtual XProjectBuilder WithType(string type)
+    public XProjectBuilder WithType(string type)
     {
         Type = type.AsOption();
         return this;
     }
     
-    public virtual XProjectBuilder WithVersion(string version)
+    public XProjectBuilder WithVersion(string version)
     {
         Version = version.AsOption();
         return this;
     }
     
-    public virtual XProjectBuilder WithExtension(string extension)
+    public XProjectBuilder WithExtension(string extension)
     {
         Extension = extension.AsOption();
         return this;
@@ -90,5 +90,10 @@ public class XProjectBuilder
             root.Add(child);
         
         return new XDocument(XDocumentLibrary.ProjectXComment(), root);
+    }
+
+    public Option<XDocument> BuildOption()
+    {
+        return Option.Create(Build());
     }
 }

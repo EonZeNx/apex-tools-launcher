@@ -90,4 +90,9 @@ public class XElementBuilder(string name)
     {
         return Element;
     }
+
+    public Option<XElement> BuildOption()
+    {
+        return Option.Create(Build());
+    }
 }

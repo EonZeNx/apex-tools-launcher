@@ -45,7 +45,7 @@ public class IcV01File : ICanExtractPath, IExtractPathToPath, IExtractStreamToSt
             instances.Add(instance);
         }
         
-        var xd = XProjectBuilder.CreateXProjectBuilder()
+        var xd = XProjectBuilder.Create()
             .WithType(IcV01FileLibrary.XName)
             .WithVersion(IcV01FileLibrary.Version.ToString())
             .WithExtension(ExtractExtension)

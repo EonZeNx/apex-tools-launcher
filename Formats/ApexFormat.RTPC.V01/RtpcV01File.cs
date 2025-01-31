@@ -58,7 +58,7 @@ public class RtpcV01File : ICanExtractPath, IExtractPathToPath, IExtractStreamTo
         if (!optionContainer.IsSome(out var container))
             return Result.Err<int>(new InvalidOperationException($"Failed to extract {nameof(RtpcV01Container)}"));
 
-        var xd = XProjectBuilder.CreateXProjectBuilder()
+        var xd = XProjectBuilder.Create()
             .WithType(RtpcV01FileLibrary.XName)
             .WithVersion(RtpcV01FileLibrary.Version.ToString())
             .WithExtension(ExtractExtension)
