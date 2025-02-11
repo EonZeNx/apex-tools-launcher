@@ -16,7 +16,7 @@
         <ApplicationTitle>ApexToolsLauncher</ApplicationTitle>
 
         <!-- App Identifier -->
-        <ApplicationId>com.companyname.apextoolslauncher</ApplicationId>
+        <ApplicationId>com.eonzenx.apextoolslauncher</ApplicationId>
 
         <!-- Versions -->
         <ApplicationDisplayVersion>0.1.0</ApplicationDisplayVersion>
@@ -100,7 +100,7 @@
         <!-- see https://github.com/nulastudio/NetBeauty2#customize-apphost for more details -->
         <!-- relative path based on AppHostDir -->
         <!-- .NET Core Non Single-File Only -->
-        <!-- <BeautyAppHostEntry>bin/ATL.CLI.dll</BeautyAppHostEntry> -->
+        <!-- <BeautyAppHostEntry>bin/ApexToolsLauncher.GUI.dll</BeautyAppHostEntry> -->
         <!-- relative path based on BeautyDir -->
         <!-- .NET Core Non Single-File Only -->
         <!-- <BeautyAppHostDir>..</BeautyAppHostDir> -->
