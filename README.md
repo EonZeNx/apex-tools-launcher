@@ -2,25 +2,28 @@
 Mod tools for [Avalanche Studios Group](https://avalanchestudios.com/) games and [Apex Engine](https://avalanchestudios.com/technology) files. Launch, extract and repack their games and files.
 
 ## File type status
-### Just Cause 3
-|   File type   | Version |   Status   |
-| ------------- | ------- | ---------- |
-| RTPC (inline) | 1.4     | Extract    |
-| RTPC          | 1       | Extract    |
-| AAF           | 1       | Extract    |
-| SARC          | 2       | Extract    |
-| TOC           | -       | TBD        |
-| ADF           | 4       | Extract    |
-| TAB / ARC     | 2       | Extract    |
-| DDSC / AVTX   | 1       | ToDo       |
+|     File type    | Version | Extract | Repack |
+| ---------------- | ------- | ------- | ------ |
+| Inline Container | -       | X       | ~      |
+| RTPC             | 1       | X       | ~      |
+| RTPC             | 3       | X       | ~      |
+| AAF              | 1       | X       |        |
+| SARC             | 2       | X       |        |
+| SARC             | 3       | X       |        |
+| TOC              | -       | X       |        |
+| ADF              | 4       | X       |        |
+| TAB / ARC        | 2       | X       |        |
+| DDSC / AVTX      | 1       |         |        |
 
-## External dependencies
-- None so far
+# Installation
+1. Install the latest Dot Net 9 runtime.
+2. Download the latest release and extract the zip file.
+3. Run the CLI or GUI.
 
-*Note*: Just Cause 4 (and potentially other Avalanche games) uses Oodle (`oo2core_7_win64.dll`) to de/compress files.
-Once support for Just Cause 4 is rolled out, this will be required.
+# Structure
+The project is intended to be readable and easy to maintain. To support this, close locality of behaviour and data is upheld.
 
-I am unable to share this file due to licensing, but if you have the game it should be located in your installation folder.
+Data is stored in classes with logic separated using extensions. Class members are values stored in binary files while properties are data otherwise not directly stored within the structure, e.g. `NameIndex` member stored within the binary struct vs `Name` property which has been looked up.
 
 # References
 - **[aaronkirkham's jc-model-renderer](https://github.com/aaronkirkham)**: The JC Model Renderer had some very useful info, especially regarding compression.
@@ -29,6 +32,7 @@ I am unable to share this file due to licensing, but if you have the game it sho
 
 ### Communities
 Join the largest Just Cause community here: [Just Cause Unlimited](https://discord.gg/just-cause-unlimited-449584016648044555)
+
 Join the EonZeNx server here: [EonZeNx Discord](https://discord.gg/SAjVFmMGdd)
 
 # License
@@ -37,6 +41,6 @@ All information is under the [MIT license](https://choosealicense.com/licenses/m
 ### Note
 *Never include binaries or data that do not adhere to the above license.*
 
-# Disclaimer
+## Disclaimer
 All product names, logos, and brands are property of their respective owners. All company, product and service names
 used in this website are for identification purposes only. Use of these names, logos, and brands does not imply endorsement.

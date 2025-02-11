@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
@@ -7,6 +7,7 @@
         <Nullable>enable</Nullable>
         <PublishSingleFile>true</PublishSingleFile>
         <LangVersion>13</LangVersion>
+        <PublishTrimmed>true</PublishTrimmed>
     </PropertyGroup>
 
     <ItemGroup>
@@ -56,7 +57,7 @@
         <!-- see https://github.com/nulastudio/NetBeauty2#customize-apphost for more details -->
         <!-- relative path based on AppHostDir -->
         <!-- .NET Core Non Single-File Only -->
-        <!-- <BeautyAppHostEntry>bin/ATL.CLI.dll</BeautyAppHostEntry> -->
+        <!-- <BeautyAppHostEntry>bin/ApexToolsLauncher.CLI.dll</BeautyAppHostEntry> -->
         <!-- relative path based on BeautyDir -->
         <!-- .NET Core Non Single-File Only -->
         <!-- <BeautyAppHostDir>..</BeautyAppHostDir> -->
