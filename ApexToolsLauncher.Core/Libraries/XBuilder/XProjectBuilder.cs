@@ -5,30 +5,35 @@ namespace ApexToolsLauncher.Core.Libraries.XBuilder;
 
 public class XProjectBuilder
 {
-    public Option<string> Type = Option<string>.None;
-    public Option<string> Version = Option<string>.None;
-    public Option<string> Extension = Option<string>.None;
-    public readonly List<XElement> Children = [];
+    public Option<string> Type { get; private set; } = Option<string>.None;
+    public Option<string> Version { get; private set; } = Option<string>.None;
+    public Option<string> Extension { get; private set; } = Option<string>.None;
+    public List<XElement> Children { get; private set; } = [];
     
     public static XProjectBuilder Create() => new();
     
-    public XProjectBuilder WithType(string type)
+    public XProjectBuilder WithType(Option<string> type)
     {
-        Type = type.AsOption();
+        Type = type;
         return this;
     }
     
-    public XProjectBuilder WithVersion(string version)
+    public XProjectBuilder WithType(string type) => WithType(type.AsOption());
+    
+    public XProjectBuilder WithVersion(Option<string> version)
     {
-        Version = version.AsOption();
+        Version = version;
+        return this;
+    }
+    public XProjectBuilder WithVersion(string version) => WithVersion(version.AsOption());
+    
+    public XProjectBuilder WithExtension(Option<string> extension)
+    {
+        Extension = extension;
         return this;
     }
     
-    public XProjectBuilder WithExtension(string extension)
-    {
-        Extension = extension.AsOption();
-        return this;
-    }
+    public XProjectBuilder WithExtension(string extension) => WithExtension(extension.AsOption());
 
     public XProjectBuilder WithChild(XElement child)
     {
@@ -96,4 +101,19 @@ public class XProjectBuilder
     {
         return Option.Create(Build());
     }
+
+    public static XProjectBuilder Load(XElement root)
+    {
+        var project = Create();
+        
+        if (!string.Equals(root.Name.ToString(), "atl"))
+            return project;
+
+        return project
+            .WithType(root.GetAttribute("type"))
+            .WithVersion(root.GetAttribute("version"))
+            .WithExtension(root.GetAttribute("extension"));
+    }
+
+    public static XProjectBuilder Load(string path) => Load(XElement.Load(path));
 }
