@@ -12,13 +12,8 @@ public class AdfV04Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
     
     public static bool CanProcess(string path)
     {
-        if (File.Exists(path))
-        {
-            using var fileStream = new FileStream(path, FileMode.Open);
-            return CanProcess(fileStream);
-        }
-
-        return false;
+        var file = new AdfV04File();
+        return file.CanExtractPath(path) || file.CanRepackPath(path);
     }
 
     public int ProcessBasic(string inFilePath, string outDirectory)

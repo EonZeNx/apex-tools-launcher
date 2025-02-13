@@ -158,9 +158,9 @@ public static class RtpcV01ContainerLibrary
             return Result.Err<RtpcV01Container>(new InvalidOperationException($"Node {xe.Name.LocalName} does not equal {XName}"));
         }
         
-        var nameHashOption = xe.GetAttributeOrNone("name")
+        var nameHashOption = xe.GetAttribute("name")
             .Map(s => s.Jenkins())
-            .OrElse(() => xe.GetAttributeOrNone("id")
+            .OrElse(() => xe.GetAttribute("id")
                 .Map(s => uint.Parse(s, NumberStyles.HexNumber)));
         
         if (!nameHashOption.IsSome(out var nameHash))

@@ -76,22 +76,33 @@ public class RtpcV01File : ICanExtractPath, IExtractPathToPath, IExtractStreamTo
         if (!File.Exists(path))
             return false;
 
-        XElement xe;
         try
         {
-            xe = XElement.Load(path);
+            var project = XProjectBuilder.Load(path);
+            if (!project.Type.IsSome(out var projectType))
+                return false;
+
+            if (!string.Equals(projectType, RtpcV01FileLibrary.XName))
+                return false;
+            
+            if (!project.Version.IsSome(out var projectVersionString))
+                return false;
+
+            if (!int.TryParse(projectVersionString, out var projectVersion))
+                return false;
+
+            if (projectVersion != RtpcV01FileLibrary.Version)
+                return false;
+            
+            if (project.Extension.IsSome(out var projectExtension))
+                ExtractExtension = projectExtension;
+            
+            return true;
         }
         catch (Exception e)
         {
             return false;
         }
-        
-        var xContainers = xe.Elements(RtpcV01ContainerLibrary.XName).ToArray();
-        
-        if (xContainers.Length == 0) return false;
-
-        var container = new RtpcV01Container();
-        return container.CanRepack(xContainers[0]).IsOk(out _);
     }
 
     public Result<int, Exception> RepackPathToPath(string inPath, string outPath)
@@ -103,7 +114,7 @@ public class RtpcV01File : ICanExtractPath, IExtractPathToPath, IExtractStreamTo
             return Result.Err<int>(new InvalidOperationException($"Element name is {xe.Name.LocalName} not {RtpcV01FileLibrary.XName}"));
         }
 
-        var optionExtension = xe.GetAttributeOrNone("extension");
+        var optionExtension = xe.GetAttribute("extension");
         if (optionExtension.IsSome(out var extension))
         {
             ExtractExtension = extension;
@@ -127,7 +138,7 @@ public class RtpcV01File : ICanExtractPath, IExtractPathToPath, IExtractStreamTo
             return Result.Err<int>(new InvalidOperationException($"Element name is {xe.Name.LocalName} not {RtpcV01FileLibrary.XName}"));
         }
 
-        var optionExtension = xe.GetAttributeOrNone("extension");
+        var optionExtension = xe.GetAttribute("extension");
         if (optionExtension.IsSome(out var extension))
         {
             ExtractExtension = extension;

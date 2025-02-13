@@ -111,7 +111,7 @@ public static class IcV01InstanceLibrary
         }
         
         var instance = new IcV01Instance();
-        if (xe.GetAttributeOrNone("name").IsSome(out var name))
+        if (xe.GetAttribute("name").IsSome(out var name))
         {
             instance.PropertyCount = 1;
             instance.PropertyType = EIcV01CollectionType.Unk0;

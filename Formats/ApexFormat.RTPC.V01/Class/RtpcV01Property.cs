@@ -388,9 +388,9 @@ public static class RtpcV01PropertyLibrary
             return Result.Err<bool>(new System.Xml.XmlException($"Node {xe.Name.LocalName} does not equal {XName}"));
         }
         
-        var nameHashOption = xe.GetAttributeOrNone("name")
+        var nameHashOption = xe.GetAttribute("name")
             .Map(s => s.Jenkins())
-            .OrElse(() => xe.GetAttributeOrNone("id")
+            .OrElse(() => xe.GetAttribute("id")
                 .Map(s => uint.Parse(s, NumberStyles.HexNumber)));
         
         if (!nameHashOption.IsSome(out var nameHash))
@@ -400,7 +400,7 @@ public static class RtpcV01PropertyLibrary
 
         property.NameHash = nameHash;
         
-        if (!xe.GetAttributeOrNone("type").IsSome(out var typeAttribute))
+        if (!xe.GetAttribute("type").IsSome(out var typeAttribute))
         {
             return Result.Err<bool>(new InvalidOperationException("type attribute missing"));
         }

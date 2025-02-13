@@ -69,7 +69,36 @@ public class RtpcV03File : ICanExtractPath, IExtractPathToPath, IExtractStreamTo
 
     public bool CanRepackPath(string path)
     {
-        return false;
+        if (!File.Exists(path))
+            return false;
+
+        try
+        {
+            var project = XProjectBuilder.Load(path);
+            if (!project.Type.IsSome(out var projectType))
+                return false;
+
+            if (!string.Equals(projectType, RtpcV03FileLibrary.XName))
+                return false;
+            
+            if (!project.Version.IsSome(out var projectVersionString))
+                return false;
+
+            if (!int.TryParse(projectVersionString, out var projectVersion))
+                return false;
+
+            if (projectVersion != RtpcV03FileLibrary.Version)
+                return false;
+            
+            if (project.Extension.IsSome(out var projectExtension))
+                ExtractExtension = projectExtension;
+            
+            return true;
+        }
+        catch (Exception e)
+        {
+            return false;
+        }
     }
 
     public Result<int, Exception> RepackPathToPath(string inPath, string outPath)

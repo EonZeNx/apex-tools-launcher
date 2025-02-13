@@ -77,22 +77,33 @@ public class IcV01File : ICanExtractPath, IExtractPathToPath, IExtractStreamToSt
         if (!File.Exists(path))
             return false;
 
-        XElement xe;
         try
         {
-            xe = XElement.Load(path);
+            var project = XProjectBuilder.Load(path);
+            if (!project.Type.IsSome(out var projectType))
+                return false;
+
+            if (!string.Equals(projectType, IcV01FileLibrary.XName))
+                return false;
+            
+            if (!project.Version.IsSome(out var projectVersionString))
+                return false;
+
+            if (!int.TryParse(projectVersionString, out var projectVersion))
+                return false;
+
+            if (projectVersion != IcV01FileLibrary.Version)
+                return false;
+            
+            if (project.Extension.IsSome(out var projectExtension))
+                ExtractExtension = projectExtension;
+            
+            return true;
         }
         catch (Exception e)
         {
             return false;
         }
-        
-        var xInstances = xe.Descendants(IcV01InstanceLibrary.XName).ToArray();
-        
-        if (xInstances.Length == 0) return false;
-
-        var instance = new IcV01Instance();
-        return xInstances.All(xi => instance.CanRepack(xi).IsOk(out _));
     }
 
     public Result<int, Exception> RepackStreamToStream(Stream inStream, Stream outStream)
@@ -104,7 +115,7 @@ public class IcV01File : ICanExtractPath, IExtractPathToPath, IExtractStreamToSt
             return Result.Err<int>(new InvalidOperationException($"Element name is {xe.Name.LocalName} not {IcV01FileLibrary.XName}"));
         }
 
-        var optionExtension = xe.GetAttributeOrNone("extension");
+        var optionExtension = xe.GetAttribute("extension");
         if (optionExtension.IsSome(out var extension))
         {
             ExtractExtension = extension;
@@ -134,7 +145,7 @@ public class IcV01File : ICanExtractPath, IExtractPathToPath, IExtractStreamToSt
             return Result.Err<int>(new InvalidOperationException($"Element name is {xe.Name.LocalName} not {IcV01FileLibrary.XName}"));
         }
 
-        var optionExtension = xe.GetAttributeOrNone("extension");
+        var optionExtension = xe.GetAttribute("extension");
         if (optionExtension.IsSome(out var extension))
         {
             ExtractExtension = extension;
