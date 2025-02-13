@@ -7,7 +7,9 @@
         <Nullable>enable</Nullable>
         <PublishSingleFile>true</PublishSingleFile>
         <LangVersion>13</LangVersion>
+      
         <PublishTrimmed>true</PublishTrimmed>
+        <JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
     </PropertyGroup>
 
     <ItemGroup>
