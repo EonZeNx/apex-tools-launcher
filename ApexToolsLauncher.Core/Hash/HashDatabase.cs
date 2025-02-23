@@ -87,6 +87,9 @@ public class HashDatabase
     
     public bool LoadAll()
     {
+        if (LoadedAllHashes)
+            return true;
+        
         if (DbConnection == null && !TriedToOpenDb)
         {
             OpenConnection();

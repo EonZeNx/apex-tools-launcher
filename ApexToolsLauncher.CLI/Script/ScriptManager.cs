@@ -12,6 +12,8 @@ namespace ApexToolsLauncher.CLI.Script;
 
 public class ScriptManager : IProcessBasic
 {
+    public bool CanLookupHashes() => true;
+
     public void Load(string filepath)
     {
         if (!Path.Exists(filepath))

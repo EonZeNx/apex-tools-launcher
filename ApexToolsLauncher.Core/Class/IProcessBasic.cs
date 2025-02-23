@@ -4,4 +4,5 @@ public interface IProcessBasic
 {
     int ProcessBasic(string inFilePath, string outDirectory);
     string GetProcessorName();
+    bool CanLookupHashes();
 }

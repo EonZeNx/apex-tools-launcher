@@ -5,6 +5,8 @@ namespace ApexFormat.TAB.V02;
 
 public class TabV02Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
 {
+    public bool CanLookupHashes() => false;
+    
     public static bool CanProcess(Stream stream)
     {
         return !stream.ReadTabV02Header().IsNone;

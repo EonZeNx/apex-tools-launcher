@@ -2,14 +2,13 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using ApexToolsLauncher.Core.Config;
 using ApexToolsLauncher.Core.Hash;
 using ApexToolsLauncher.Core.Libraries;
 using CommandLine;
 using CommandLine.Text;
-#if !DEBUG
-using System.Threading.Tasks;
-#endif
+using RustyOptions;
 
 namespace ApexToolsLauncher.CLI;
 
@@ -57,12 +56,6 @@ class Program
             CoreConfig.AppConfig.PreloadHashes = true;
         }
         
-        if (CoreConfig.AppConfig.PreloadHashes)
-        {
-            ConsoleLibrary.Log("Loading all hashes into memory...", LogType.Info);
-            HashDatabases.LoadAll();
-        }
-        
         if (!string.IsNullOrEmpty(options.OutputDirectory))
         {
             if (!Directory.Exists(options.OutputDirectory))
@@ -70,48 +63,55 @@ class Program
         }
 
         var paths = inOptions.InputPaths.ToArray();
-        
+
+        // ReSharper disable once RedundantAssignment
+        var parallelLoop = CoreConfig.AppConfig.Cli.ParallelLoop;
 #if DEBUG
-        foreach (var path in paths)
-        {
-            var managerOption = AtlOperate.GetOperator(path);
-            if (!managerOption.IsSome(out var manager))
-            {
-                ConsoleLibrary.Log($"File not supported {path}", LogType.Warning);
-                continue;
-            }
-            
-            var pathName = Path.GetFileName(path);
-            if (string.IsNullOrEmpty(pathName))
-                pathName = Path.GetDirectoryName(path);
-
-            ConsoleLibrary.Log($"Processing {pathName} as {manager.GetProcessorName()}", LogType.Info);
-
-            AtlOperate.RunOperator(path, manager, options.OutputDirectory);
-
-            ConsoleLibrary.Log($"Finished {pathName}", LogType.Info);
-        }
-#else
-        Parallel.ForEach(paths, (path) =>
-        {
-            var managerOption = AtlOperate.GetOperator(path);
-            if (!managerOption.IsSome(out var manager))
-            {
-                ConsoleLibrary.Log($"File not supported {path}", LogType.Warning);
-                return;
-            }
-            
-            var pathName = Path.GetFileName(path);
-            if (string.IsNullOrEmpty(pathName))
-                pathName = Path.GetDirectoryName(path);
-
-            ConsoleLibrary.Log($"Processing {pathName} as {manager.GetProcessorName()}", LogType.Info);
-
-            AtlOperate.RunOperator(path, manager, options.OutputDirectory);
-
-            ConsoleLibrary.Log($"Finished {pathName}", LogType.Info);
-        });
+        parallelLoop = false;
 #endif
+        
+        if (parallelLoop)
+        {
+            foreach (var path in paths)
+            {
+                RunOperator(path, options);
+            }
+        }
+        else
+        {
+            Parallel.ForEach(paths, (path) =>
+            {
+                RunOperator(path, options);
+            });
+        }
+    }
+
+    public static Option<Exception> RunOperator(string path, AtlClOptions options)
+    {
+        var managerOption = AtlOperate.GetOperator(path);
+        if (!managerOption.IsSome(out var manager))
+        {
+            ConsoleLibrary.Log($"File not supported {path}", LogType.Warning);
+            return Option.Create<Exception>(new InvalidOperationException($"File not supported {path}"));
+        }
+        
+        var pathName = Path.GetFileName(path);
+        if (string.IsNullOrEmpty(pathName))
+            pathName = Path.GetDirectoryName(path);
+
+        ConsoleLibrary.Log($"Processing {pathName} as {manager.GetProcessorName()}", LogType.Info);
+
+        if (manager.CanLookupHashes() && CoreConfig.AppConfig.PreloadHashes && !HashDatabases.LoadedAllHashes)
+        {
+            ConsoleLibrary.Log("Loading all hashes into memory...", LogType.Info);
+            HashDatabases.LoadAll();
+        }
+
+        AtlOperate.RunOperator(path, manager, options.OutputDirectory);
+
+        ConsoleLibrary.Log($"Finished {pathName}", LogType.Info);
+
+        return Option.None<Exception>();
     }
 
     public static void MainWithErrors(ParserResult<AtlClOptions> result, IEnumerable<Error> errors)

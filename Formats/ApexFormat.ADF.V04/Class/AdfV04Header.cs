@@ -1,4 +1,5 @@
-﻿using ApexFormat.ADF.V04.Enums;
+﻿using System.Text;
+using ApexFormat.ADF.V04.Enums;
 using ApexToolsLauncher.Core.Class;
 using ApexToolsLauncher.Core.Extensions;
 using CommunityToolkit.HighPerformance;
@@ -151,5 +152,37 @@ public static class AdfV04HeaderLibrary
         }
 
         return Option.Some(result);
+    }
+
+    public static Option<Exception> Write(this AdfV04Header header, Stream stream)
+    {
+        try
+        {
+            stream.Write(header.Magic);
+            stream.Write(header.Version);
+            stream.Write(header.InstanceCount);
+            stream.Write(header.InstanceOffset);
+            stream.Write(header.TypeCount);
+            stream.Write(header.TypeOffset);
+            stream.Write(header.StringHashCount);
+            stream.Write(header.StringHashOffset);
+            stream.Write(header.StringTableCount);
+            stream.Write(header.StringTableOffset);
+            stream.Write(header.FileSize);
+            stream.Write(header.MetaDataOffset);
+            stream.Write(header.Flags);
+            stream.Write(header.IncludedLibraries);
+            stream.Write(header.Unknown01);
+            stream.Write(header.Unknown02);
+
+            stream.Write(Encoding.UTF8.GetBytes(header.Comment));
+            stream.Write((byte)0x00);
+        }
+        catch (Exception e)
+        {
+            return Option.Create(e);
+        }
+
+        return Option.None<Exception>();
     }
 }

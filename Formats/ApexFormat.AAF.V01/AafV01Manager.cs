@@ -5,6 +5,8 @@ namespace ApexFormat.AAF.V01;
 
 public class AafV01Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
 {
+    public bool CanLookupHashes() => false;
+    
     public static bool CanProcess(Stream stream)
     {
         return !stream.ReadAafV01Header().IsNone;

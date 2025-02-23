@@ -40,7 +40,7 @@ public class AafV01File : ICanExtractPath, IExtractPathToPath, IExtractStreamToS
         
         var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(inPath);
         var sarcFilePath = Path.Join(outDirectoryPath, $"{fileNameWithoutExtension}.sarc");
-        using var outStream = new FileStream(outPath, FileMode.Open);
+        using var outStream = new FileStream(sarcFilePath, FileMode.Create);
         
         var result = ExtractStreamToStream(inStream, outStream);
         

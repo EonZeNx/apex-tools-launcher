@@ -8,6 +8,7 @@ public class HashDatabases
 {
     public static List<HashDatabase> Databases { get; set; } = [];
     public static bool TriedFindAndOpenAll { get; set; } = false;
+    public static bool LoadedAllHashes => Databases.All(d => d.LoadedAllHashes);
     
     # region Database
     

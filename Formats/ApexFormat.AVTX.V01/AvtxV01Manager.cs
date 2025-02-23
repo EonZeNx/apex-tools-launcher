@@ -5,6 +5,8 @@ namespace ApexFormat.AVTX.V01;
 
 public class AvtxV01Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
 {
+    public bool CanLookupHashes() => false;
+    
     public static bool CanProcess(Stream stream)
     {
         return !stream.ReadAvtxV01Header().IsNone;

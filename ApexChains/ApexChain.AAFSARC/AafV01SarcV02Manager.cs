@@ -8,6 +8,8 @@ namespace ApexChain.AAFSARC;
 
 public class AafV01SarcV02Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
 {
+    public bool CanLookupHashes() => false;
+    
     public static bool CanProcess(Stream stream)
     {
         return AafV01Manager.CanProcess(stream);

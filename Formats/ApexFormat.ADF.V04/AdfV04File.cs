@@ -157,11 +157,49 @@ public class AdfV04File : ICanExtractPath, IExtractPathToPath, IExtractStreamToS
 
     public Result<int, Exception> RepackPathToPath(string inPath, string outPath)
     {
-        return Result.Err<int>(new NotImplementedException());
+        var xe = XElement.Load(inPath);
+        
+        if (!string.Equals(xe.Name.ToString(), AdfV04FileLibrary.XName))
+        {
+            return Result.Err<int>(new InvalidOperationException($"Element name is {xe.Name} not {AdfV04FileLibrary.XName}"));
+        }
+
+        if (xe.GetAttribute("extension").IsSome(out var extension))
+        {
+            ExtractExtension = extension;
+        }
+        
+        var fileName = Path.GetFileNameWithoutExtension(inPath);
+        var repackFilePath = Path.Join(outPath, $"{fileName}.{ExtractExtension}");
+        
+        using var inStream = new FileStream(inPath, FileMode.Open);
+        using var outStream = new FileStream(repackFilePath, FileMode.Create);
+        
+        return RepackStreamToStream(inStream, outStream);
     }
 
     public Result<int, Exception> RepackStreamToStream(Stream inStream, Stream outStream)
     {
+        var xe = XElement.Load(inStream);
+        
+        if (!string.Equals(xe.Name.ToString(), AdfV04FileLibrary.XName))
+        {
+            return Result.Err<int>(new InvalidOperationException($"Element name is {xe.Name} not {AdfV04FileLibrary.XName}"));
+        }
+
+        if (xe.GetAttribute("extension").IsSome(out var extension))
+        {
+            ExtractExtension = extension;
+        }
+        
+        // load types
+        // load instances
+        //    load instance
+        // skip header
+        // write data
+        // write types
+        // write header
+        
         return Result.Err<int>(new NotImplementedException());
     }
 

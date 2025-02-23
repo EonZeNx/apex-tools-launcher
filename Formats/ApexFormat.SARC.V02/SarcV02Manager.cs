@@ -5,6 +5,8 @@ namespace ApexFormat.SARC.V02;
 
 public class SarcV02Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
 {
+    public bool CanLookupHashes() => false;
+    
     public static bool CanProcess(Stream stream)
     {
         return !stream.ReadSarcV02Header().IsNone;

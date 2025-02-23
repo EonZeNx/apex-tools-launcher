@@ -9,4 +9,7 @@ public class CliConfig
     
     [JsonPropertyName("lookup_hash")]
     public bool LookupHash { get; set; } = true;
+    
+    [JsonPropertyName("parallel_loop")]
+    public bool ParallelLoop { get; set; } = true;
 }

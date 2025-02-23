@@ -5,6 +5,8 @@ namespace ApexFormat.IC.V01;
 
 public class IcV01Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
 {
+    public bool CanLookupHashes() => true;
+    
     public static bool CanProcess(Stream stream)
     {
         return !stream.Read<IcV01Instance>().IsNone;

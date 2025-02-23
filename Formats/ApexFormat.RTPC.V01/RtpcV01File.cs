@@ -109,13 +109,12 @@ public class RtpcV01File : ICanExtractPath, IExtractPathToPath, IExtractStreamTo
     {
         var xe = XElement.Load(inPath);
         
-        if (!string.Equals(xe.Name.LocalName, RtpcV01FileLibrary.XName))
+        if (!string.Equals(xe.Name.ToString(), RtpcV01FileLibrary.XName))
         {
-            return Result.Err<int>(new InvalidOperationException($"Element name is {xe.Name.LocalName} not {RtpcV01FileLibrary.XName}"));
+            return Result.Err<int>(new InvalidOperationException($"Element name is {xe.Name} not {RtpcV01FileLibrary.XName}"));
         }
 
-        var optionExtension = xe.GetAttribute("extension");
-        if (optionExtension.IsSome(out var extension))
+        if (xe.GetAttribute("extension").IsSome(out var extension))
         {
             ExtractExtension = extension;
         }
@@ -138,8 +137,7 @@ public class RtpcV01File : ICanExtractPath, IExtractPathToPath, IExtractStreamTo
             return Result.Err<int>(new InvalidOperationException($"Element name is {xe.Name.LocalName} not {RtpcV01FileLibrary.XName}"));
         }
 
-        var optionExtension = xe.GetAttribute("extension");
-        if (optionExtension.IsSome(out var extension))
+        if (xe.GetAttribute("extension").IsSome(out var extension))
         {
             ExtractExtension = extension;
         }

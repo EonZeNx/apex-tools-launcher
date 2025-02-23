@@ -5,6 +5,8 @@ namespace ApexFormat.ADF.V04;
 
 public class AdfV04Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
 {
+    public bool CanLookupHashes() => false;
+    
     public static bool CanProcess(Stream stream)
     {
         return !stream.ReadAdfV04Header().IsNone;

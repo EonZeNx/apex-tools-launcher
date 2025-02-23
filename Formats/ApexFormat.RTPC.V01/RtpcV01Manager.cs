@@ -5,6 +5,8 @@ namespace ApexFormat.RTPC.V01;
 
 public class RtpcV01Manager : ICanProcessStream, ICanProcessPath, IProcessBasic
 {
+    public bool CanLookupHashes() => true;
+    
     public static bool CanProcess(Stream stream)
     {
         return !stream.ReadRtpcV01Header().IsNone;
