@@ -109,9 +109,13 @@ public class RtpcV01File : ICanExtractPath, IExtractPathToPath, IExtractStreamTo
     {
         var xe = XElement.Load(inPath);
         
-        if (!string.Equals(xe.Name.ToString(), RtpcV01FileLibrary.XName))
+        var optionType = xe.GetAttribute("type");
+        if (!optionType.IsSome(out var xeType))
+            return Result.Err<int>(new InvalidOperationException("Missing type attribute"));
+        
+        if (!string.Equals(xeType, RtpcV01FileLibrary.XName))
         {
-            return Result.Err<int>(new InvalidOperationException($"Element name is {xe.Name} not {RtpcV01FileLibrary.XName}"));
+            return Result.Err<int>(new InvalidOperationException($"Element type is {xeType} not {RtpcV01FileLibrary.XName}"));
         }
 
         if (xe.GetAttribute("extension").IsSome(out var extension))
@@ -132,9 +136,13 @@ public class RtpcV01File : ICanExtractPath, IExtractPathToPath, IExtractStreamTo
     {
         var xe = XElement.Load(inStream);
         
-        if (!string.Equals(xe.Name.LocalName, RtpcV01FileLibrary.XName))
+        var optionType = xe.GetAttribute("type");
+        if (!optionType.IsSome(out var xeType))
+            return Result.Err<int>(new InvalidOperationException("Missing type attribute"));
+        
+        if (!string.Equals(xeType, RtpcV01FileLibrary.XName))
         {
-            return Result.Err<int>(new InvalidOperationException($"Element name is {xe.Name.LocalName} not {RtpcV01FileLibrary.XName}"));
+            return Result.Err<int>(new InvalidOperationException($"Element type is {xeType} not {RtpcV01FileLibrary.XName}"));
         }
 
         if (xe.GetAttribute("extension").IsSome(out var extension))

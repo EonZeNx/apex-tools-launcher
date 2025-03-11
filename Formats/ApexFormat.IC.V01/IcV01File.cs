@@ -110,9 +110,13 @@ public class IcV01File : ICanExtractPath, IExtractPathToPath, IExtractStreamToSt
     {
         var xe = XElement.Load(inStream);
         
-        if (!string.Equals(xe.Name.LocalName, IcV01FileLibrary.XName))
+        var optionType = xe.GetAttribute("type");
+        if (!optionType.IsSome(out var xeType))
+            return Result.Err<int>(new InvalidOperationException("Missing type attribute"));
+        
+        if (!string.Equals(xeType, IcV01FileLibrary.XName))
         {
-            return Result.Err<int>(new InvalidOperationException($"Element name is {xe.Name.LocalName} not {IcV01FileLibrary.XName}"));
+            return Result.Err<int>(new InvalidOperationException($"Element type is {xeType} not {IcV01FileLibrary.XName}"));
         }
 
         var optionExtension = xe.GetAttribute("extension");
@@ -140,9 +144,13 @@ public class IcV01File : ICanExtractPath, IExtractPathToPath, IExtractStreamToSt
     {
         var xe = XElement.Load(inPath);
         
-        if (!string.Equals(xe.Name.LocalName, IcV01FileLibrary.XName))
+        var optionType = xe.GetAttribute("type");
+        if (!optionType.IsSome(out var xeType))
+            return Result.Err<int>(new InvalidOperationException($"Missing type attribute"));
+        
+        if (!string.Equals(xeType, IcV01FileLibrary.XName))
         {
-            return Result.Err<int>(new InvalidOperationException($"Element name is {xe.Name.LocalName} not {IcV01FileLibrary.XName}"));
+            return Result.Err<int>(new InvalidOperationException($"Element type is {xeType} not {IcV01FileLibrary.XName}"));
         }
 
         var optionExtension = xe.GetAttribute("extension");
