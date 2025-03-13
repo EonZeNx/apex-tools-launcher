@@ -72,17 +72,17 @@ class Program
         
         if (parallelLoop)
         {
-            foreach (var path in paths)
-            {
-                RunOperator(path, options);
-            }
-        }
-        else
-        {
             Parallel.ForEach(paths, (path) =>
             {
                 RunOperator(path, options);
             });
+        }
+        else
+        {
+            foreach (var path in paths)
+            {
+                RunOperator(path, options);
+            }
         }
     }
 
