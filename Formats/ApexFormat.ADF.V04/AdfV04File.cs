@@ -192,12 +192,42 @@ public class AdfV04File : ICanExtractPath, IExtractPathToPath, IExtractStreamToS
             ExtractExtension = extension;
         }
         
+        // load string hashes
+        var resultStringHashes = RepackStringHashes(xe);
+        if (resultStringHashes.IsErr(out var shEx))
+        {
+            return Result.Err<int>(new InvalidOperationException($"Failed to repack string hashes: {shEx}"));
+        }
+
+        var stringHashes = resultStringHashes.Unwrap();
+        
+        // load string table
+        var resultStringTable = RepackStringTable(xe);
+        if (resultStringTable.IsErr(out var stEx))
+        {
+            return Result.Err<int>(new InvalidOperationException($"Failed to repack string table: {stEx}"));
+        }
+
+        var stringTable = resultStringTable.Unwrap();
+        
         // load types
+        var resultTypes = RepackTypes(xe);
+        if (resultTypes.IsErr(out var tEx))
+        {
+            return Result.Err<int>(new InvalidOperationException($"Failed to repack types: {tEx}"));
+        }
+
+        var types = resultTypes.Unwrap();
+        
         // load instances
         //    load instance
+        
         // skip header
+        
         // write data
+        
         // write types
+        
         // write header
         
         return Result.Err<int>(new NotImplementedException());
@@ -370,6 +400,22 @@ public class AdfV04File : ICanExtractPath, IExtractPathToPath, IExtractStreamToS
         }
         
         return Option.Create(xe);
+    }
+
+
+    public Result<Dictionary<uint, string>, Exception> RepackStringHashes(XElement xe)
+    {
+        return Result.OkExn(new Dictionary<uint, string>());
+    }
+    
+    public Result<string[], Exception> RepackStringTable(XElement xe)
+    {
+        return Result.OkExn(Array.Empty<string>());
+    }
+    
+    public Result<AdfV04Type[], Exception> RepackTypes(XElement xe)
+    {
+        return Result.OkExn(Array.Empty<AdfV04Type>());
     }
 }
 
