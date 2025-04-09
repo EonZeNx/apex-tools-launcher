@@ -277,9 +277,7 @@ public static class AdfV04InstanceLibrary
     
     public static Option<XElement> BitfieldToXElement(this AdfV04Instance instance, Stream stream, AdfV04Type adfType, string name)
     {
-        stream.Seek(-1, SeekOrigin.Current);
-        stream.AlignRead(4);
-        var value = stream.Read<byte>();
+        var value = stream.ReadBit();
 
         var oxe = XElementBuilder.Create(AdfV04MemberLibrary.XName)
             .WithAttribute("name", name)
