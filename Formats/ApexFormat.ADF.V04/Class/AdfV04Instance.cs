@@ -202,7 +202,7 @@ public static class AdfV04InstanceLibrary
     
     public static Option<XElement> ScalarToXElement(this AdfV04Instance instance, Stream stream, AdfV04Type adfType, string name)
     {
-        var xe = new XElement("member");
+        var xe = new XElement(AdfV04MemberLibrary.XName);
         xe.SetAttributeValue("name", name);
         xe.SetAttributeValue("type", adfType.SafeName);
 
@@ -255,7 +255,7 @@ public static class AdfV04InstanceLibrary
 
     public static Option<XElement> StringToXElement(this AdfV04Instance instance, Stream stream, AdfV04Type adfType, string name)
     {
-        var xe = new XElement("string");
+        var xe = new XElement(AdfV04MemberLibrary.XName);
         xe.SetAttributeValue("name", name);
         xe.SetAttributeValue("type", adfType.SafeName);
         
@@ -280,7 +280,7 @@ public static class AdfV04InstanceLibrary
     {
         var value = stream.Read<uint>();
 
-        var oxe = XElementBuilder.Create("enum")
+        var oxe = XElementBuilder.Create(AdfV04MemberLibrary.XName)
             .WithAttribute("name", name)
             .WithAttribute("type", adfType.SafeName)
             .WithContent(value.ToString())
@@ -294,7 +294,7 @@ public static class AdfV04InstanceLibrary
         var stringHash = stream.Read<uint>();
         var value = stringHashes.GetValueOrDefault(stringHash, $"{stringHash:X08}");
 
-        var oxe = XElementBuilder.Create("hash")
+        var oxe = XElementBuilder.Create(AdfV04MemberLibrary.XName)
             .WithAttribute("name", name)
             .WithAttribute("type", adfType.SafeName)
             .WithContent(value)
