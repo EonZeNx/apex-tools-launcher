@@ -91,7 +91,7 @@ public static class AdfV04InstanceLibrary
             EAdfV04Type.InlineArray =>  instance.InlineArrayToXElement(stream, adfType, name, types),
             EAdfV04Type.String =>       instance.StringToXElement(stream, adfType, name),
             EAdfV04Type.Recursive =>    Option<XElement>.None,
-            EAdfV04Type.Bitfield =>     Option<XElement>.None,
+            EAdfV04Type.Bitfield =>     instance.BitfieldToXElement(stream, adfType, name),
             EAdfV04Type.Enum =>         instance.EnumToXElement(stream, adfType, name),
             EAdfV04Type.StringHash =>   instance.StringHashToXElement(stream, adfType, name, stringHashes),
             EAdfV04Type.Deferred =>     instance.PointerToXElement(stream, adfType, name, types, stringHashes),
@@ -184,9 +184,8 @@ public static class AdfV04InstanceLibrary
         {
             var optionXChild = subtype.Type switch
             {
-                EAdfV04Type.Scalar => instance.ScalarToXElement(stream, subtype, name),
-                EAdfV04Type.Struct => instance.StructToXElement(stream, subtype, i.ToString(), types, stringHashes),
-                _ => Option<XElement>.None
+                EAdfV04Type.Struct => instance.DataToXElement(stream, subtype, i.ToString(), types, stringHashes),
+                _ => instance.DataToXElement(stream, subtype, name, types, stringHashes)
             };
 
             if (!optionXChild.IsSome(out var xChild))
@@ -276,6 +275,21 @@ public static class AdfV04InstanceLibrary
         return Option.Create(xe);
     }
     
+    public static Option<XElement> BitfieldToXElement(this AdfV04Instance instance, Stream stream, AdfV04Type adfType, string name)
+    {
+        stream.Seek(-1, SeekOrigin.Current);
+        stream.AlignRead(4);
+        var value = stream.Read<byte>();
+
+        var oxe = XElementBuilder.Create(AdfV04MemberLibrary.XName)
+            .WithAttribute("name", name)
+            .WithAttribute("type", adfType.SafeName)
+            .WithContent($"{value:X01}")
+            .BuildOption();
+
+        return oxe;
+    }
+    
     public static Option<XElement> EnumToXElement(this AdfV04Instance instance, Stream stream, AdfV04Type adfType, string name)
     {
         var value = stream.Read<uint>();
@@ -292,11 +306,15 @@ public static class AdfV04InstanceLibrary
     public static Option<XElement> StringHashToXElement(this AdfV04Instance instance, Stream stream, AdfV04Type adfType, string name, Dictionary<uint, string> stringHashes)
     {
         var stringHash = stream.Read<uint>();
-        var value = stringHashes.GetValueOrDefault(stringHash, $"{stringHash:X08}");
+        var optionValue = stringHashes.GetValueOrNone(stringHash);
+
+        if (!optionValue.IsSome(out var value))
+            value = $"{stringHash:X08}";
 
         var oxe = XElementBuilder.Create(AdfV04MemberLibrary.XName)
             .WithAttribute("name", name)
             .WithAttribute("type", adfType.SafeName)
+            .WithAttribute("invalid", optionValue.MapOr(v => Option<string>.None, Option.Some("1")))
             .WithContent(value)
             .BuildOption();
 

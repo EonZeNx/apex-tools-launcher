@@ -96,8 +96,8 @@ public class AdfV04File : ICanExtractPath, IExtractPathToPath, IExtractStreamToS
             .WithVersion(AdfV04FileLibrary.Version.ToString())
             .WithExtension(ExtractExtension)
             .WithChild(xInstances)
-            // .WithChild(xStringHashes)
-            // .WithChild(xStringTable)
+            .WithChild(xStringHashes)
+            .WithChild(xStringTable)
             .WithChild(xTypes)
             .Build();
 
@@ -159,7 +159,11 @@ public class AdfV04File : ICanExtractPath, IExtractPathToPath, IExtractStreamToS
     {
         var xe = XElement.Load(inPath);
         
-        if (!string.Equals(xe.Name.ToString(), AdfV04FileLibrary.XName))
+        var optionType = xe.GetAttribute("type");
+        if (!optionType.IsSome(out var xeType))
+            return Result.Err<int>(new InvalidOperationException("Missing type attribute"));
+        
+        if (!string.Equals(xeType, AdfV04FileLibrary.XName))
         {
             return Result.Err<int>(new InvalidOperationException($"Element name is {xe.Name} not {AdfV04FileLibrary.XName}"));
         }
@@ -182,7 +186,11 @@ public class AdfV04File : ICanExtractPath, IExtractPathToPath, IExtractStreamToS
     {
         var xe = XElement.Load(inStream);
         
-        if (!string.Equals(xe.Name.ToString(), AdfV04FileLibrary.XName))
+        var optionType = xe.GetAttribute("type");
+        if (!optionType.IsSome(out var xeType))
+            return Result.Err<int>(new InvalidOperationException("Missing type attribute"));
+        
+        if (!string.Equals(xeType, AdfV04FileLibrary.XName))
         {
             return Result.Err<int>(new InvalidOperationException($"Element name is {xe.Name} not {AdfV04FileLibrary.XName}"));
         }
@@ -405,7 +413,19 @@ public class AdfV04File : ICanExtractPath, IExtractPathToPath, IExtractStreamToS
 
     public Result<Dictionary<uint, string>, Exception> RepackStringHashes(XElement xe)
     {
-        return Result.OkExn(new Dictionary<uint, string>());
+        var hashMembers = xe.Descendants(AdfV04MemberLibrary.XName)
+            .Where(xc => xc.GetAttribute("type")
+                .MapOr(sh => sh.Contains("stringhash", StringComparison.InvariantCultureIgnoreCase), false))
+            .ToArray();
+
+        var stringHashes = new Dictionary<uint, string>();
+        foreach (var hashMember in hashMembers)
+        {
+            var value = hashMember.Value;
+            stringHashes.TryAdd(value.Jenkins(), value);
+        }
+        
+        return Result.OkExn(stringHashes);
     }
     
     public Result<string[], Exception> RepackStringTable(XElement xe)
