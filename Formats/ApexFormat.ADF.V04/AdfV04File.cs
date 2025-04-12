@@ -228,6 +228,8 @@ public class AdfV04File : ICanExtractPath, IExtractPathToPath, IExtractStreamToS
 
         var types = resultTypes.Unwrap();
         
+        // update type name indices
+        
         // load instances
         //    load instance
         
