@@ -1,6 +1,6 @@
 ﻿using System.Xml.Linq;
-using ApexToolsLauncher.Core.Class;
 using ApexToolsLauncher.Core.Extensions;
+using ApexToolsLauncher.Core.Libraries;
 using ApexToolsLauncher.Core.Libraries.XBuilder;
 using CommunityToolkit.HighPerformance;
 using RustyOptions;
@@ -99,5 +99,47 @@ public static class AdfV04MemberLibrary
             return;
         
         member.Name = stringTable[member.NameIndex];
+    }
+
+    public static Result<AdfV04Member, Exception> ToAdfV04Member(this XElement xe)
+    {
+        var adfMember = new AdfV04Member();
+        
+        if (xe.GetAttribute("name").IsSome(out var xeName))
+        {
+            adfMember.Name = xeName;
+        }
+        
+        if (xe.GetAttribute("typeHash").IsSome(out var xeTypeHash))
+        {
+            if (uint.TryParse(xeTypeHash, out var safeTypeHash))
+                adfMember.TypeHash = safeTypeHash;
+        }
+        
+        if (xe.GetAttribute("alignment").IsSome(out var xeAlignment))
+        {
+            if (uint.TryParse(xeAlignment, out var safeAlignment))
+                adfMember.Alignment = safeAlignment;
+        }
+        
+        if (xe.GetAttribute("offsetAndBitOffset").IsSome(out var xeOffsetAndBitOffset))
+        {
+            if (uint.TryParse(xeOffsetAndBitOffset, out var safeOffsetAndBitOffset))
+                adfMember.OffsetAndBitOffset = safeOffsetAndBitOffset;
+        }
+        
+        if (xe.GetAttribute("flags").IsSome(out var xeFlags))
+        {
+            if (ushort.TryParse(xeFlags, out var safeFlags))
+                adfMember.Flags = safeFlags;
+        }
+        
+        if (xe.GetAttribute("defaultValue").IsSome(out var xeDefaultValue))
+        {
+            if (ushort.TryParse(xeDefaultValue, out var safeDefaultValue))
+                adfMember.DefaultValue = safeDefaultValue;
+        }
+        
+        return Result.OkExn(adfMember);
     }
 }

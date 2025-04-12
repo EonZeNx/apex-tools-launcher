@@ -1,7 +1,7 @@
 ﻿using System.Xml.Linq;
 using ApexFormat.ADF.V04.Enums;
-using ApexToolsLauncher.Core.Class;
 using ApexToolsLauncher.Core.Extensions;
+using ApexToolsLauncher.Core.Libraries;
 using ApexToolsLauncher.Core.Libraries.XBuilder;
 using CommunityToolkit.HighPerformance;
 using RustyOptions;
@@ -187,5 +187,81 @@ public static class AdfV04TypeLibrary
         {
             member.TryFindName(stringTable);
         }
+    }
+
+    public static Result<AdfV04Type, Exception> ToAdfV04Type(this XElement xe)
+    {
+        var adfType = new AdfV04Type();
+        if (xe.GetAttribute("type").IsSome(out var xeType))
+        {
+            adfType.Type = xeType.ToEAdfV04Type();
+        }
+        
+        if (xe.GetAttribute("size").IsSome(out var xeSize))
+        {
+            if (uint.TryParse(xeSize, out var safeSize))
+                adfType.Size = safeSize;
+        }
+        
+        if (xe.GetAttribute("alignment").IsSome(out var xeAlignment))
+        {
+            if (uint.TryParse(xeAlignment, out var safeAlignment))
+                adfType.Alignment = safeAlignment;
+        }
+        
+        if (xe.GetAttribute("typeHash").IsSome(out var xeTypeHash))
+        {
+            if (uint.TryParse(xeTypeHash, out var safeTypeHash))
+                adfType.TypeHash = safeTypeHash;
+        }
+        
+        if (xe.GetAttribute("name").IsSome(out var xeName))
+        {
+            adfType.Name = xeName;
+        }
+        
+        if (xe.GetAttribute("flags").IsSome(out var xeFlags))
+        {
+            if (ushort.TryParse(xeFlags, out var safeFlags))
+                adfType.Flags = safeFlags;
+        }
+        
+        if (xe.GetAttribute("scalarType").IsSome(out var xeScalarType))
+        {
+            adfType.ScalarType = xeScalarType.ToEAdfV04ScalarType();
+        }
+        
+        if (xe.GetAttribute("scalarTypeHash").IsSome(out var xeScalarTypeHash))
+        {
+            if (uint.TryParse(xeScalarTypeHash, out var safeScalarTypeHash))
+                adfType.ScalarTypeHash = safeScalarTypeHash;
+        }
+        
+        if (xe.GetAttribute("bitCountOrArrayLength").IsSome(out var xeBitCountOrArrayLength))
+        {
+            if (uint.TryParse(xeBitCountOrArrayLength, out var safeBitCountOrArrayLength))
+                adfType.BitCountOrArrayLength = safeBitCountOrArrayLength;
+        }
+        
+        if (xe.GetAttribute("memberCountOrDataAlign").IsSome(out var xeMemberCountOrDataAlign))
+        {
+            if (uint.TryParse(xeMemberCountOrDataAlign, out var safeMemberCountOrDataAlign))
+                adfType.MemberCountOrDataAlign = safeMemberCountOrDataAlign;
+        }
+
+        var xMembers = xe.Elements(AdfV04MemberLibrary.XName).ToArray();
+        
+        adfType.Members = xMembers
+            .Select(xm => xm.ToAdfV04Member())
+            .Where(mt => mt.IsOk(out _))
+            .Select(mt => mt.Unwrap())
+            .ToArray();
+
+        if (adfType.Members.Length != xMembers.Length)
+        {
+            return Result.Err<AdfV04Type>(new InvalidOperationException($"Failed to repack member types"));
+        }
+        
+        return Result.OkExn(adfType);
     }
 }

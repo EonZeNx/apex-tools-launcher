@@ -24,7 +24,7 @@ public static class EAdfV04ScalarTypeLibrary
         return XNameMap.GetValueOrDefault(scalarType, "failed");
     }
     
-    public static EAdfV04ScalarType FromXName(string xmlString)
+    public static EAdfV04ScalarType ToEAdfV04ScalarType(this string xmlString)
     {
         return FromXNameMap.GetValueOrDefault(xmlString, EAdfV04ScalarType.Signed);
     }

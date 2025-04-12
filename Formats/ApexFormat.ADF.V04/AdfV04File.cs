@@ -1,4 +1,5 @@
-﻿using System.Xml;
+﻿using System.Globalization;
+using System.Xml;
 using System.Xml.Linq;
 using ApexFormat.ADF.V04.Class;
 using ApexFormat.ADF.V04.Enums;
@@ -421,8 +422,28 @@ public class AdfV04File : ICanExtractPath, IExtractPathToPath, IExtractStreamToS
         var stringHashes = new Dictionary<uint, string>();
         foreach (var hashMember in hashMembers)
         {
+            uint hash = 0;
             var value = hashMember.Value;
-            stringHashes.TryAdd(value.Jenkins(), value);
+            
+            if (hashMember.GetAttribute("hash").IsSome(out _))
+            {
+                if (uint.TryParse(hashMember.Value, NumberStyles.HexNumber, null, out var intValue))
+                {
+                    hash = intValue;
+                    value = intValue.ToString();
+                }
+                else
+                {
+                    hash = 0;
+                    value = 0.ToString();
+                }
+            }
+            else
+            {
+                hash = hashMember.Value.Jenkins();
+            }
+            
+            stringHashes.TryAdd(hash, value);
         }
         
         return Result.OkExn(stringHashes);
@@ -430,12 +451,37 @@ public class AdfV04File : ICanExtractPath, IExtractPathToPath, IExtractStreamToS
     
     public Result<string[], Exception> RepackStringTable(XElement xe)
     {
-        return Result.OkExn(Array.Empty<string>());
+        var namedElements = xe.Descendants()
+            .Where(xc => xc.Name.LocalName != "string_hash")
+            .Select(xc => xc.GetAttribute("name").MapOr(a => a, "DEADBEEF"))
+            .Where(s => !uint.TryParse(s, out _))
+            .Distinct()
+            .ToArray();
+
+        return Result.OkExn(namedElements);
     }
     
     public Result<AdfV04Type[], Exception> RepackTypes(XElement xe)
     {
-        return Result.OkExn(Array.Empty<AdfV04Type>());
+        var typeElements = xe.Descendants(AdfV04TypeLibrary.XName)
+            .ToArray();
+
+        var types = new List<AdfV04Type>();
+        foreach (var typeElement in typeElements)
+        {
+            var resultType = typeElement.ToAdfV04Type();
+            if (resultType.Err().IsSome(out var exception))
+            {
+                return Result.Err<AdfV04Type[]>(exception);
+            }
+
+            if (resultType.Ok().IsSome(out var adfType))
+            {
+                types.Add(adfType);
+            }
+        }
+        
+        return Result.OkExn(types.ToArray());
     }
 }
 

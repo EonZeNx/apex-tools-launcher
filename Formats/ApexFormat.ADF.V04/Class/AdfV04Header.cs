@@ -1,6 +1,5 @@
 ﻿using System.Text;
 using ApexFormat.ADF.V04.Enums;
-using ApexToolsLauncher.Core.Class;
 using ApexToolsLauncher.Core.Extensions;
 using CommunityToolkit.HighPerformance;
 using RustyOptions;

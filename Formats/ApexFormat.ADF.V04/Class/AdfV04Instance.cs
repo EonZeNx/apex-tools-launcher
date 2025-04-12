@@ -1,6 +1,5 @@
 ﻿using System.Xml.Linq;
 using ApexFormat.ADF.V04.Enums;
-using ApexToolsLauncher.Core.Class;
 using ApexToolsLauncher.Core.Extensions;
 using ApexToolsLauncher.Core.Libraries;
 using ApexToolsLauncher.Core.Libraries.XBuilder;
@@ -312,7 +311,7 @@ public static class AdfV04InstanceLibrary
         var oxe = XElementBuilder.Create(AdfV04MemberLibrary.XName)
             .WithAttribute("name", name)
             .WithAttribute("type", adfType.SafeName)
-            .WithAttribute("invalid", optionValue.MapOr(v => Option<string>.None, Option.Some("1")))
+            .WithAttribute("hash", optionValue.MapOr(v => Option<string>.None, Option.Some("1")))
             .WithContent(value)
             .BuildOption();
 

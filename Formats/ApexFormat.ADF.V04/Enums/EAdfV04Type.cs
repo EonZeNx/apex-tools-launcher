@@ -40,7 +40,7 @@ public static class AdfV04TypeLibrary
         return XNameMap.GetValueOrDefault(adfType, "failed");
     }
     
-    public static EAdfV04Type FromXName(string xmlString)
+    public static EAdfV04Type ToEAdfV04Type(this string xmlString)
     {
         return FromXNameMap.GetValueOrDefault(xmlString, EAdfV04Type.Scalar);
     }
