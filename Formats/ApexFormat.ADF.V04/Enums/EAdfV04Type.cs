@@ -33,7 +33,7 @@ public static class AdfV04TypeLibrary
         { EAdfV04Type.Deferred,    "deferred" },
     };
     
-    public static Dictionary<string, EAdfV04Type> FromXNameMap = XNameMap.ToDictionary(kvp => kvp.Value, kvp => kvp.Key);
+    public static readonly Dictionary<string, EAdfV04Type> FromXNameMap = XNameMap.ToDictionary(kvp => kvp.Value, kvp => kvp.Key);
     
     public static string ToXName(this EAdfV04Type adfType)
     {

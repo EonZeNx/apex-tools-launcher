@@ -244,9 +244,10 @@ public class AdfV04File : ICanExtractPath, IExtractPathToPath, IExtractStreamToS
             StringTableCount = (uint) stringTable.Length
         };
         header.Write(outStream);
+        outStream.AlignWrite(16, 0x00);
         
         // write data
-        var resultInstances = FromXElement(xe, stringHashes, stringTable, types);
+        var resultInstances = FromXElement(xe, outStream, stringHashes, stringTable, types);
         if (resultInstances.IsErr(out var iEx))
         {
             return Result.Err<int>(new InvalidOperationException($"Failed to repack instances: {iEx}"));
@@ -263,6 +264,7 @@ public class AdfV04File : ICanExtractPath, IExtractPathToPath, IExtractStreamToS
         // write string table
         
         // write header
+        outStream.Seek(0, SeekOrigin.Begin);
         header.Write(outStream);
         
         return Result.Err<int>(new NotImplementedException());
@@ -526,7 +528,7 @@ public class AdfV04File : ICanExtractPath, IExtractPathToPath, IExtractStreamToS
         return Option<Exception>.None;
     }
 
-    public Result<AdfV04Instance[], Exception> FromXElement(XElement xe, Dictionary<uint, string> stringHashes, string[] stringTable, AdfV04Type[] types)
+    public Result<AdfV04Instance[], Exception> FromXElement(XElement xe, Stream stream, Dictionary<uint, string> stringHashes, string[] stringTable, AdfV04Type[] types)
     {
         var instanceElements = xe.Descendants(AdfV04InstanceLibrary.XName)
             .ToArray();
@@ -562,6 +564,11 @@ public class AdfV04File : ICanExtractPath, IExtractPathToPath, IExtractStreamToS
             instances.Add(instance);
             
             // write data
+            var optionException = AdfV04InstanceLibrary.FromXElement(instanceElement, stream, stringHashes, stringTable, types);
+            if (optionException.IsSome(out var exception))
+            {
+                return Result.Err<AdfV04Instance[]>(exception);
+            }
         }
         
         return Result.OkExn(instances.ToArray());

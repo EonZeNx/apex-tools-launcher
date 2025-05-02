@@ -56,6 +56,7 @@ public static class AdfV04InstanceLibrary
         return Option.Some(result);
     }
 
+    #region To XElement
     public static Option<XElement> ToXElement(this AdfV04Instance instance, Stream stream, AdfV04Type[] types, Dictionary<uint, string> stringHashes)
     {
         if (!types.FirstOrNone(t => t.TypeHash == instance.TypeHash).IsSome(out var adfType))
@@ -348,7 +349,88 @@ public static class AdfV04InstanceLibrary
 
         return Option.Create(xe);
     }
+    #endregion
 
+    #region From XElement
+
+    public static Option<Exception> FromXElement(XElement xe, Stream stream, Dictionary<uint, string> stringHashes, string[] stringTable, AdfV04Type[] types)
+    {
+        var xce = xe.Elements();
+        foreach (var childElement in xce)
+        {
+            var optionException = DataFromXElement(childElement, stream, stringHashes, stringTable, types);
+            if (optionException.IsSome(out var exception))
+            {
+                return Option.Create(exception);
+            }
+        }
+
+        return Option.None<Exception>();
+    }
+
+    public static Option<Exception> DataFromXElement(XElement xe, Stream stream, Dictionary<uint, string> stringHashes, string[] stringTable, AdfV04Type[] types)
+    {
+        var adfType = xe.Name.LocalName.ToEAdfV04Type();
+
+        var result = Option.None<Exception>();
+        switch (adfType)
+        {
+            case EAdfV04Type.Scalar:
+                break;
+            case EAdfV04Type.Struct:
+                result = StructFromXElement(xe, stream, stringHashes, stringTable, types);
+                break;
+            case EAdfV04Type.Pointer:
+                break;
+            case EAdfV04Type.Array:
+                break;
+            case EAdfV04Type.InlineArray:
+                break;
+            case EAdfV04Type.String:
+                break;
+            case EAdfV04Type.Recursive:
+                break;
+            case EAdfV04Type.Bitfield:
+                break;
+            case EAdfV04Type.Enum:
+                break;
+            case EAdfV04Type.StringHash:
+                break;
+            case EAdfV04Type.Deferred:
+                break;
+            default:
+                return (new Exception()).AsOption();
+        }
+
+        return Option.None<Exception>();
+    }
+
+    public static Option<Exception> StructFromXElement(XElement xe, Stream stream, Dictionary<uint, string> stringHashes, string[] stringTable, AdfV04Type[] types)
+    {
+        var optionXType = xe.GetAttribute("type");
+        if (!optionXType.IsSome(out var xType))
+        {
+            return (new Exception($"{xe.Name.LocalName} type attribute was missing from struct")).AsOption();
+        }
+        
+        var optionAdfType = types.FirstOrNone(t => t.Name.Equals(xType, StringComparison.InvariantCultureIgnoreCase));
+        if (!optionAdfType.IsSome(out var adfType))
+        {
+            return (new Exception($"{xe.Name.LocalName} type was missing from type list")).AsOption();
+        }
+        
+        stream.AlignWrite(adfType.Alignment, 0x00);
+        
+        // for each member
+        // ... DataFromXElement
+        
+        stream.AlignWrite(adfType.Alignment, 0x00);
+        
+        return Option.None<Exception>();
+    }
+
+    #endregion
+    
     public static void TryFindName(this AdfV04Instance instance, string[] stringTable)
     {
         if ((uint) instance.NameIndex >= stringTable.Length)
