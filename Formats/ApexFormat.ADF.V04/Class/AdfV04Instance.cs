@@ -34,6 +34,8 @@ public static class AdfV04InstanceLibrary
                                + sizeof(uint) // PayloadOffset
                                + sizeof(uint) // PayloadSize
                                + sizeof(ulong); // NameIndex
+    
+    public const string XName = "instance";
         
     public static Option<AdfV04Instance> ReadAdfV04Instance(this Stream stream)
     {

@@ -228,18 +228,42 @@ public class AdfV04File : ICanExtractPath, IExtractPathToPath, IExtractStreamToS
 
         var types = resultTypes.Unwrap();
         
-        // update type name indices
+        // reindex type name indices
+        var optionReindex = ReindexTypeNameIndices(ref types, stringTable);
+        if (optionReindex.IsSome(out var rEx))
+        {
+            return Result.Err<int>(new InvalidOperationException($"Failed to reindex types: {rEx}"));
+        }
         
-        // load instances
-        //    load instance
-        
-        // skip header
+        // skip header (or write dummy data
+        var header = new AdfV04Header
+        {
+            InstanceCount = 0,
+            TypeCount = (uint) types.Length,
+            StringHashCount = (uint) stringHashes.Count,
+            StringTableCount = (uint) stringTable.Length
+        };
+        header.Write(outStream);
         
         // write data
+        var resultInstances = FromXElement(xe, stringHashes, stringTable, types);
+        if (resultInstances.IsErr(out var iEx))
+        {
+            return Result.Err<int>(new InvalidOperationException($"Failed to repack instances: {iEx}"));
+        }
+        
+        var instances = resultInstances.Unwrap();
+        
+        // write instances
         
         // write types
         
+        // write string hashes
+        
+        // write string table
+        
         // write header
+        header.Write(outStream);
         
         return Result.Err<int>(new NotImplementedException());
     }
@@ -484,6 +508,63 @@ public class AdfV04File : ICanExtractPath, IExtractPathToPath, IExtractStreamToS
         }
         
         return Result.OkExn(types.ToArray());
+    }
+
+    public Option<Exception> ReindexTypeNameIndices(ref AdfV04Type[] adfTypes, string[] stringTable)
+    {
+        foreach (var adfType in adfTypes)
+        {
+            var foundIndex = Array.FindIndex(stringTable, s => s.Equals(adfType.Name, StringComparison.InvariantCultureIgnoreCase));
+            if (foundIndex < 0)
+            {
+                return (new Exception($"could not find {adfType.SafeName} in string table")).AsOption();
+            }
+            
+            adfType.NameIndex = (ulong) foundIndex;
+        }
+        
+        return Option<Exception>.None;
+    }
+
+    public Result<AdfV04Instance[], Exception> FromXElement(XElement xe, Dictionary<uint, string> stringHashes, string[] stringTable, AdfV04Type[] types)
+    {
+        var instanceElements = xe.Descendants(AdfV04InstanceLibrary.XName)
+            .ToArray();
+
+        var instances = new List<AdfV04Instance>();
+        foreach (var instanceElement in instanceElements)
+        {
+            if (!instanceElement.GetAttribute("name").IsSome(out var name))
+            {
+                return Result.Err<AdfV04Instance[]>(new InvalidOperationException("Missing name attribute"));
+            }
+            
+            if (!instanceElement.GetAttribute("type").IsSome(out var type))
+            {
+                return Result.Err<AdfV04Instance[]>(new InvalidOperationException("Missing type attribute"));
+            }
+            
+            var instance = new AdfV04Instance
+            {
+                Name = name,
+                NameHash = name.HashJenkins(),
+                TypeHash = type.HashJenkins()
+            };
+            
+            var foundIndex = Array.FindIndex(stringTable, s => s.Equals(instance.Name, StringComparison.InvariantCultureIgnoreCase));
+            if (foundIndex < 0)
+            {
+                return Result.Err<AdfV04Instance[]>(new InvalidOperationException($"could not find {instance.Name} in string table"));
+            }
+            
+            instance.NameIndex = (ulong) foundIndex;
+            
+            instances.Add(instance);
+            
+            // write data
+        }
+        
+        return Result.OkExn(instances.ToArray());
     }
 }
 
