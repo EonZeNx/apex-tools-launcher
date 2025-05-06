@@ -1,5 +1,6 @@
 ﻿using System.Xml.Linq;
 using ApexFormat.ADF.V04.Class;
+using ApexFormat.ADF.V04.Enums;
 using ApexToolsLauncher.Core.Libraries;
 using RustyOptions;
 
@@ -22,5 +23,20 @@ public static class AdfV04XElementLibrary
         }
 
         return Result.OkExn(adfType);
+    }
+    
+    public static EAdfV04Type GetAdfV04Type(this XElement xe)
+    {
+        if (xe.GetAttribute("type").IsSome(out var xType))
+        {
+            if (AdfV04TypeEnumLibrary.XNameMap.Values.FirstOrNone(n => n.Contains(xType, StringComparison.CurrentCultureIgnoreCase)).IsSome(out var stringType))
+            {
+                return stringType.ToEAdfV04Type();
+            }
+            
+            return xType.ToEAdfV04Type();
+        }
+        
+        return xe.Name.LocalName.ToEAdfV04Type();
     }
 }
