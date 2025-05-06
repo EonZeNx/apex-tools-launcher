@@ -108,6 +108,7 @@ public static class AdfV04InstanceLibrary
         var xe = new XElement(adfType.Type.ToXName());
         xe.SetAttributeValue("name", name);
         xe.SetAttributeValue("type", adfType.SafeName);
+        xe.SetAttributeValue("offset", $"{stream.Position:X08}");
         
         stream.AlignRead(adfType.Alignment);
         
@@ -165,6 +166,7 @@ public static class AdfV04InstanceLibrary
         var xe = new XElement(adfType.Type.ToXName());
         xe.SetAttributeValue("name", name);
         xe.SetAttributeValue("type", adfType.SafeName);
+        xe.SetAttributeValue("offset", $"{stream.Position:X08}");
         
         var arrayOffset = stream.Read<uint>();
         var flags = stream.Read<uint>();
@@ -206,6 +208,7 @@ public static class AdfV04InstanceLibrary
         var xe = new XElement(AdfV04MemberLibrary.XName);
         xe.SetAttributeValue("name", name);
         xe.SetAttributeValue("type", adfType.SafeName);
+        xe.SetAttributeValue("offset", $"{stream.Position:X08}");
 
         var optionResult = ScalarToContent(stream, adfType);
         if (!optionResult.IsSome(out var result))
@@ -259,6 +262,7 @@ public static class AdfV04InstanceLibrary
         var xe = new XElement(AdfV04MemberLibrary.XName);
         xe.SetAttributeValue("name", name);
         xe.SetAttributeValue("type", adfType.SafeName);
+        xe.SetAttributeValue("offset", $"{stream.Position:X08}");
         
         var stringOffset = stream.Read<uint>();
         var unk0 = stream.Read<uint>();
@@ -284,6 +288,7 @@ public static class AdfV04InstanceLibrary
         var oxe = XElementBuilder.Create(AdfV04MemberLibrary.XName)
             .WithAttribute("name", name)
             .WithAttribute("type", adfType.SafeName)
+            .WithAttribute("offset", $"{stream.Position:X08}")
             .WithContent($"{value:X01}")
             .BuildOption();
 
@@ -297,6 +302,7 @@ public static class AdfV04InstanceLibrary
         var oxe = XElementBuilder.Create(AdfV04MemberLibrary.XName)
             .WithAttribute("name", name)
             .WithAttribute("type", adfType.SafeName)
+            .WithAttribute("offset", $"{stream.Position:X08}")
             .WithContent(value.ToString())
             .BuildOption();
 
@@ -315,6 +321,7 @@ public static class AdfV04InstanceLibrary
             .WithAttribute("name", name)
             .WithAttribute("type", adfType.SafeName)
             .WithAttribute("hash", optionValue.MapOr(v => Option<string>.None, Option.Some("1")))
+            .WithAttribute("offset", $"{stream.Position:X08}")
             .WithContent(value)
             .BuildOption();
 
@@ -326,6 +333,7 @@ public static class AdfV04InstanceLibrary
         var xe = new XElement(adfType.Type.ToXName());
         xe.SetAttributeValue("name", name);
         xe.SetAttributeValue("type", adfType.SafeName);
+        xe.SetAttributeValue("offset", $"{stream.Position:X08}");
         
         var dataOffset = stream.Read<uint>();
         
@@ -359,9 +367,9 @@ public static class AdfV04InstanceLibrary
         foreach (var childElement in xce)
         {
             var optionException = DataFromXElement(childElement, stream, stringHashes, stringTable, types);
-            if (optionException.IsSome(out var exception))
+            if (optionException.IsSome(out _))
             {
-                return Option.Create(exception);
+                return optionException;
             }
         }
 
@@ -376,6 +384,7 @@ public static class AdfV04InstanceLibrary
         switch (adfType)
         {
             case EAdfV04Type.Scalar:
+                result = ScalarFromXElement(xe, stream, types);
                 break;
             case EAdfV04Type.Struct:
                 result = StructFromXElement(xe, stream, stringHashes, stringTable, types);
@@ -402,9 +411,145 @@ public static class AdfV04InstanceLibrary
                 return (new Exception()).AsOption();
         }
 
-        return Option.None<Exception>();
+        return result;
     }
 
+    public static Option<Exception> ScalarFromXElement(XElement xe, Stream stream, AdfV04Type[] types)
+    {
+        var optionXType = xe.GetAttribute("type");
+        if (!optionXType.IsSome(out var xType))
+        {
+            return (new Exception($"{xe.Name.LocalName} type attribute was missing from struct")).AsOption();
+        }
+        
+        var optionAdfType = types.FirstOrNone(t => t.Name.Equals(xType, StringComparison.InvariantCultureIgnoreCase));
+        if (!optionAdfType.IsSome(out var adfType))
+        {
+            return (new Exception($"{xe.Name.LocalName} type was missing from type list")).AsOption();
+        }
+        
+        return ScalarFromContent(xe, stream, adfType);
+    }
+    
+    public static Option<Exception> ScalarFromContent(XElement xe, Stream stream, AdfV04Type adfType)
+    {
+        var content = xe.Value;
+        stream.AlignWrite(adfType.Alignment, 0x00);
+
+        switch (adfType.ScalarType)
+        {
+            case EAdfV04ScalarType.Signed:
+                switch (adfType.Size)
+                {
+                    case sizeof(sbyte):
+                    {
+                        if (!sbyte.TryParse(content, out var scalar))
+                        {
+                            return (new Exception($"Failed to cast {xe.Name.LocalName} content {content} to sbyte")).AsOption();
+                        }
+                        stream.Write(scalar);
+                        break;
+                    }
+                    case sizeof(short):
+                    {
+                        if (!short.TryParse(content, out var scalar))
+                        {
+                            return (new Exception($"Failed to cast {xe.Name.LocalName} content {content} to short")).AsOption();
+                        }
+                        stream.Write(scalar);
+                        break;
+                    }
+                    case sizeof(int):
+                    {
+                        if (!int.TryParse(content, out var scalar))
+                        {
+                            return (new Exception($"Failed to cast {xe.Name.LocalName} content {content} to int")).AsOption();
+                        }
+                        stream.Write(scalar);
+                        break;
+                    }
+                    case sizeof(long):
+                    {
+                        if (!long.TryParse(content, out var scalar))
+                        {
+                            return (new Exception($"Failed to cast {xe.Name.LocalName} content {content} to long")).AsOption();
+                        }
+                        stream.Write(scalar);
+                        break;
+                    }
+                }
+                break;
+            case EAdfV04ScalarType.Unsigned:
+                switch (adfType.Size)
+                {
+                    case sizeof(byte):
+                    {
+                        if (!byte.TryParse(content, out var scalar))
+                        {
+                            return (new Exception($"Failed to cast {xe.Name.LocalName} content {content} to byte")).AsOption();
+                        }
+                        stream.Write(scalar);
+                        break;
+                    }
+                    case sizeof(ushort):
+                    {
+                        if (!ushort.TryParse(content, out var scalar))
+                        {
+                            return (new Exception($"Failed to cast {xe.Name.LocalName} content {content} to ushort")).AsOption();
+                        }
+                        stream.Write(scalar);
+                        break;
+                    }
+                    case sizeof(uint):
+                    {
+                        if (!uint.TryParse(content, out var scalar))
+                        {
+                            return (new Exception($"Failed to cast {xe.Name.LocalName} content {content} to uint")).AsOption();
+                        }
+                        stream.Write(scalar);
+                        break;
+                    }
+                    case sizeof(ulong):
+                    {
+                        if (!ulong.TryParse(content, out var scalar))
+                        {
+                            return (new Exception($"Failed to cast {xe.Name.LocalName} content {content} to ulong")).AsOption();
+                        }
+                        stream.Write(scalar);
+                        break;
+                    }
+                }
+                break;
+            case EAdfV04ScalarType.Float:
+                switch (adfType.Size)
+                {
+                    case sizeof(float):
+                    {
+                        if (!float.TryParse(content, out var scalar))
+                        {
+                            return (new Exception($"Failed to cast {xe.Name.LocalName} content {content} to float")).AsOption();
+                        }
+                        stream.Write(scalar);
+                        break;
+                    }
+                    case sizeof(double):
+                    {
+                        if (!double.TryParse(content, out var scalar))
+                        {
+                            return (new Exception($"Failed to cast {xe.Name.LocalName} content {content} to double")).AsOption();
+                        }
+                        stream.Write(scalar);
+                        break;
+                    }
+                }
+                break;
+            default:
+                return (new Exception($"{xe.Name.LocalName} invalid ScalarType")).AsOption();
+        }
+        
+        return Option.None<Exception>();
+    }
+    
     public static Option<Exception> StructFromXElement(XElement xe, Stream stream, Dictionary<uint, string> stringHashes, string[] stringTable, AdfV04Type[] types)
     {
         var optionXType = xe.GetAttribute("type");
@@ -420,9 +565,12 @@ public static class AdfV04InstanceLibrary
         }
         
         stream.AlignWrite(adfType.Alignment, 0x00);
-        
-        // for each member
-        // ... DataFromXElement
+
+        var optionException = FromXElement(xe, stream, stringHashes, stringTable, types);
+        if (optionException.IsSome(out _))
+        {
+            return optionException;
+        }
         
         stream.AlignWrite(adfType.Alignment, 0x00);
         
