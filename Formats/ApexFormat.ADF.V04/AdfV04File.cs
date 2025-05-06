@@ -3,6 +3,7 @@ using System.Xml;
 using System.Xml.Linq;
 using ApexFormat.ADF.V04.Class;
 using ApexFormat.ADF.V04.Enums;
+using ApexFormat.ADF.V04.Libraries;
 using ApexToolsLauncher.Core.Class;
 using ApexToolsLauncher.Core.Extensions;
 using ApexToolsLauncher.Core.Hash;
@@ -235,7 +236,7 @@ public class AdfV04File : ICanExtractPath, IExtractPathToPath, IExtractStreamToS
             return Result.Err<int>(new InvalidOperationException($"Failed to reindex types: {rEx}"));
         }
         
-        // skip header (or write dummy data
+        // skip header (or write dummy data)
         var header = new AdfV04Header
         {
             InstanceCount = 0,
@@ -246,16 +247,21 @@ public class AdfV04File : ICanExtractPath, IExtractPathToPath, IExtractStreamToS
         header.Write(outStream);
         outStream.AlignWrite(16, 0x00);
         
-        // write data
-        var resultInstances = FromXElement(xe, outStream, stringHashes, stringTable, types);
+        // get instances
+        var resultInstances = FromXElement(xe, stringTable);
         if (resultInstances.IsErr(out var iEx))
         {
-            return Result.Err<int>(new InvalidOperationException($"Failed to repack instances: {iEx}"));
+            return Result.Err<int>(new InvalidOperationException($"Failed to get instances: {iEx}"));
         }
         
         var instances = resultInstances.Unwrap();
         
         // write instances
+        var resultData = RepackInstances(xe, outStream, instances, stringHashes, stringTable, types);
+        if (resultInstances.IsErr(out var repackEx))
+        {
+            return Result.Err<int>(new InvalidOperationException($"Failed to repack instances: {iEx}"));
+        }
         
         // write types
         
@@ -528,7 +534,7 @@ public class AdfV04File : ICanExtractPath, IExtractPathToPath, IExtractStreamToS
         return Option<Exception>.None;
     }
 
-    public Result<AdfV04Instance[], Exception> FromXElement(XElement xe, Stream stream, Dictionary<uint, string> stringHashes, string[] stringTable, AdfV04Type[] types)
+    public Result<AdfV04Instance[], Exception> FromXElement(XElement xe, string[] stringTable)
     {
         var instanceElements = xe.Descendants(AdfV04InstanceLibrary.XName)
             .ToArray();
@@ -560,15 +566,56 @@ public class AdfV04File : ICanExtractPath, IExtractPathToPath, IExtractStreamToS
             }
             
             instance.NameIndex = (ulong) foundIndex;
-            
             instances.Add(instance);
+        }
+        
+        return Result.OkExn(instances.ToArray());
+    }
+    
+    public Result<AdfV04Instance[], Exception> RepackInstances(XElement xe, Stream stream, AdfV04Instance[] instances,
+        Dictionary<uint, string> stringHashes, string[] stringTable, AdfV04Type[] types)
+    {
+        var instanceElements = xe.Descendants(AdfV04InstanceLibrary.XName)
+            .ToArray();
+
+        if (instances.Length != instanceElements.Length)
+        {
+            return Result.Err<AdfV04Instance[]>(new InvalidOperationException($"instanceElements.Length != instances.Length"));
+        }
+        
+        var instancesXe = instances.Zip(instanceElements, (instance, xInstance) => new
+        {
+            Instance = instance,
+            XInstance = xInstance
+        });
+        
+        // var contentOffset = (int) (instances.Select(inst => inst.PayloadSize).Aggregate((a, b) => a + b));
+        // using var memoryStream = new MemoryStream();
+        
+        foreach (var zipInstance in instancesXe)
+        {
+            var instance = zipInstance.Instance;
+            var xInstance = zipInstance.XInstance;
+            
+            var resultAdfType = instance.GetType(types);
+            if (!resultAdfType.IsOk(out var adfType))
+            {
+                return Result.Err<AdfV04Instance[]>(new InvalidOperationException($"{instance.Name} type was missing from type list"));
+            }
+            
+            // content offset is relative to instance offset
+            // use memory stream to avoid extra functions and data passing
+            var contentOffset = (int) instance.PayloadSize;
+            using var memoryStream = new MemoryStream();
             
             // write data
-            var optionException = AdfV04InstanceLibrary.FromXElement(instanceElement, stream, stringHashes, stringTable, types);
+            var optionException = AdfV04InstanceLibrary.FromXElement(xInstance, memoryStream, stringHashes, stringTable, types, ref contentOffset);
             if (optionException.IsSome(out var exception))
             {
                 return Result.Err<AdfV04Instance[]>(exception);
             }
+            
+            memoryStream.CopyTo(stream);
         }
         
         return Result.OkExn(instances.ToArray());
