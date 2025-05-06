@@ -248,7 +248,7 @@ public class AdfV04File : ICanExtractPath, IExtractPathToPath, IExtractStreamToS
         outStream.AlignWrite(16, 0x00);
         
         // get instances
-        var resultInstances = FromXElement(xe, stringTable);
+        var resultInstances = FromXElement(xe, stringTable, types);
         if (resultInstances.IsErr(out var iEx))
         {
             return Result.Err<int>(new InvalidOperationException($"Failed to get instances: {iEx}"));
@@ -534,7 +534,7 @@ public class AdfV04File : ICanExtractPath, IExtractPathToPath, IExtractStreamToS
         return Option<Exception>.None;
     }
 
-    public Result<AdfV04Instance[], Exception> FromXElement(XElement xe, string[] stringTable)
+    public Result<AdfV04Instance[], Exception> FromXElement(XElement xe, string[] stringTable, AdfV04Type[] types)
     {
         var instanceElements = xe.Descendants(AdfV04InstanceLibrary.XName)
             .ToArray();
@@ -546,17 +546,18 @@ public class AdfV04File : ICanExtractPath, IExtractPathToPath, IExtractStreamToS
             {
                 return Result.Err<AdfV04Instance[]>(new InvalidOperationException("Missing name attribute"));
             }
-            
-            if (!instanceElement.GetAttribute("type").IsSome(out var type))
+
+            var resultTypeHash = instanceElement.GetAdfV04Type(types);
+            if (!resultTypeHash.IsOk(out var adfType))
             {
-                return Result.Err<AdfV04Instance[]>(new InvalidOperationException("Missing type attribute"));
+                return Result.Err<AdfV04Instance[]>(new InvalidOperationException("Invalid type hash"));
             }
             
             var instance = new AdfV04Instance
             {
                 Name = name,
                 NameHash = name.HashJenkins(),
-                TypeHash = type.HashJenkins()
+                TypeHash = adfType.TypeHash
             };
             
             var foundIndex = Array.FindIndex(stringTable, s => s.Equals(instance.Name, StringComparison.InvariantCultureIgnoreCase));

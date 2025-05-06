@@ -10,13 +10,17 @@ public static class AdfV04XElementLibrary
 {
     public static Result<AdfV04Type, Exception> GetAdfV04Type(this XElement xe, AdfV04Type[] types)
     {
-        var optionXType = xe.GetAttribute("type");
-        if (!optionXType.IsSome(out var xType))
+        if (!xe.GetAttribute("typeHash").IsSome(out var xTypeHash))
         {
-            return Result.Err<AdfV04Type>(new InvalidOperationException($"{xe.Name.LocalName} type attribute was missing from struct"));
+            return Result.Err<AdfV04Type>(new InvalidOperationException("Missing type hash attribute"));
+        }
+
+        if (!uint.TryParse(xTypeHash, out var typeHash))
+        {
+            return Result.Err<AdfV04Type>(new InvalidOperationException($"Failed to cast type hash '{xTypeHash}' to uint"));
         }
         
-        var optionAdfType = types.FirstOrNone(t => t.Name.Equals(xType, StringComparison.InvariantCultureIgnoreCase));
+        var optionAdfType = types.FirstOrNone(t => t.TypeHash == typeHash);
         if (!optionAdfType.IsSome(out var adfType))
         {
             return Result.Err<AdfV04Type>(new InvalidOperationException($"{xe.Name.LocalName} type was missing from type list"));
@@ -27,16 +31,21 @@ public static class AdfV04XElementLibrary
     
     public static EAdfV04Type GetAdfV04Type(this XElement xe)
     {
+        var result = xe.Name.LocalName.ToEAdfV04Type();
+        if (result != EAdfV04Type.Scalar)
+            return result;
+        
+        // double check
         if (xe.GetAttribute("type").IsSome(out var xType))
         {
-            if (AdfV04TypeEnumLibrary.XNameMap.Values.FirstOrNone(n => n.Contains(xType, StringComparison.CurrentCultureIgnoreCase)).IsSome(out var stringType))
+            if (AdfV04TypeEnumLibrary.XNameMap.Values.Reverse().FirstOrNone(n => xType.Contains(n, StringComparison.CurrentCultureIgnoreCase)).IsSome(out var stringType))
             {
                 return stringType.ToEAdfV04Type();
             }
             
             return xType.ToEAdfV04Type();
         }
-        
-        return xe.Name.LocalName.ToEAdfV04Type();
+
+        return result;
     }
 }

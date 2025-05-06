@@ -69,6 +69,7 @@ public static class AdfV04InstanceLibrary
         var xe = XElementBuilder.Create("instance")
             .WithAttribute("name", instance.Name.RemoveAll(XDocumentLibrary.InvalidXmlCharacters))
             .WithAttribute("type", adfType.Name.RemoveAll(XDocumentLibrary.InvalidXmlCharacters))
+            .WithAttribute("typeHash", adfType.TypeHash.ToString())
             .Build();
 
         foreach (var member in adfType.Members)
@@ -112,6 +113,7 @@ public static class AdfV04InstanceLibrary
         var xe = new XElement(adfType.Type.ToXName());
         xe.SetAttributeValue("name", name);
         xe.SetAttributeValue("type", adfType.SafeName);
+        xe.SetAttributeValue("typeHash", adfType.TypeHash);
         xe.SetAttributeValue("offset", $"{stream.Position:X08}");
         
         stream.AlignRead(adfType.Alignment);
@@ -141,6 +143,8 @@ public static class AdfV04InstanceLibrary
         var xe = new XElement(adfType.Type.ToXName());
         xe.SetAttributeValue("name", name);
         xe.SetAttributeValue("type", adfType.SafeName);
+        xe.SetAttributeValue("typeHash", adfType.TypeHash);
+        xe.SetAttributeValue("offset", $"{stream.Position:X08}");
         
         var optionSubType = types.FirstOrNone(t => t.TypeHash == adfType.ScalarTypeHash);
         if (!optionSubType.IsSome(out var subtype))
@@ -170,6 +174,7 @@ public static class AdfV04InstanceLibrary
         var xe = new XElement(adfType.Type.ToXName());
         xe.SetAttributeValue("name", name);
         xe.SetAttributeValue("type", adfType.SafeName);
+        xe.SetAttributeValue("typeHash", adfType.TypeHash);
         xe.SetAttributeValue("offset", $"{stream.Position:X08}");
         
         var arrayOffset = stream.Read<uint>();
