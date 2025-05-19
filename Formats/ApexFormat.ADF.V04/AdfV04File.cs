@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 using ApexFormat.ADF.V04.Class;
@@ -11,7 +12,6 @@ using ApexToolsLauncher.Core.Libraries;
 using ApexToolsLauncher.Core.Libraries.XBuilder;
 using CommunityToolkit.HighPerformance;
 using RustyOptions;
-using AdfV04TypeLibrary = ApexFormat.ADF.V04.Class.AdfV04TypeLibrary;
 
 namespace ApexFormat.ADF.V04;
 
@@ -33,6 +33,7 @@ public class AdfV04File : ICanExtractPath, IExtractPathToPath, IExtractStreamToS
         }
         catch (Exception)
         {
+            return false;
         }
 
         return result;
@@ -212,7 +213,7 @@ public class AdfV04File : ICanExtractPath, IExtractPathToPath, IExtractStreamToS
         var stringHashes = resultStringHashes.Unwrap();
         
         // load string table
-        var resultStringTable = RepackStringTable(xe);
+        var resultStringTable = StringTableFromElement(xe);
         if (resultStringTable.IsErr(out var stEx))
         {
             return Result.Err<int>(new InvalidOperationException($"Failed to repack string table: {stEx}"));
@@ -221,7 +222,7 @@ public class AdfV04File : ICanExtractPath, IExtractPathToPath, IExtractStreamToS
         var stringTable = resultStringTable.Unwrap();
         
         // load types
-        var resultTypes = RepackTypes(xe);
+        var resultTypes = TypesFromElement(xe);
         if (resultTypes.IsErr(out var tEx))
         {
             return Result.Err<int>(new InvalidOperationException($"Failed to repack types: {tEx}"));
@@ -242,7 +243,9 @@ public class AdfV04File : ICanExtractPath, IExtractPathToPath, IExtractStreamToS
             InstanceCount = 0,
             TypeCount = (uint) types.Length,
             StringHashCount = (uint) stringHashes.Count,
-            StringTableCount = (uint) stringTable.Length
+            StringTableCount = (uint) stringTable.Length,
+            Unknown01 = 32,
+            Unknown02 = 32
         };
         header.Write(outStream);
         outStream.AlignWrite(16, 0x00);
@@ -257,17 +260,32 @@ public class AdfV04File : ICanExtractPath, IExtractPathToPath, IExtractStreamToS
         var instances = resultInstances.Unwrap();
         
         // write instances
-        var resultData = RepackInstances(xe, outStream, instances, stringHashes, stringTable, types);
-        if (resultInstances.IsErr(out var repackEx))
+        var resultData = RepackInstances(xe, outStream, ref header, ref instances, stringHashes, stringTable, types);
+        if (resultData.IsErr(out _))
         {
             return Result.Err<int>(new InvalidOperationException($"Failed to repack instances: {iEx}"));
         }
         
         // write types
+        var optionRepackTypes = RepackTypes(outStream, ref header, types);
+        if (optionRepackTypes.IsSome(out var typesEx))
+        {
+            return Result.Err<int>(new InvalidOperationException($"Failed to repack types: {typesEx}"));
+        }
         
         // write string hashes
+        var optionRepackStringHashes = RepackStringHashes(outStream, ref header, stringHashes);
+        if (optionRepackStringHashes.IsSome(out var stringHashEx))
+        {
+            return Result.Err<int>(new InvalidOperationException($"Failed to repack string hashes: {stringHashEx}"));
+        }
         
         // write string table
+        var optionRepackStringTable = RepackStringTable(outStream, ref header, stringTable);
+        if (optionRepackStringTable.IsSome(out var stringTableEx))
+        {
+            return Result.Err<int>(new InvalidOperationException($"Failed to repack string table: {stringTableEx}"));
+        }
         
         // write header
         outStream.Seek(0, SeekOrigin.Begin);
@@ -483,7 +501,7 @@ public class AdfV04File : ICanExtractPath, IExtractPathToPath, IExtractStreamToS
         return Result.OkExn(stringHashes);
     }
     
-    public Result<string[], Exception> RepackStringTable(XElement xe)
+    public Result<string[], Exception> StringTableFromElement(XElement xe)
     {
         var namedElements = xe.Descendants()
             .Where(xc => xc.Name.LocalName != "string_hash")
@@ -495,7 +513,7 @@ public class AdfV04File : ICanExtractPath, IExtractPathToPath, IExtractStreamToS
         return Result.OkExn(namedElements);
     }
     
-    public Result<AdfV04Type[], Exception> RepackTypes(XElement xe)
+    public Result<AdfV04Type[], Exception> TypesFromElement(XElement xe)
     {
         var typeElements = xe.Descendants(AdfV04TypeLibrary.XName)
             .ToArray();
@@ -529,6 +547,62 @@ public class AdfV04File : ICanExtractPath, IExtractPathToPath, IExtractStreamToS
             }
             
             adfType.NameIndex = (ulong) foundIndex;
+        }
+        
+        return Option<Exception>.None;
+    }
+
+    public Option<Exception> RepackTypes(Stream stream, ref AdfV04Header header, AdfV04Type[] adfTypes)
+    {
+        header.TypeOffset = (uint) stream.Position;
+        header.TypeCount = (uint) adfTypes.Length;
+        
+        foreach (var adfType in adfTypes)
+        {
+            stream.Write(adfType.Type);
+            stream.Write(adfType.Size);
+            stream.Write(adfType.Alignment);
+            stream.Write(adfType.TypeHash);
+            stream.Write(adfType.NameIndex);
+            stream.Write(adfType.Flags);
+            stream.Write(adfType.ScalarType);
+            stream.Write(adfType.ScalarTypeHash);
+            stream.Write(adfType.BitCountOrArrayLength);
+            stream.Write(adfType.MemberCountOrDataAlign);
+        }
+        
+        return Option<Exception>.None;
+    }
+    
+    public Option<Exception> RepackStringHashes(Stream stream, ref AdfV04Header header, Dictionary<uint,string> stringHashes)
+    {
+        header.StringHashOffset = (uint) stream.Position;
+        header.StringHashCount = (uint) stringHashes.Count;
+
+        foreach (var kvp in stringHashes)
+        {
+            stream.Write(Encoding.UTF8.GetBytes(kvp.Value));
+            stream.Write((byte) 0x00);
+            stream.Write((ulong) kvp.Key);
+        }
+        
+        return Option<Exception>.None;
+    }
+    
+    public Option<Exception> RepackStringTable(Stream stream, ref AdfV04Header header, string[] stringTable)
+    {
+        header.StringTableOffset = (uint) stream.Position;
+        header.StringTableCount = (uint) stringTable.Length;
+
+        foreach (var stringEntry in stringTable)
+        {
+            stream.Write((byte) (stringEntry.Length + 1));
+        }
+        
+        foreach (var stringEntry in stringTable)
+        {
+            stream.Write(Encoding.UTF8.GetBytes(stringEntry));
+            stream.Write((byte) 0x00);
         }
         
         return Option<Exception>.None;
@@ -573,8 +647,8 @@ public class AdfV04File : ICanExtractPath, IExtractPathToPath, IExtractStreamToS
         return Result.OkExn(instances.ToArray());
     }
     
-    public Result<AdfV04Instance[], Exception> RepackInstances(XElement xe, Stream stream, AdfV04Instance[] instances,
-        Dictionary<uint, string> stringHashes, string[] stringTable, AdfV04Type[] types)
+    public Result<AdfV04Instance[], Exception> RepackInstances(XElement xe, Stream stream, ref AdfV04Header header,
+        ref AdfV04Instance[] instances, Dictionary<uint, string> stringHashes, string[] stringTable, AdfV04Type[] types)
     {
         var instanceElements = xe.Descendants(AdfV04InstanceLibrary.XName)
             .ToArray();
@@ -592,11 +666,11 @@ public class AdfV04File : ICanExtractPath, IExtractPathToPath, IExtractStreamToS
         
         // var contentOffset = (int) (instances.Select(inst => inst.PayloadSize).Aggregate((a, b) => a + b));
         // using var memoryStream = new MemoryStream();
-        
-        foreach (var zipInstance in instancesXe)
+
+        for (var i = 0; i < instances.Length; i++)
         {
-            var instance = zipInstance.Instance;
-            var xInstance = zipInstance.XInstance;
+            var instance = instances[i];
+            var xInstance = instanceElements[i];
             
             var resultAdfType = instance.GetType(types);
             if (!resultAdfType.IsOk(out var adfType))
@@ -616,7 +690,22 @@ public class AdfV04File : ICanExtractPath, IExtractPathToPath, IExtractStreamToS
                 return Result.Err<AdfV04Instance[]>(exception);
             }
             
+            instances[i].PayloadOffset = (uint) stream.Position;
+            instances[i].PayloadSize = (uint) memoryStream.Length;
+            
             memoryStream.CopyTo(stream);
+        }
+        
+        header.InstanceOffset = (uint) stream.Position;
+        header.InstanceCount = (uint) instances.Length;
+
+        foreach (var instance in instances)
+        {
+            stream.Write(instance.NameHash);
+            stream.Write(instance.TypeHash);
+            stream.Write(instance.PayloadOffset);
+            stream.Write(instance.PayloadSize);
+            stream.Write(instance.NameIndex);
         }
         
         return Result.OkExn(instances.ToArray());

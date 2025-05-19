@@ -626,7 +626,7 @@ public static class AdfV04InstanceLibrary
             return (new Exception($"{xe.Name.LocalName} content length != adfType length {adfType.BitCountOrArrayLength}")).AsOption();
         }
 
-        var optionSubType = types.FirstOrNone(t => t.TypeHash == adfType.ScalarTypeHash);
+        var optionSubType = types.FirstOrNone(t => t.TypeHash == adfType.TypeHash);
         if (!optionSubType.IsSome(out var subtype))
         {
             return (new Exception($"{xe.Name.LocalName} could not find subtype")).AsOption();

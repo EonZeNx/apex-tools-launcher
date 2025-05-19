@@ -71,6 +71,11 @@ public class AdfV04Type
 
     public string Name { get; set; } = string.Empty;
     public string SafeName => Name.Trim().Trim((char) 0x00);
+
+    public override string ToString()
+    {
+        return $"{TypeHash} \"{SafeName}\"";
+    }
 }
 
 public static class AdfV04TypeLibrary

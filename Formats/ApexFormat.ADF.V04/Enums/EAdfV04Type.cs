@@ -15,7 +15,7 @@ public enum EAdfV04Type : uint
     Deferred     = 0xA,
 }
 
-public static class AdfV04TypeEnumLibrary 
+public static class AdfV04TypeEnumLibrary
 {
     public static readonly Dictionary<EAdfV04Type, string> XNameMap = new()
     {
