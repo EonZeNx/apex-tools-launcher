@@ -557,7 +557,10 @@ public class AdfV04File : ICanExtractPath, IExtractPathToPath, IExtractStreamToS
         header.TypeOffset = (uint) stream.Position;
         header.TypeCount = (uint) adfTypes.Length;
         
-        foreach (var adfType in adfTypes)
+        var builtinTypes = CreateInbuiltTypes().Select(t => t.TypeHash);
+        var customTypes = adfTypes.Where(t => !builtinTypes.Contains(t.TypeHash)).ToList();
+        
+        foreach (var adfType in customTypes)
         {
             stream.Write(adfType.Type);
             stream.Write(adfType.Size);
