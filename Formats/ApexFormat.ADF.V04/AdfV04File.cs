@@ -632,9 +632,10 @@ public class AdfV04File : ICanExtractPath, IExtractPathToPath, IExtractStreamToS
             
             var instance = new AdfV04Instance
             {
-                Name = name,
                 NameHash = name.HashJenkins(),
-                TypeHash = adfType.TypeHash
+                TypeHash = adfType.TypeHash,
+                PayloadSize = adfType.Size,
+                Name = name,
             };
             
             var foundIndex = Array.FindIndex(stringTable, s => s.Equals(instance.Name, StringComparison.InvariantCultureIgnoreCase));
@@ -661,15 +662,6 @@ public class AdfV04File : ICanExtractPath, IExtractPathToPath, IExtractStreamToS
             return Result.Err<AdfV04Instance[]>(new InvalidOperationException($"instanceElements.Length != instances.Length"));
         }
         
-        var instancesXe = instances.Zip(instanceElements, (instance, xInstance) => new
-        {
-            Instance = instance,
-            XInstance = xInstance
-        });
-        
-        // var contentOffset = (int) (instances.Select(inst => inst.PayloadSize).Aggregate((a, b) => a + b));
-        // using var memoryStream = new MemoryStream();
-
         for (var i = 0; i < instances.Length; i++)
         {
             var instance = instances[i];
@@ -682,8 +674,8 @@ public class AdfV04File : ICanExtractPath, IExtractPathToPath, IExtractStreamToS
             }
             
             // content offset is relative to instance offset
-            // use memory stream to avoid extra functions and data passing
             var contentOffset = (int) instance.PayloadSize;
+            // use memory stream to avoid extra functions and data passing
             using var memoryStream = new MemoryStream();
             
             // write data
@@ -696,6 +688,7 @@ public class AdfV04File : ICanExtractPath, IExtractPathToPath, IExtractStreamToS
             instances[i].PayloadOffset = (uint) stream.Position;
             instances[i].PayloadSize = (uint) memoryStream.Length;
             
+            memoryStream.Seek(0, SeekOrigin.Begin);
             memoryStream.CopyTo(stream);
         }
         
