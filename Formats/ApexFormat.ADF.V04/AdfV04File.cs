@@ -288,6 +288,8 @@ public class AdfV04File : ICanExtractPath, IExtractPathToPath, IExtractStreamToS
         }
         
         // write header
+        header.FileSize = (uint) outStream.Length;
+        
         outStream.Seek(0, SeekOrigin.Begin);
         header.Write(outStream);
         

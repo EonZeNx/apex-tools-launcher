@@ -160,7 +160,7 @@ public static class AdfV04TypeLibrary
                 () => adfV04Type.Type == EAdfV04Type.Scalar
                         ? Option.Some(adfV04Type.ScalarType.ToXName()) : Option.None<string>())
             .WithAttribute("scalarTypeHash",
-                () => adfV04Type.Type == EAdfV04Type.Scalar
+                () => adfV04Type.ScalarTypeHash != 0
                     ? Option.Some(adfV04Type.ScalarTypeHash.ToString()) : Option.None<string>())
             .WithAttribute("bitCountOrArrayLength",
                 () => adfV04Type.BitCountOrArrayLength != 0

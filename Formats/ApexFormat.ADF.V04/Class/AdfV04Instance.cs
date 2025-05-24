@@ -585,17 +585,13 @@ public static class AdfV04InstanceLibrary
         
         stream.AlignWrite(adfType.Alignment, 0x00);
         
-        // contentOffset += (int) (adfType.Size);
-        
         var optionException = FromXElement(xe, stream, stringHashes, stringTable, types, ref contentOffset);
         if (optionException.IsSome(out _))
         {
             return optionException;
         }
         
-        stream.AlignWrite(adfType.Alignment, 0x00);
-        
-        // stream.Seek(contentOffset, SeekOrigin.Begin);
+        stream.AlignWrite(adfType.Alignment);
         
         return Option.None<Exception>();
     }
@@ -604,7 +600,17 @@ public static class AdfV04InstanceLibrary
         string[] stringTable, AdfV04Type[] types, ref int contentOffset)
     {
         var xce = xe.Elements().ToArray();
-        
+
+        if (xce.Length == 0)
+        {
+            stream.Write<uint>(0);
+            stream.Write<float>(0);
+            stream.Write<uint>(0);
+            stream.Write<float>(0);
+            
+            return Option.None<Exception>();
+        }
+
         stream.Write(contentOffset);
         stream.Write<float>(0);
         stream.Write(xce.Length);
@@ -652,7 +658,7 @@ public static class AdfV04InstanceLibrary
             return (new Exception($"{xe.Name.LocalName} content length != adfType length {adfType.BitCountOrArrayLength}")).AsOption();
         }
 
-        var optionSubType = types.FirstOrNone(t => t.TypeHash == adfType.TypeHash);
+        var optionSubType = types.FirstOrNone(t => t.TypeHash == adfType.ScalarTypeHash);
         if (!optionSubType.IsSome(out var subtype))
         {
             return (new Exception($"{xe.Name.LocalName} could not find subtype")).AsOption();
@@ -663,7 +669,7 @@ public static class AdfV04InstanceLibrary
         foreach (var value in valueArray)
         {
             var optionResult = ScalarFromContent(value, stream, subtype);
-            if (!optionResult.IsSome(out var result))
+            if (!optionResult.IsNone)
             {
                 return optionResult;
             }
@@ -674,6 +680,7 @@ public static class AdfV04InstanceLibrary
     
     public static Option<Exception> StringFromXElement(XElement xe, Stream stream, ref int contentOffset)
     {
+        stream.AlignWrite(8, 0x00);
         stream.Write((uint) contentOffset);
         stream.Write<uint>(0);
         
@@ -682,7 +689,7 @@ public static class AdfV04InstanceLibrary
         
         stream.Write(Encoding.UTF8.GetBytes(xe.Value));
         stream.Write((byte) 0x00);
-        stream.AlignWrite(4, 0x00);
+        stream.AlignWrite(8, 0x00);
         
         contentOffset = (int) stream.Position;
         stream.Seek(originalPosition, SeekOrigin.Begin);
