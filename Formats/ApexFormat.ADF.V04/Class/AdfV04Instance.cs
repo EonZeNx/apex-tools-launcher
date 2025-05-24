@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Globalization;
+using System.Text;
 using System.Xml.Linq;
 using ApexFormat.ADF.V04.Enums;
 using ApexFormat.ADF.V04.Libraries;
@@ -424,6 +425,7 @@ public static class AdfV04InstanceLibrary
             case EAdfV04Type.Recursive:
                 break;
             case EAdfV04Type.Bitfield:
+                result = BitfieldFromXElement(xe, stream, ref contentOffset);
                 break;
             case EAdfV04Type.Enum:
                 break;
@@ -591,7 +593,7 @@ public static class AdfV04InstanceLibrary
             return optionException;
         }
         
-        stream.AlignWrite(adfType.Alignment);
+        stream.AlignWrite(adfType.Alignment, 0x00);
         
         return Option.None<Exception>();
     }
@@ -600,6 +602,8 @@ public static class AdfV04InstanceLibrary
         string[] stringTable, AdfV04Type[] types, ref int contentOffset)
     {
         var xce = xe.Elements().ToArray();
+        
+        stream.AlignWrite(8, 0x00);
 
         if (xce.Length == 0)
         {
@@ -696,9 +700,29 @@ public static class AdfV04InstanceLibrary
         
         return Option.None<Exception>();
     }
+
+    public static Option<Exception> BitfieldFromXElement(XElement xe, Stream stream, ref int contentOffset)
+    {
+        // todo: back read last byte, add this bit, write byte
+        return Option.None<Exception>();
+    }
     
     public static Option<Exception> StringHashFromXElement(XElement xe, Stream stream)
     {
+        stream.AlignWrite(4, 0x00);
+        
+        if (xe.GetAttribute("hash").IsSome(out var isHashValue))
+        {
+            if (uint.TryParse(isHashValue, out var isHash) && isHash != 0)
+            {
+                if (uint.TryParse(xe.Value, NumberStyles.HexNumber, null, out var hash))
+                {
+                    stream.Write(hash);
+                    return Option.None<Exception>();
+                }
+            }
+        }
+        
         stream.Write(xe.Value.HashJenkins());
         
         return Option.None<Exception>();
