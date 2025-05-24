@@ -261,9 +261,9 @@ public class AdfV04File : ICanExtractPath, IExtractPathToPath, IExtractStreamToS
         
         // write instances
         var resultData = RepackInstances(xe, outStream, ref header, ref instances, stringHashes, stringTable, types);
-        if (resultData.IsErr(out _))
+        if (resultData.IsErr(out var repackEx))
         {
-            return Result.Err<int>(new InvalidOperationException($"Failed to repack instances: {iEx}"));
+            return Result.Err<int>(new InvalidOperationException($"Failed to repack instances: {repackEx}"));
         }
         
         // write types
@@ -674,12 +674,12 @@ public class AdfV04File : ICanExtractPath, IExtractPathToPath, IExtractStreamToS
             }
             
             // content offset is relative to instance offset
-            var contentOffset = (int) instance.PayloadSize;
+            var contentOffset = (int) adfType.Size;
             // use memory stream to avoid extra functions and data passing
             using var memoryStream = new MemoryStream();
             
             // write data
-            var optionException = AdfV04InstanceLibrary.FromXElement(xInstance, memoryStream, stringHashes, stringTable, types, ref contentOffset);
+            var optionException = AdfV04InstanceLibrary.DataFromXElement(xInstance, memoryStream, stringHashes, stringTable, types, ref contentOffset);
             if (optionException.IsSome(out var exception))
             {
                 return Result.Err<AdfV04Instance[]>(exception);

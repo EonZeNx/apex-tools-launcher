@@ -217,6 +217,7 @@ public static class AdfV04InstanceLibrary
         var xe = new XElement(AdfV04MemberLibrary.XName);
         xe.SetAttributeValue("name", name);
         xe.SetAttributeValue("type", adfType.SafeName);
+        xe.SetAttributeValue("typeHash", adfType.TypeHash.ToString());
         xe.SetAttributeValue("offset", $"{stream.Position:X08}");
 
         var optionResult = ScalarToContent(stream, adfType);
@@ -271,6 +272,7 @@ public static class AdfV04InstanceLibrary
         var xe = new XElement(AdfV04MemberLibrary.XName);
         xe.SetAttributeValue("name", name);
         xe.SetAttributeValue("type", adfType.SafeName);
+        xe.SetAttributeValue("typeHash", adfType.TypeHash.ToString());
         xe.SetAttributeValue("offset", $"{stream.Position:X08}");
         
         var stringOffset = stream.Read<uint>();
@@ -297,6 +299,7 @@ public static class AdfV04InstanceLibrary
         var oxe = XElementBuilder.Create(AdfV04MemberLibrary.XName)
             .WithAttribute("name", name)
             .WithAttribute("type", adfType.SafeName)
+            .WithAttribute("typeHash", adfType.TypeHash.ToString())
             .WithAttribute("offset", $"{stream.Position:X08}")
             .WithContent($"{value:X01}")
             .BuildOption();
@@ -311,6 +314,7 @@ public static class AdfV04InstanceLibrary
         var oxe = XElementBuilder.Create(AdfV04MemberLibrary.XName)
             .WithAttribute("name", name)
             .WithAttribute("type", adfType.SafeName)
+            .WithAttribute("typeHash", adfType.TypeHash.ToString())
             .WithAttribute("offset", $"{stream.Position:X08}")
             .WithContent(value.ToString())
             .BuildOption();
@@ -320,6 +324,7 @@ public static class AdfV04InstanceLibrary
     
     public static Option<XElement> StringHashToXElement(this AdfV04Instance instance, Stream stream, AdfV04Type adfType, string name, Dictionary<uint, string> stringHashes)
     {
+        var offset = stream.Position;
         var stringHash = stream.Read<uint>();
         var optionValue = stringHashes.GetValueOrNone(stringHash);
 
@@ -329,8 +334,9 @@ public static class AdfV04InstanceLibrary
         var oxe = XElementBuilder.Create(AdfV04MemberLibrary.XName)
             .WithAttribute("name", name)
             .WithAttribute("type", adfType.SafeName)
+            .WithAttribute("typeHash", adfType.TypeHash.ToString())
             .WithAttribute("hash", optionValue.MapOr(v => Option<string>.None, Option.Some("1")))
-            .WithAttribute("offset", $"{stream.Position:X08}")
+            .WithAttribute("offset", $"{offset:X08}")
             .WithContent(value)
             .BuildOption();
 
@@ -342,6 +348,7 @@ public static class AdfV04InstanceLibrary
         var xe = new XElement(adfType.Type.ToXName());
         xe.SetAttributeValue("name", name);
         xe.SetAttributeValue("type", adfType.SafeName);
+        xe.SetAttributeValue("typeHash", adfType.TypeHash.ToString());
         xe.SetAttributeValue("offset", $"{stream.Position:X08}");
         
         var dataOffset = stream.Read<uint>();
@@ -388,10 +395,14 @@ public static class AdfV04InstanceLibrary
 
     public static Option<Exception> DataFromXElement(XElement xe, Stream stream, Dictionary<uint, string> stringHashes, string[] stringTable, AdfV04Type[] types, ref int contentOffset)
     {
-        var adfType = xe.GetAdfV04Type();
+        var resultAdfType = xe.GetAdfV04Type(types);
+        if (!resultAdfType.IsOk(out var adfType))
+        {
+            return (new Exception($"{xe.Name.LocalName} type was missing from type list")).AsOption();
+        }
 
         var result = Option.None<Exception>();
-        switch (adfType)
+        switch (adfType.Type)
         {
             case EAdfV04Type.Scalar:
                 result = ScalarFromXElement(xe, stream, types);
@@ -573,7 +584,9 @@ public static class AdfV04InstanceLibrary
         }
         
         stream.AlignWrite(adfType.Alignment, 0x00);
-
+        
+        // contentOffset += (int) (adfType.Size);
+        
         var optionException = FromXElement(xe, stream, stringHashes, stringTable, types, ref contentOffset);
         if (optionException.IsSome(out _))
         {
@@ -581,6 +594,8 @@ public static class AdfV04InstanceLibrary
         }
         
         stream.AlignWrite(adfType.Alignment, 0x00);
+        
+        // stream.Seek(contentOffset, SeekOrigin.Begin);
         
         return Option.None<Exception>();
     }
@@ -598,13 +613,24 @@ public static class AdfV04InstanceLibrary
         var originalPosition = stream.Position;
         stream.Seek(contentOffset, SeekOrigin.Begin);
         
+        if (xce.Length != 0)
+        {
+            var resultChildAdfType = xce[0].GetAdfV04Type(types);
+            if (!resultChildAdfType.IsOk(out var childAdfType))
+            {
+                return (new Exception($"Child {xe.Name.LocalName} type was missing from type list")).AsOption();
+            }
+            
+            contentOffset += (int) (childAdfType.Size * xce.Length);
+        }
+        
         var optionException = FromXElement(xe, stream, stringHashes, stringTable, types, ref contentOffset);
         if (!optionException.IsNone)
         {
             return optionException;
         }
         
-        contentOffset = (int) stream.Position;
+        // contentOffset = (int) stream.Position;
         stream.Seek(originalPosition, SeekOrigin.Begin);
         
         return Option.None<Exception>();
