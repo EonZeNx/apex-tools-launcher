@@ -425,7 +425,8 @@ public static class AdfV04InstanceLibrary
             case EAdfV04Type.Recursive:
                 break;
             case EAdfV04Type.Bitfield:
-                result = BitfieldFromXElement(xe, stream, ref contentOffset);
+                var temp = adfType.Type;
+                result = BitfieldFromXElement(xe, stream, types, ref contentOffset);
                 break;
             case EAdfV04Type.Enum:
                 break;
@@ -687,6 +688,11 @@ public static class AdfV04InstanceLibrary
         stream.AlignWrite(8, 0x00);
         stream.Write((uint) contentOffset);
         stream.Write<uint>(0);
+
+        // if (xe.Value.Length == 0)
+        // {
+        //     return Option.None<Exception>();
+        // }
         
         var originalPosition = stream.Position;
         stream.Seek(contentOffset, SeekOrigin.Begin);
@@ -701,9 +707,54 @@ public static class AdfV04InstanceLibrary
         return Option.None<Exception>();
     }
 
-    public static Option<Exception> BitfieldFromXElement(XElement xe, Stream stream, ref int contentOffset)
+    public static Option<Exception> BitfieldFromXElement(XElement xe, Stream stream, AdfV04Type[] types, ref int contentOffset)
     {
-        // todo: back read last byte, add this bit, write byte
+        if (!byte.TryParse(xe.Value, out var byteValue))
+        {
+            return (new Exception($"{xe.Name.LocalName} could not cast {xe.Value} to byte")).AsOption();
+        }
+
+        var xesBefore = xe.ElementsBeforeSelf().ToArray();
+        var xeBitfieldIndex = xesBefore.Length;
+        
+        // filter by bitfield
+        var startXeBitfieldIndex = xesBefore.Length;
+        for (var i = xesBefore.Length - 1; i >= 0; i--)
+        {
+            if (!xesBefore[i].GetAdfV04Type(types).IsOk(out var adfType))
+                continue;
+
+            if (adfType.Type != EAdfV04Type.Bitfield)
+                break;
+
+            startXeBitfieldIndex = i;
+        }
+        
+        var bitfieldIndex = (xeBitfieldIndex - startXeBitfieldIndex) % 8;
+        
+        // if first bit, start a new byte
+        byte bitfieldValue = 0;
+        
+        if (bitfieldIndex != 0)
+        {
+            // read last byte
+            stream.Seek(-1, SeekOrigin.Current);
+            bitfieldValue = stream.Read<byte>();
+        }
+        
+        // add bitfield value to byte
+        var byteValueString = Convert.ToString(byteValue, 2).PadLeft(8, '0');
+        var bitfieldValueString = Convert.ToString(bitfieldValue, 2).PadLeft(8, '0');
+        
+        var shifted = (byte) (byteValue << bitfieldIndex);
+        var shiftedString = Convert.ToString(shifted, 2).PadLeft(8, '0');
+        
+        bitfieldValue = (byte) (bitfieldValue | shifted);
+        
+        // seek back 1 byte, write byte
+        stream.Seek(-1, SeekOrigin.Current);
+        stream.Write(bitfieldValue);
+        
         return Option.None<Exception>();
     }
     

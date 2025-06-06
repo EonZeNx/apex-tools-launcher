@@ -127,6 +127,14 @@ public static class StreamExtensions
         }
     }
 
+
+    public static IEnumerable<bool> ReadBits(this Stream stream)
+    {
+        var readByte = stream.ReadByte();
+        for(var i = 7; i >= 0; i--)
+            yield return ((readByte >> i) & 1) == 1;
+    }
+    
     
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static unsafe bool CouldRead<T>(this Stream stream)
