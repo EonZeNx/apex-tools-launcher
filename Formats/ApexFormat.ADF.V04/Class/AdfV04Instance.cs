@@ -740,19 +740,11 @@ public static class AdfV04InstanceLibrary
             // read last byte
             stream.Seek(-1, SeekOrigin.Current);
             bitfieldValue = stream.Read<byte>();
+            stream.Seek(-1, SeekOrigin.Current);
         }
         
         // add bitfield value to byte
-        var byteValueString = Convert.ToString(byteValue, 2).PadLeft(8, '0');
-        var bitfieldValueString = Convert.ToString(bitfieldValue, 2).PadLeft(8, '0');
-        
-        var shifted = (byte) (byteValue << bitfieldIndex);
-        var shiftedString = Convert.ToString(shifted, 2).PadLeft(8, '0');
-        
-        bitfieldValue = (byte) (bitfieldValue | shifted);
-        
-        // seek back 1 byte, write byte
-        stream.Seek(-1, SeekOrigin.Current);
+        bitfieldValue = (byte) (bitfieldValue | (byteValue << bitfieldIndex));
         stream.Write(bitfieldValue);
         
         return Option.None<Exception>();

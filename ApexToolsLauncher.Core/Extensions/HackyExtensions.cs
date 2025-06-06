@@ -32,7 +32,7 @@ public class BitStream
 
     public byte ReadBit()
     {
-        if (Index >= sizeof(byte) || Position == 0 || Position != _stream.Position)
+        if (Index >= 8 || Position == 0 || Position != _stream.Position)
         {
             CurrentByte = (byte) _stream.ReadByte();
             Position = _stream.Position;
