@@ -721,33 +721,33 @@ public static class AdfV04InstanceLibrary
         if (xe.Value.Length == 0 && instance.EmptyStringOffset != 0)
         {
             stream.Write((uint) instance.EmptyStringOffset);
-        }
-        else
-        {
-            stream.Write((uint) contentOffset);
+            stream.Write<uint>(0);
+            
+            return Option.None<Exception>();
         }
         
+        stream.Write((uint) contentOffset);
         stream.Write<uint>(0);
         
         var originalPosition = stream.Position;
         stream.Seek(contentOffset, SeekOrigin.Begin);
         
+        stream.AlignWrite(8, 0x00);
+        
         if (xe.Value.Length != 0)
         {
             stream.Write(Encoding.UTF8.GetBytes(xe.Value));
-            stream.Write((byte) 0x00);
-            stream.AlignWrite(4, 0x00);
         }
-        else if (xe.Value.Length == 0)
+        else
         {
-            if (instance.EmptyStringOffset != 0)
+            if (instance.EmptyStringOffset == 0)
             {
                 instance.EmptyStringOffset = (int) stream.Position;
             }
-            
-            stream.Write((byte) 0x00);
-            stream.AlignWrite(4, 0x00);
         }
+        
+        stream.Write((byte) 0x00);
+        stream.AlignWrite(8, 0x00);
         
         contentOffset = (int) stream.Position;
         stream.Seek(originalPosition, SeekOrigin.Begin);
