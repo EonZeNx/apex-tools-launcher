@@ -691,11 +691,6 @@ public static class AdfV04InstanceLibrary
         var originalPosition = stream.Position;
         stream.Seek(contentOffset, SeekOrigin.Begin);
         
-        if (contentOffset >= 0x0005FC2C - 0x50)
-        {
-            ;
-        }
-        
         stream.AlignWrite(adfType.Alignment, 0x00);
         
         foreach (var value in valueArray)
@@ -722,7 +717,7 @@ public static class AdfV04InstanceLibrary
         {
             stream.Write((uint) instance.EmptyStringOffset);
             stream.Write<uint>(0);
-            
+
             return Option.None<Exception>();
         }
         
