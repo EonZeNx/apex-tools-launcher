@@ -681,7 +681,7 @@ public class AdfV04File : ICanExtractPath, IExtractPathToPath, IExtractStreamToS
             using var memoryStream = new MemoryStream();
             
             // write data
-            var optionException = AdfV04InstanceLibrary.DataFromXElement(xInstance, memoryStream, stringHashes, stringTable, types, ref contentOffset);
+            var optionException = instance.DataFromXElement(xInstance, memoryStream, stringHashes, stringTable, types, ref contentOffset);
             if (optionException.IsSome(out var exception))
             {
                 return Result.Err<AdfV04Instance[]>(exception);
