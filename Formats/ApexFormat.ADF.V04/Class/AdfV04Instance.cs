@@ -301,7 +301,7 @@ public static class AdfV04InstanceLibrary
             .WithAttribute("name", name)
             .WithAttribute("type", adfType.SafeName)
             .WithAttribute("typeHash", adfType.TypeHash.ToString())
-            .WithAttribute("offset", $"{stream.Position:X08}")
+            .WithAttribute("offset", $"{stream.BitStreamPosition():X08}")
             .WithContent($"{value:X01}")
             .BuildOption();
 
